@@ -25,10 +25,14 @@ namespace HikiCarry
         public static Spell E;
         public static Spell R;
         public static bool PacketCast;
+
  
 
         //Menu
         public static Menu Config;
+        public static Obj_AI_Hero tar;
+    
+
 
         private static Obj_AI_Hero Player;
 
@@ -88,21 +92,32 @@ namespace HikiCarry
             Config.AddSubMenu(new Menu("Harass", "Harass"));
             Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use E", true).SetValue(true));
 
-            Config.AddSubMenu(new Menu("Farm", "Farm"));
-            Config.SubMenu("Farm").AddItem(new MenuItem("FreezeActive", "Freeze!").SetValue(new KeyBind("X".ToCharArray()[0], KeyBindType.Press)));
-            Config.SubMenu("Farm").AddItem(new MenuItem("LaneClearActive", "LaneClear!").SetValue(new KeyBind("V".ToCharArray()[0], KeyBindType.Press)));
+       
+            Config.AddSubMenu(new Menu("Items", "Items"));
+            Config.SubMenu("Items").AddItem(new MenuItem("ghost", "Use GhostBlade!").SetValue(true));
+           
 
+           
 
             Config.AddSubMenu(new Menu("Drawings", "Drawings"));
             
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushERange", "E Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
 
-          
+            
+
             Config.AddToMainMenu();
             Drawing.OnDraw += Drawing_OnDraw;
             Game.OnUpdate += Game_OnGameUpdate;
+            Orbwalking.AfterAttack += Orbwalking_AfterAttack;
           
      
+        }
+
+        private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+          
+
+            
         }
 
        
@@ -134,31 +149,63 @@ namespace HikiCarry
             {
                 var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
 
-                
-                if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && Q.IsReady())
+                if (Items.CanUseItem(3142))
                 {
-                    Q.Cast(Game.CursorPos);
-                }
-
-                if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
-                {
-                    foreach (var en in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                    
+                    if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && Q.IsReady())
                     {
-                        //credits VayneHunterRework
+                        Items.UseItem(3142);
+                        Q.Cast(Game.CursorPos);
+                    }
 
-                        var ePred = E.GetPrediction(en);
-                        int pushDist = 425;
-                        var FinalPosition = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
-
-                        for (int i = 1; i < pushDist; i += (int)en.BoundingRadius)
+                    if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
+                    {
+                        foreach (var en in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
                         {
-                            Vector3 loc3 = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+                            //credits VayneHunterRework
 
-                            if (loc3.IsWall() || IsAllyFountain(FinalPosition))
-                                E.Cast(en);
+                            var ePred = E.GetPrediction(en);
+                            int pushDist = 425;
+                            var FinalPosition = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
+
+                            for (int i = 1; i < pushDist; i += (int)en.BoundingRadius)
+                            {
+                                Vector3 loc3 = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+
+                                if (loc3.IsWall() || IsAllyFountain(FinalPosition))
+                                    E.Cast(en);
+                            }
                         }
                     }
                 }
+                else
+                {
+                    if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && Q.IsReady())
+                    {
+                        Q.Cast(Game.CursorPos);
+                    }
+
+                    if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
+                    {
+                        foreach (var en in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                        {
+                            //credits VayneHunterRework
+
+                            var ePred = E.GetPrediction(en);
+                            int pushDist = 425;
+                            var FinalPosition = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
+
+                            for (int i = 1; i < pushDist; i += (int)en.BoundingRadius)
+                            {
+                                Vector3 loc3 = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+
+                                if (loc3.IsWall() || IsAllyFountain(FinalPosition))
+                                    E.Cast(en);
+                            }
+                        }
+                    }
+                }
+                
 
 
                
@@ -181,8 +228,8 @@ namespace HikiCarry
 
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
             {
-
                
+
             }
 
 
