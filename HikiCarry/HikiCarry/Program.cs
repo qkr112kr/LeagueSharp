@@ -30,17 +30,15 @@ namespace HikiCarry
         public static float LastMoveC;
         private static Spell _gapcloseSpell;
         private static Obj_AI_Hero _rengarObj;
+        
 
 
 
         //Menu
         public static Menu Config;
         public static Obj_AI_Hero tar;
-
-
-
         private static Obj_AI_Hero Player;
-
+     
        
 
         private static void Main(string[] args)
@@ -109,7 +107,11 @@ namespace HikiCarry
             Config.SubMenu("Misc").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("antirengo", "Anti Rengar Active!").SetValue(true));
+            Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Scrying Orb!").SetValue(true));
+            Config.SubMenu("Misc").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
             Config.SubMenu("Misc").AddItem(new MenuItem("ARQ", "Autocast Q When Ultimate!", true).SetValue(true));
+
+
 
 
 
@@ -129,8 +131,11 @@ namespace HikiCarry
             Interrupter2.OnInterruptableTarget += Interrupter2_OnInterruptableTarget;
             _gapcloseSpell = GetSpell();
             GameObject.OnCreate += OnCreateObject;
-
+           
+          
         }
+
+       
 
         private static void OnCreateObject(GameObject sender, EventArgs args)
         {
@@ -148,6 +153,8 @@ namespace HikiCarry
             {
                 DoButtFuck();
             }
+
+            
         }
 
         private static void DoButtFuck()
@@ -162,6 +169,7 @@ namespace HikiCarry
                 }
             }
         }
+      
 
         private static Spell GetSpell()
         {
@@ -362,8 +370,18 @@ namespace HikiCarry
             }
 
 
+            if (Config.Item("bT").GetValue<bool>() && Player.Level >= Config.Item("bluetrinketlevel").GetValue<Slider>().Value && Player.InShop() && !(Items.HasItem(3342) || Items.HasItem(3363)))
+            {
+                Player.BuyItem(ItemId.Scrying_Orb_Trinket);
+            }
+
+           
+
+         
+
         }
       
+
         
 
 
