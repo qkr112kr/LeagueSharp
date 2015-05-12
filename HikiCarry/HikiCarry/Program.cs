@@ -85,7 +85,7 @@ namespace HikiCarry
             Config.AddSubMenu(new Menu("Combo", "Combo"));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushQCombo", "Use Q").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushECombo", "Use E").SetValue(true));
-            Config.SubMenu("Combo").AddItem(new MenuItem("comboType", "Combo Type").SetValue(new StringList(new string[] { "Hikigaya Normal", "Hikigaya Kite Burst" })));
+            
             Config.SubMenu("Combo").AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
                 
 
@@ -196,17 +196,16 @@ namespace HikiCarry
         {
               var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
 
-            switch (Config.Item("comboType").GetValue<StringList>().SelectedIndex)
-            {
-                case 0:
-                   
+           
         // hikigaya normal combo start
-            if (Items.CanUseItem(3142))
-            {
+          
 
                 if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && Q.IsReady())
                 {
-                    Items.UseItem(3142);
+                     if (Items.CanUseItem(3142))
+                      {
+                          Items.UseItem(3142);
+                      }
                     Q.Cast(Game.CursorPos);
                 }
 
@@ -256,16 +255,9 @@ namespace HikiCarry
                         }
                     }
                 }
-            }
+            
 
-            break; //hikigaya normal combo finish
-                   
-                
-               
-                case 1:
-                  // will be coming soon
-                break;
-            }
+           
 
            
             
@@ -293,9 +285,6 @@ namespace HikiCarry
         {
             
             Orbwalker.SetAttack(true);
-
-            if (Player.IsDead)
-                return;
 
           //COMBO
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
