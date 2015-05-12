@@ -9,6 +9,7 @@ using Geometry = LeagueSharp.Common.Geometry;
 using Color = System.Drawing.Color;
 
 
+
 namespace HikiCarry
 {
     internal class Program
@@ -26,6 +27,9 @@ namespace HikiCarry
         public static Spell E;
         public static Spell R;
         public static bool PacketCast;
+        public static float LastMoveC;
+        private static Spell _gapcloseSpell;
+        private static Obj_AI_Hero _rengarObj;
 
 
 
@@ -36,6 +40,8 @@ namespace HikiCarry
 
 
         private static Obj_AI_Hero Player;
+
+       
 
         private static void Main(string[] args)
         {
@@ -102,6 +108,7 @@ namespace HikiCarry
             Config.AddSubMenu(new Menu("Misc", "Misc"));
             Config.SubMenu("Misc").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!", true).SetValue(true));
+            Config.SubMenu("Misc").AddItem(new MenuItem("antirengo", "Anti Rengar Active!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ARQ", "Autocast Q When Ultimate!", true).SetValue(true));
 
 
@@ -120,8 +127,51 @@ namespace HikiCarry
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
             Interrupter2.OnInterruptableTarget += Interrupter2_OnInterruptableTarget;
+            _gapcloseSpell = GetSpell();
+            GameObject.OnCreate += OnCreateObject;
 
+        }
 
+        private static void OnCreateObject(GameObject sender, EventArgs args)
+        {
+            if (sender.Name == "Rengar_LeapSound.troy" && sender.IsEnemy)
+            {
+                foreach (Obj_AI_Hero enemy in
+                    ObjectManager.Get<Obj_AI_Hero>()
+                        .Where(hero => hero.IsValidTarget(1500) && hero.ChampionName == "Rengar"))
+                {
+                    _rengarObj = enemy;
+                }
+            }
+            if (_rengarObj != null && Player.Distance(_rengarObj, true) < 1000 * 1000 &&
+                Config.Item("antirengo").GetValue<bool>())
+            {
+                DoButtFuck();
+            }
+        }
+
+        private static void DoButtFuck()
+        {
+            if (_rengarObj.ChampionName == "Rengar")
+            {
+                if (_rengarObj.IsValidTarget(_gapcloseSpell.Range) && _gapcloseSpell.IsReady() &&
+                    _rengarObj.Distance(Player) <= _gapcloseSpell.Range)
+                {
+                    _gapcloseSpell.Cast(_rengarObj);
+                    
+                }
+            }
+        }
+
+        private static Spell GetSpell()
+        {
+            switch (Player.ChampionName)
+            {
+                case "Vayne":
+                    return new Spell(SpellSlot.E, 550);
+              
+            }
+            return null;
         }
 
         private static void Interrupter2_OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
@@ -194,6 +244,7 @@ namespace HikiCarry
 
         public static void Combo()
         {
+           
               var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
 
            
@@ -286,6 +337,8 @@ namespace HikiCarry
             
             Orbwalker.SetAttack(true);
 
+          
+
           //COMBO
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
@@ -310,8 +363,8 @@ namespace HikiCarry
 
 
         }
-
       
+        
 
 
         private static void Drawing_OnDraw(EventArgs args)
