@@ -38,7 +38,15 @@ namespace HikiCarry
         public static Menu Config;
         public static Obj_AI_Hero tar;
         private static Obj_AI_Hero Player;
-     
+        static List<Spells> SpellListt = new List<Spells>();
+        static int Delay = 0;
+
+        public struct Spells
+        {
+            public string ChampionName;
+            public string SpellName;
+            public SpellSlot slot;
+        }
        
 
         private static void Main(string[] args)
@@ -66,6 +74,15 @@ namespace HikiCarry
             SpellList.Add(R);
 
 
+
+            
+
+            SpellListt.Add(new Spells { ChampionName = "akali", SpellName = "akalismokebomb", slot = SpellSlot.W });   //Akali W
+            SpellListt.Add(new Spells { ChampionName = "shaco", SpellName = "deceive", slot = SpellSlot.Q }); //Shaco Q
+            SpellListt.Add(new Spells { ChampionName = "khazix", SpellName = "khazixr", slot = SpellSlot.R }); //Khazix R
+            SpellListt.Add(new Spells { ChampionName = "khazix", SpellName = "khazixrlong", slot = SpellSlot.R }); //Khazix R Evolved
+            SpellListt.Add(new Spells { ChampionName = "talon", SpellName = "talonshadowassault", slot = SpellSlot.R }); //Talon R
+            SpellListt.Add(new Spells { ChampionName = "monkeyking", SpellName = "monkeykingdecoy", slot = SpellSlot.W }); //Wukong W
 
 
 
@@ -111,7 +128,27 @@ namespace HikiCarry
             Config.SubMenu("Misc").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
             Config.SubMenu("Misc").AddItem(new MenuItem("ARQ", "Autocast Q When Ultimate!", true).SetValue(true));
 
+            Config.AddSubMenu(new Menu("Invisible Kicker", "Invisiblez"));
+            Config.SubMenu("Invisiblez").AddItem(new MenuItem("Use", "Use Vision Ward On Combo").SetValue(new KeyBind(32, KeyBindType.Press)));
+            
+            {
+                foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy))
+                {
+                    foreach (var spell in SpellListt.Where(x => x.ChampionName.ToLower() == hero.ChampionName.ToLower()))
+                    {
+                        Config.SubMenu("Invisiblez").AddItem(new MenuItem(hero.ChampionName.ToLower() + spell.slot.ToString(), hero.ChampionName + " - " + spell.slot.ToString()).SetValue(true));
+                    }
+                }
 
+                if (HeroManager.Enemies.Any(x => x.ChampionName.ToLower() == "rengar"))
+                {
+                    Config.SubMenu("Invisiblez").AddItem(new MenuItem("RengarR", "Rengar R").SetValue(true));
+                }
+
+               
+            }
+
+            
 
 
 
@@ -131,10 +168,105 @@ namespace HikiCarry
             Interrupter2.OnInterruptableTarget += Interrupter2_OnInterruptableTarget;
             _gapcloseSpell = GetSpell();
             GameObject.OnCreate += OnCreateObject;
-           
+            //---------------------------------------------
+            Obj_AI_Base.OnCreate += Obj_AI_Base_OnCreate;
+            Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
           
         }
 
+        private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (!Config.Item("Use").GetValue<KeyBind>().Active)
+                return;
+
+            if (!sender.IsEnemy || sender.IsDead || !(sender is Obj_AI_Hero))
+                return;
+
+            if (SpellListt.Exists(x => x.SpellName.Contains(args.SData.Name.ToLower())))
+            {
+                var _sender = sender as Obj_AI_Hero;
+
+                if (!Config.Item(_sender.ChampionName.ToLower() + _sender.GetSpellSlot(args.SData.Name).ToString()).GetValue<bool>())
+                    return;
+
+                if (CheckSlot() == SpellSlot.Unknown)
+                    return;
+
+                if (CheckWard())
+                    return;
+
+                if (ObjectManager.Player.Distance(sender.Position) > 700)
+                    return;
+
+                if (Environment.TickCount - Delay > 1500 || Delay == 0)
+                {
+                    var pos = ObjectManager.Player.Distance(args.End) > 600 ? ObjectManager.Player.Position : args.End;
+                    ObjectManager.Player.Spellbook.CastSpell(CheckSlot(), pos);
+                    Delay = Environment.TickCount;
+                }
+            }
+        }
+
+        private static void Obj_AI_Base_OnCreate(GameObject sender, EventArgs args)
+        {
+            if (!Config.Item("Use").GetValue<KeyBind>().Active)
+                return;
+
+            var Rengar = HeroManager.Enemies.Find(x => x.ChampionName.ToLower() == "rengar");
+
+            if (Rengar == null)
+                return;
+
+            if (!Config.Item("RengarR").GetValue<bool>())
+                return;
+
+            if (ObjectManager.Player.Distance(sender.Position) < 1500)
+            {
+                Console.WriteLine("Sender : " + sender.Name);
+            }
+
+            if (sender.IsEnemy && sender.Name.Contains("Rengar_Base_R_Alert"))
+            {
+                if (ObjectManager.Player.HasBuff("rengarralertsound") &&
+                !CheckWard() &&
+                !Rengar.IsVisible &&
+                !Rengar.IsDead &&
+                    CheckSlot() != SpellSlot.Unknown)
+                {
+                    ObjectManager.Player.Spellbook.CastSpell(CheckSlot(), ObjectManager.Player.Position);
+                }
+            }
+        }
+
+        static SpellSlot CheckSlot()
+        {
+            SpellSlot slot = SpellSlot.Unknown;
+
+            if (Items.CanUseItem(3362) && Items.HasItem(3362, ObjectManager.Player))
+            {
+                slot = SpellSlot.Trinket;
+            }
+            else if (Items.CanUseItem(2043) && Items.HasItem(2043, ObjectManager.Player))
+            {
+                slot = ObjectManager.Player.GetSpellSlot("VisionWard");
+            }
+            return slot;
+        }
+
+        static bool CheckWard()
+        {
+            var status = false;
+
+            foreach (var a in ObjectManager.Get<Obj_AI_Minion>().Where(x => x.Name == "VisionWard"))
+            {
+                if (ObjectManager.Player.Distance(a.Position) < 450)
+                {
+                    status = true;
+                }
+            }
+
+            return status;
+        }
        
 
         private static void OnCreateObject(GameObject sender, EventArgs args)
