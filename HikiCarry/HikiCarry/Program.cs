@@ -41,6 +41,10 @@ namespace HikiCarry
         static List<Spells> SpellListt = new List<Spells>();
         static int Delay = 0;
 
+        private static bool Vayne = false;
+        private static double atkspd;
+
+
         public struct Spells
         {
             public string ChampionName;
@@ -128,6 +132,8 @@ namespace HikiCarry
             Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Scrying Orb!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
             Config.SubMenu("Misc").AddItem(new MenuItem("ARQ", "Autocast Q When Ultimate!", true).SetValue(true));
+            Config.SubMenu("Misc").AddItem(new MenuItem("howaa", "How Many AA For Kill").SetValue(true));
+
 
             Config.AddSubMenu(new Menu("Invisible Kicker", "Invisiblez"));
             Config.SubMenu("Invisiblez").AddItem(new MenuItem("Use", "Use Vision Ward On Combo").SetValue(new KeyBind(32, KeyBindType.Press)));
@@ -157,7 +163,7 @@ namespace HikiCarry
             Config.AddSubMenu(new Menu("Drawings", "Drawings"));
 
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushERange", "E Range").SetValue(new Circle(true,System.Drawing.Color.FromArgb(255, 255, 255, 255))));
-
+         
 
 
             Config.AddToMainMenu();
@@ -172,6 +178,16 @@ namespace HikiCarry
             //---------------------------------------------
             Obj_AI_Base.OnCreate += Obj_AI_Base_OnCreate;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+
+
+             Player = ObjectManager.Player;
+            switch (ObjectManager.Player.ChampionName)
+            {
+                case "Vayne":
+                    Vayne = true;
+                    break;
+            }
+
           
         }
 
@@ -509,10 +525,42 @@ namespace HikiCarry
             {
                 Player.BuyItem(ItemId.Scrying_Orb_Trinket);
             }
+            
+            // credits blm95 start
+            if (Config.Item("howaa").GetValue<bool>())
+            {
+            double temp = 0;
+            foreach (
+                var c in
+                    ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsVisible && x.IsEnemy && x.IsValid))//&& x.Distance(ObjectManager.Player) < 2500))
+            {
+                var dmg = Player.GetAutoAttackDamage(c);
 
-           
+                var howmanyautos = c.Health / dmg;
 
-         
+                if (howmanyautos > 3 && Vayne && Player.Spellbook.GetSpell(SpellSlot.W).State != SpellState.NotLearned)
+                {
+                    var g = new float[] { 0, 20, 30, 40, 50, 60 };
+                    var h = new double[] { 0, .04, .05, .06, .07, .08 };
+
+                    howmanyautos = (c.Health) / (dmg + ((g[Player.Spellbook.GetSpell(SpellSlot.W).Level] + (c.MaxHealth * h[Player.Spellbook.GetSpell(SpellSlot.W).Level]))) / 3);
+                }
+
+
+
+                
+                    
+                if (howmanyautos >= 10)
+                {
+                    Drawing.DrawText(c.HPBarPosition.X, c.HPBarPosition.Y - 22, System.Drawing.Color.Green, "" + "  How Many AA: " + String.Format("{0:0.00}", howmanyautos));
+                }
+                if (howmanyautos < 10)
+                {
+                    Drawing.DrawText(c.HPBarPosition.X, c.HPBarPosition.Y - 22, System.Drawing.Color.Red, "" + "  How Many AA: " + String.Format("{0:0.00}", howmanyautos));
+                }
+                }
+            }
+         // finish
 
         }
       
