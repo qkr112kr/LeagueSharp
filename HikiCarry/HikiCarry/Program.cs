@@ -114,6 +114,7 @@ namespace HikiCarry
 
 
             Config.AddSubMenu(new Menu("Harass", "Harass"));
+            Config.SubMenu("Harass").AddItem(new MenuItem("RushQHarass", "Use Q", true).SetValue(true));
             Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use E", true).SetValue(true));
 
 
@@ -462,13 +463,15 @@ namespace HikiCarry
             var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
             var pT = HeroManager.Enemies.Find(enemy => enemy.IsValidTarget(E.Range));
 
-            if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && E.IsReady())
+            if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 1) && Q.IsReady())
             {
-                if (pT != null && (pT is Obj_AI_Hero))
-                {
-                    E.Cast(pT);
-                }
+                Q.Cast(Game.CursorPos);
             }
+            if (pT != null && (pT is Obj_AI_Hero))
+            {
+                E.Cast(pT);
+            }
+
 
         }
 
