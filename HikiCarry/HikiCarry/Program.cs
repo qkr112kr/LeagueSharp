@@ -40,7 +40,7 @@ namespace HikiCarry
         private static Obj_AI_Hero Player;
         static List<Spells> SpellListt = new List<Spells>();
         static int Delay = 0;
-
+     
         private static bool Vayne = false;
         private static double atkspd;
 
@@ -128,10 +128,10 @@ namespace HikiCarry
             Config.AddSubMenu(new Menu("Misc", "Misc"));
             Config.SubMenu("Misc").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!", true).SetValue(true));
+            Config.SubMenu("Misc").AddItem(new MenuItem("ARQ", "Autocast Q When Ultimate!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("antirengo", "Anti Rengar Active!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Scrying Orb!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
-            Config.SubMenu("Misc").AddItem(new MenuItem("ARQ", "Autocast Q When Ultimate!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("howaa", "How Many AA For Kill").SetValue(true));
 
 
@@ -173,9 +173,9 @@ namespace HikiCarry
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
             Interrupter2.OnInterruptableTarget += Interrupter2_OnInterruptableTarget;
+           
             _gapcloseSpell = GetSpell();
             GameObject.OnCreate += OnCreateObject;
-            //---------------------------------------------
             Obj_AI_Base.OnCreate += Obj_AI_Base_OnCreate;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
 
@@ -193,6 +193,13 @@ namespace HikiCarry
 
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
+            if (Config.Item("ARQ").GetValue<bool>())
+            {
+                if (sender.IsMe && args.SData.Name == "vayneinquisition" && Q.IsReady())
+                    Q.Cast(Game.CursorPos);
+            }
+            
+
             if (!Config.Item("Use").GetValue<KeyBind>().Active)
                 return;
 
@@ -525,6 +532,7 @@ namespace HikiCarry
             {
                 Player.BuyItem(ItemId.Scrying_Orb_Trinket);
             }
+
             
             // credits blm95 start
             if (Config.Item("howaa").GetValue<bool>())
