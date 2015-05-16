@@ -12,8 +12,12 @@ using Color = System.Drawing.Color;
 
 namespace HikiCarry
 {
+  
     internal class Program
     {
+        
+           
+        
         public const string ChampionName = "Vayne";
 
         //Orbwalker
@@ -30,7 +34,8 @@ namespace HikiCarry
         public static float LastMoveC;
         private static Spell _gapcloseSpell;
         private static Obj_AI_Hero _rengarObj;
-        
+
+       
 
 
 
@@ -39,10 +44,10 @@ namespace HikiCarry
         public static Obj_AI_Hero tar;
         private static Obj_AI_Hero Player;
         static List<Spells> SpellListt = new List<Spells>();
+        
+        public static Items.Item sOrb = new Items.Item(3342, 600f);
         static int Delay = 0;
-     
         private static bool Vayne = false;
-        private static double atkspd;
 
 
         public struct Spells
@@ -77,19 +82,12 @@ namespace HikiCarry
             SpellList.Add(E);
             SpellList.Add(R);
 
-
-
-            
-
             SpellListt.Add(new Spells { ChampionName = "akali", SpellName = "akalismokebomb", slot = SpellSlot.W });   //Akali W
             SpellListt.Add(new Spells { ChampionName = "shaco", SpellName = "deceive", slot = SpellSlot.Q }); //Shaco Q
             SpellListt.Add(new Spells { ChampionName = "khazix", SpellName = "khazixr", slot = SpellSlot.R }); //Khazix R
             SpellListt.Add(new Spells { ChampionName = "khazix", SpellName = "khazixrlong", slot = SpellSlot.R }); //Khazix R Evolved
             SpellListt.Add(new Spells { ChampionName = "talon", SpellName = "talonshadowassault", slot = SpellSlot.R }); //Talon R
             SpellListt.Add(new Spells { ChampionName = "monkeyking", SpellName = "monkeykingdecoy", slot = SpellSlot.W }); //Wukong W
-
-
-
             //Menu
             Config = new Menu("HikiCarryVayne", "HikiCarry - Vayne", true);
 
@@ -110,13 +108,8 @@ namespace HikiCarry
             Config.AddSubMenu(new Menu("Combo", "Combo"));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushQCombo", "Use Q").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushECombo", "Use E").SetValue(true));
-            
             Config.SubMenu("Combo").AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
                 
-
-
-
-
             Config.AddSubMenu(new Menu("Harass", "Harass"));
             Config.SubMenu("Harass").AddItem(new MenuItem("RushQHarass", "Use Q", true).SetValue(true));
             Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use E", true).SetValue(true));
@@ -128,9 +121,8 @@ namespace HikiCarry
             Config.AddSubMenu(new Menu("Misc", "Misc"));
             Config.SubMenu("Misc").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!", true).SetValue(true));
-            Config.SubMenu("Misc").AddItem(new MenuItem("ARQ", "Autocast Q When Ultimate!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("antirengo", "Anti Rengar Active!").SetValue(true));
-            Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Scrying Orb!").SetValue(true));
+            Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Scrying Buy Orb!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
             Config.SubMenu("Misc").AddItem(new MenuItem("howaa", "How Many AA For Kill").SetValue(true));
 
@@ -155,13 +147,7 @@ namespace HikiCarry
                
             }
 
-            
-
-
-
-
             Config.AddSubMenu(new Menu("Drawings", "Drawings"));
-
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushERange", "E Range").SetValue(new Circle(true,System.Drawing.Color.FromArgb(255, 255, 255, 255))));
          
 
@@ -173,12 +159,11 @@ namespace HikiCarry
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
             Interrupter2.OnInterruptableTarget += Interrupter2_OnInterruptableTarget;
-           
-            _gapcloseSpell = GetSpell();
             GameObject.OnCreate += OnCreateObject;
             Obj_AI_Base.OnCreate += Obj_AI_Base_OnCreate;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
-
+            _gapcloseSpell = GetSpell();
+            
 
              Player = ObjectManager.Player;
             switch (ObjectManager.Player.ChampionName)
@@ -187,8 +172,6 @@ namespace HikiCarry
                     Vayne = true;
                     break;
             }
-
-          
         }
 
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
@@ -292,7 +275,6 @@ namespace HikiCarry
             return status;
         }
        
-
         private static void OnCreateObject(GameObject sender, EventArgs args)
         {
             if (sender.Name == "Rengar_LeapSound.troy" && sender.IsEnemy)
@@ -309,10 +291,7 @@ namespace HikiCarry
             {
                 DoButtFuck();
             }
-
-            
         }
-
         private static void DoButtFuck()
         {
             if (_rengarObj.ChampionName == "Rengar")
@@ -326,7 +305,6 @@ namespace HikiCarry
             }
         }
       
-
         private static Spell GetSpell()
         {
             switch (Player.ChampionName)
@@ -386,12 +364,8 @@ namespace HikiCarry
 
         private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
         {
-
-
-
+                    //coming
         }
-
-
         private static bool IsAllyFountain(Vector3 position)
         {
             float fountainRange = 750;
@@ -405,135 +379,84 @@ namespace HikiCarry
                     .Where(spawnPoint => spawnPoint is Obj_SpawnPoint && spawnPoint.IsAlly)
                     .Any(spawnPoint => Vector2.Distance(position.To2D(), spawnPoint.Position.To2D()) < fountainRange);
         }
-
         public static void Combo()
         {
-           
-              var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
-
-           
-        // hikigaya normal combo start
-          
-
-                if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && Q.IsReady())
+              var target = TargetSelector.GetTarget(700, TargetSelector.DamageType.Physical);
+              
+              if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
                 {
                      if (Items.CanUseItem(3142))
                       {
                           Items.UseItem(3142);
                       }
-                    Q.Cast(Game.CursorPos);
+                     Q.Cast(Game.CursorPos);
                 }
 
                 if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
                 {
-                    foreach (var en in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                    foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(E.Range) && h.Path.Count() < 2))
                     {
-                        //credits VayneHunterRework
+                        var pushDistance = 400;
+                        var targetPosition = E.GetPrediction(targetz).CastPosition;
+                        var finalPosition = targetPosition.Extend(Player.ServerPosition, -pushDistance);
 
-                        var ePred = E.GetPrediction(en);
-                        int pushDist = 425;
-                        var FinalPosition = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
-
-                        for (int i = 1; i < pushDist; i += (int)en.BoundingRadius)
+                        if (finalPosition.IsWall())
                         {
-                            Vector3 loc3 = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
-
-                            if (loc3.IsWall() || IsAllyFountain(FinalPosition))
-                                E.Cast(en);
+                            E.Cast(targetz);
+                            
                         }
                     }
                 }
-                else
-                {
-                    if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && Q.IsReady())
-                    {
-                        Q.Cast(Game.CursorPos);
-                    }
-
-                    if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
-                    {
-                        foreach (var en in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
-                        {
-                            //credits VayneHunterRework
-
-                            var ePred = E.GetPrediction(en);
-                            int pushDist = 425;
-                            var FinalPosition = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
-
-                            for (int i = 1; i < pushDist; i += (int)en.BoundingRadius)
-                            {
-                                Vector3 loc3 = ePred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
-
-                                if (loc3.IsWall() || IsAllyFountain(FinalPosition))
-                                    E.Cast(en);
-                            }
-                        }
-                    }
-                }
-            
-
-           
-
-           
-            
-                
-
-
-        
+               
+            // hikigaya normal combo finish
         }
         public  static void Harass()
         {
             var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
             var pT = HeroManager.Enemies.Find(enemy => enemy.IsValidTarget(E.Range));
 
-            if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 1) && Q.IsReady())
+            if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 1) && Q.IsReady() && Config.Item("RushQHarass").GetValue<bool>())
             {
                 Q.Cast(Game.CursorPos);
             }
+         
+            if (E.IsReady() && Config.Item("RushEHarass").GetValue<bool>()) 
+            {
             if (pT != null && (pT is Obj_AI_Hero))
             {
                 E.Cast(pT);
             }
-
-
+            }
         }
-
         private static void Game_OnGameUpdate(EventArgs args)
         {
-            
             Orbwalker.SetAttack(true);
-
-          
-
           //COMBO
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
                 Combo();
 
             }
-
-            
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
             {
               
                 Harass();
    
             }
-
-
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
             {
                
                 // maybe coming
             }
-
-
             if (Config.Item("bT").GetValue<bool>() && Player.Level >= Config.Item("bluetrinketlevel").GetValue<Slider>().Value && Player.InShop() && !(Items.HasItem(3342) || Items.HasItem(3363)))
             {
                 Player.BuyItem(ItemId.Scrying_Orb_Trinket);
             }
 
-            
+
+           
+
+
             // credits blm95 start
             if (Config.Item("howaa").GetValue<bool>())
             {
@@ -543,21 +466,13 @@ namespace HikiCarry
                     ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsVisible && x.IsEnemy && x.IsValid))//&& x.Distance(ObjectManager.Player) < 2500))
             {
                 var dmg = Player.GetAutoAttackDamage(c);
-
                 var howmanyautos = c.Health / dmg;
-
                 if (howmanyautos > 3 && Vayne && Player.Spellbook.GetSpell(SpellSlot.W).State != SpellState.NotLearned)
                 {
                     var g = new float[] { 0, 20, 30, 40, 50, 60 };
                     var h = new double[] { 0, .04, .05, .06, .07, .08 };
-
                     howmanyautos = (c.Health) / (dmg + ((g[Player.Spellbook.GetSpell(SpellSlot.W).Level] + (c.MaxHealth * h[Player.Spellbook.GetSpell(SpellSlot.W).Level]))) / 3);
                 }
-
-
-
-                
-                    
                 if (howmanyautos >= 10)
                 {
                     Drawing.DrawText(c.HPBarPosition.X, c.HPBarPosition.Y - 22, System.Drawing.Color.Green, "" + "  How Many AA: " + String.Format("{0:0.00}", howmanyautos));
@@ -566,16 +481,11 @@ namespace HikiCarry
                 {
                     Drawing.DrawText(c.HPBarPosition.X, c.HPBarPosition.Y - 22, System.Drawing.Color.Red, "" + "  How Many AA: " + String.Format("{0:0.00}", howmanyautos));
                 }
-                }
+             }
             }
          // finish
 
         }
-      
-
-        
-
-
         private static void Drawing_OnDraw(EventArgs args)
         {
 
