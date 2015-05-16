@@ -94,6 +94,7 @@ namespace HikiCarry_Graves
             //LANECLEAR
             Config.AddSubMenu(new Menu("LaneClear", "LaneClear"));
             Config.SubMenu("LaneClear").AddItem(new MenuItem("RushQClear", "Use Q", true).SetValue(true));
+            Config.SubMenu("LaneClear").AddItem(new MenuItem("clearmana", "Clear Mana Percent").SetValue(new Slider(30, 0, 100)));
            
             //INVISIBLE KICKER
             Config.AddSubMenu(new Menu("Invisible Kicker", "Invisiblez"));
@@ -121,10 +122,12 @@ namespace HikiCarry_Graves
             Config.AddSubMenu(new Menu("Harass", "Harass"));
             Config.SubMenu("Harass").AddItem(new MenuItem("RushQHarass", "Use Q", true).SetValue(true));
             Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use W", true).SetValue(true));
+            Config.SubMenu("Harass").AddItem(new MenuItem("harassmana", "Haras Mana Percent").SetValue(new Slider(30, 0, 100)));
             //MISC
             Config.AddSubMenu(new Menu("Misc", "Misc"));
             Config.SubMenu("Misc").AddItem(new MenuItem("ksR", "KillSteal R!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Scrying Orb!").SetValue(true));
+            Config.SubMenu("Misc").AddItem(new MenuItem("qEQ", "Quick E+Q").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press)));
             Config.SubMenu("Misc").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
 
             //DRAWINGS
@@ -261,7 +264,7 @@ namespace HikiCarry_Graves
             {
                Clear();
             }
-            if (Config.Item("RushWCombo").GetValue<bool>())
+            if (Config.Item("ksR").GetValue<bool>())
             {
                 Killsteal();
             }
@@ -270,6 +273,27 @@ namespace HikiCarry_Graves
             {
                 Player.BuyItem(ItemId.Scrying_Orb_Trinket);
             }
+            if (Config.Item("qEQ").GetValue<KeyBind>().Active)
+            {
+                if (E.IsReady() && Q.IsReady())
+                {
+                    foreach (
+                        var en in
+                            HeroManager.Enemies.Where(
+                                hero =>
+                                    hero.IsValidTarget(Q.Range)))
+                    {
+                        E.Cast(Game.CursorPos);
+                        var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
+                        Q.Cast(targetQ);
+                    }
+
+                }
+                
+
+
+            }
+
         }
 
         private static void Combo()
@@ -346,25 +370,23 @@ namespace HikiCarry_Graves
         }
         private static void Harass()
         {
-            if (Q.IsReady() && Config.Item("RushQHarass").GetValue<bool>())
+            if (Q.IsReady() && Config.Item("RushQHarass").GetValue<bool>() && Player.ManaPercent >= Config.Item("harassmana").GetValue<Slider>().Value)
             {
                 var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
                 Q.Cast(targetQ);
-            }
-            if (W.IsReady() && Config.Item("RushWCombo").GetValue<bool>())
-            {
-                var targetW = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Physical);
-                W.Cast(targetW);
-
             }
         }
         private static void Clear()
         {
             //THANKS SEBBY 
-            var allMinionsQ = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All);
-            var Qfarm = Q.GetCircularFarmLocation(allMinionsQ, 200);
-            if (Qfarm.MinionsHit > 3 && Q.IsReady())
-                Q.Cast(Qfarm.Position);
+            if (Q.IsReady() && Config.Item("RushQClear").GetValue<bool>() && Player.ManaPercent >= Config.Item("clearmana").GetValue<Slider>().Value)
+            {
+                var allMinionsQ = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All);
+                var Qfarm = Q.GetCircularFarmLocation(allMinionsQ, 200);
+                if (Qfarm.MinionsHit > 3 && Q.IsReady())
+                    Q.Cast(Qfarm.Position);
+            }
+           
         }
 
      
