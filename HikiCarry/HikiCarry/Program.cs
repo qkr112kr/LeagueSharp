@@ -555,35 +555,6 @@ namespace HikiCarry
             Utility.DrawCircle(Player.Position, 1500, Color.Blue);
 
 
-
-            // credits blm95 start
-            if (Config.Item("howaa").GetValue<bool>())
-            {
-                double temp = 0;
-                foreach (
-                    var c in
-                        ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsVisible && x.IsEnemy && x.IsValid))//&& x.Distance(ObjectManager.Player) < 2500))
-                {
-                    var dmg = Player.GetAutoAttackDamage(c);
-                    var howmanyautos = c.Health / dmg;
-                    if (howmanyautos > 3 && Vayne && Player.Spellbook.GetSpell(SpellSlot.W).State != SpellState.NotLearned)
-                    {
-                        var g = new float[] { 0, 20, 30, 40, 50, 60 };
-                        var h = new double[] { 0, .04, .05, .06, .07, .08 };
-                        howmanyautos = (c.Health) / (dmg + ((g[Player.Spellbook.GetSpell(SpellSlot.W).Level] + (c.MaxHealth * h[Player.Spellbook.GetSpell(SpellSlot.W).Level]))) / 3);
-                    }
-                    if (howmanyautos >= 10)
-                    {
-                        Drawing.DrawText(c.HPBarPosition.X, c.HPBarPosition.Y - 22, System.Drawing.Color.Green, "" + "  How Many AA: " + String.Format("{0:0.00}", howmanyautos));
-                    }
-                    if (howmanyautos < 10)
-                    {
-                        Drawing.DrawText(c.HPBarPosition.X, c.HPBarPosition.Y - 22, System.Drawing.Color.Red, "" + "  How Many AA: " + String.Format("{0:0.00}", howmanyautos));
-                    }
-                }
-            }
-            // finish
-
         }
         private static void Drawing_OnDraw(EventArgs args)
         {
