@@ -31,6 +31,8 @@ namespace HikiCarry
         public static Spell E;
         public static Spell R;
         public static bool PacketCast;
+        private static readonly Vector2 midPos = new Vector2(6707.485f, 8802.744f);
+        private static readonly Vector2 dragPos = new Vector2(11514, 4462);
         public static float LastMoveC;
         private static Spell _gapcloseSpell;
         private static Obj_AI_Hero _rengarObj;
@@ -44,6 +46,8 @@ namespace HikiCarry
         public static Obj_AI_Hero tar;
         private static Obj_AI_Hero Player;
         static List<Spells> SpellListt = new List<Spells>();
+      
+        
 
         public static Items.Item sOrb = new Items.Item(3342, 600f);
         static int Delay = 0;
@@ -111,20 +115,22 @@ namespace HikiCarry
             Config.SubMenu("Combo").AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
 
             Config.AddSubMenu(new Menu("Harass", "Harass"));
-            Config.SubMenu("Harass").AddItem(new MenuItem("RushQHarass", "Use Q", true).SetValue(true));
-            Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use E", true).SetValue(true));
+            Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use E").SetValue(true));
+
 
 
             Config.AddSubMenu(new Menu("Items", "Items"));
             Config.SubMenu("Items").AddItem(new MenuItem("ghost", "Use GhostBlade!").SetValue(true));
 
             Config.AddSubMenu(new Menu("Misc", "Misc"));
+            Config.SubMenu("Misc").AddSubMenu(new Menu("Scrying Orb Settings", "orbset"));
+            Config.SubMenu("Misc").SubMenu("orbset").AddItem(new MenuItem("bT", "Auto Scrying Orb Buy!").SetValue(true));
+            Config.SubMenu("Misc").SubMenu("orbset").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
             Config.SubMenu("Misc").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("antirengo", "Anti Rengar Active!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("AutoRQ", "Autocast Q When Using Ultimate", true).SetValue(true));
-            Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Scrying Buy Orb!").SetValue(true));
-            Config.SubMenu("Misc").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
+            Config.SubMenu("Misc").AddItem(new MenuItem("walltumble", "Wall Tumble")).SetValue(new KeyBind("U".ToCharArray()[0], KeyBindType.Press));
             Config.SubMenu("Misc").AddItem(new MenuItem("onevoneactive", "1v1 Active").SetValue(true));
             
            
@@ -511,22 +517,60 @@ namespace HikiCarry
         }
         public static void Harass()
         {
-            var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
-            var pT = HeroManager.Enemies.Find(enemy => enemy.IsValidTarget(E.Range));
+            var target = TargetSelector.GetTarget(625, TargetSelector.DamageType.Physical);
 
-            if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count < 2) && Q.IsReady() && Config.Item("RushQHarass").GetValue<bool>())
-            {
-                Q.Cast(Game.CursorPos);
-            }
-
-            if (E.IsReady() && Config.Item("RushEHarass").GetValue<bool>())
-            {
-                if (pT != null && (pT is Obj_AI_Hero))
+           
+                if (Config.Item("RushEHarass").GetValue<bool>())
                 {
-                    E.Cast(pT);
+                    if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count >= 2))
+                    {
+                    E.Cast((Obj_AI_Base)target);
+                    }
+                    
+                }     
+         }
+
+
+
+        private static void TumbleHandler()
+        {
+            if (Player.Distance(midPos) >= Player.Distance(dragPos))
+            {
+                if (Player.Position.X < 12000 || Player.Position.X > 12070 || Player.Position.Y < 4800 ||
+                Player.Position.Y > 4872)
+                {
+                    MoveToLimited(new Vector2(12050, 4827).To3D());
+                }
+                else
+                {
+                    MoveToLimited(new Vector2(12050, 4827).To3D());
+                    Q.Cast(dragPos, true);
+                }
+            }
+            else
+            {
+                if (Player.Position.X < 6908 || Player.Position.X > 6978 || Player.Position.Y < 8917 ||
+                Player.Position.Y > 8989)
+                {
+                    MoveToLimited(new Vector2(6958, 8944).To3D());
+                }
+                else
+                {
+                    MoveToLimited(new Vector2(6958, 8944).To3D());
+                    Q.Cast(midPos, true);
                 }
             }
         }
+        private static void MoveToLimited(Vector3 where)
+        {
+            if (Environment.TickCount - LastMoveC < 80)
+            {
+                return;
+            }
+            LastMoveC = Environment.TickCount;
+            Player.IssueOrder(GameObjectOrder.MoveTo, where);
+        }
+
         private static void Game_OnGameUpdate(EventArgs args)
         {
             Orbwalker.SetAttack(true);
@@ -552,6 +596,10 @@ namespace HikiCarry
                 Player.BuyItem(ItemId.Scrying_Orb_Trinket);
             }
 
+            if (Config.Item("walltumble").GetValue<KeyBind>().Active)
+            {
+                TumbleHandler();
+            }
             Utility.DrawCircle(Player.Position, 1500, Color.Blue);
 
 
