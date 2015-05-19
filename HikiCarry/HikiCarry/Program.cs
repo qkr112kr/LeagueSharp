@@ -129,9 +129,9 @@ namespace HikiCarry
             Config.SubMenu("Misc").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("antirengo", "Anti Rengar Active!").SetValue(true));
-            Config.SubMenu("Misc").AddItem(new MenuItem("AutoRQ", "Autocast Q When Using Ultimate", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("walltumble", "Wall Tumble")).SetValue(new KeyBind("U".ToCharArray()[0], KeyBindType.Press));
-            Config.SubMenu("Misc").AddItem(new MenuItem("onevoneactive", "1v1 Active").SetValue(true));
+            Config.SubMenu("Misc").AddItem(new MenuItem("onevoneactive", "1v1 Mode").SetValue(new KeyBind('K', KeyBindType.Toggle, false)));
+           
             
            
             
@@ -158,7 +158,8 @@ namespace HikiCarry
             }
 
             Config.AddSubMenu(new Menu("Drawings", "Drawings"));
-            Config.SubMenu("Drawings").AddItem(new MenuItem("RushERange", "E Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
+            Config.SubMenu("Drawings").AddItem(new MenuItem("RushQRange", "Q Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(135, 206, 235))));
+            Config.SubMenu("Drawings").AddItem(new MenuItem("RushERange", "E Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 0))));
 
 
 
@@ -397,11 +398,15 @@ namespace HikiCarry
             var target = TargetSelector.GetTarget(625, TargetSelector.DamageType.Physical);
             var pushDistance = 400;
 
-            if (rangez <= 1 && Config.Item("onevoneactive").GetValue<bool>())
+            if (Config.Item("onevoneactive").GetValue<KeyBind>().Active)
             {
-               
-                if (E.IsReady())
+                if (rangez <= 1)
                 {
+
+                if (E.IsReady())
+                
+                {
+                    
                     foreach (
                            var qPosition in
                              GetPossibleQPositions()
@@ -414,81 +419,58 @@ namespace HikiCarry
                         if (finalPosition.IsWall())
                         {
                             Q.Cast(qPosition);
-                            
                         }
-                    }
-                    foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(E.Range) && h.Path.Count() < 2))
-                    {
-
-                        E.UpdateSourcePosition(Player.Position, Player.Position);
-                        var targetPosition = E.GetPrediction(targetz).CastPosition;
-                        var finalPosition = targetPosition.Extend(Player.ServerPosition, -pushDistance);
-
-                        if (finalPosition.IsWall())
+                        else
                         {
-                            Q.Cast(Game.CursorPos);
-                            E.Cast(targetz);
+                            foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(E.Range) && h.Path.Count() < 2))
+                            {
+                                E.UpdateSourcePosition(Player.Position, Player.Position);
+                                var targetPositions = E.GetPrediction(targetz).CastPosition;
+                                var finalPositions = targetPositions.Extend(Player.ServerPosition, -pushDistance);
 
+                                if (finalPositions.IsWall())
+                                {
+                                    Q.Cast(Game.CursorPos);
+                                    E.Cast(targetz);
+                                }
+                            }   
                         }
-                    }   
+
+                    }
+                }
+                var yx = Drawing.WorldToScreen(ObjectManager.Player.Position);
+                Utility.DrawCircle(Player.Position, 1500, Color.LimeGreen);
+                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.LimeGreen, "1v1 Mode Active!");
+
                 }
                
-                var yx = Drawing.WorldToScreen(ObjectManager.Player.Position);
-                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.LimeGreen, "1v1 Mode Active!");
 
 
             }
-            else
+            if(Config.Item("onevoneactive").GetValue<bool>() == false)
             {
-                if (Config.Item("RushECombo").GetValue<bool>() && Config.Item("RushQCombo").GetValue<bool>())
+                if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && Q.IsReady())
                 {
-                    if (Q.IsReady() && E.IsReady())
+                    if (Items.CanUseItem(3142))
                     {
-                        if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count >= 2))
-                        {
-                            if (Items.CanUseItem(3142))
-                            {
-                                Items.UseItem(3142);
-                            }
-                            Q.Cast(Game.CursorPos);
-                        }
-                        foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(E.Range) && h.Path.Count() < 2))
-                        {
-                            var targetPosition = E.GetPrediction(targetz).CastPosition;
-                            var finalPosition = targetPosition.Extend(Player.ServerPosition, -pushDistance);
-                            if (finalPosition.IsWall())
-                            {
-                                E.Cast(targetz);
-                            }
-                        }
+                        Items.UseItem(3142);
                     }
+                    Q.Cast(Game.CursorPos);
                 }
-                if (Config.Item("RushQCombo").GetValue<bool>() == false)
+
+                if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
                 {
-                    if (E.IsReady())
+                    foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(E.Range) && h.Path.Count() < 2))
                     {
-                        foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(E.Range) && h.Path.Count() < 2))
+                        var targetPosition = E.GetPrediction(targetz).CastPosition;
+                        var finalPosition = targetPosition.Extend(Player.ServerPosition, -pushDistance);
+                        if (finalPosition.IsWall())
                         {
-                            var targetPosition = E.GetPrediction(targetz).CastPosition;
-                            var finalPosition = targetPosition.Extend(Player.ServerPosition, -pushDistance);
-                            if (finalPosition.IsWall())
-                            {
-                                E.Cast(targetz);
-                            }
+                            E.Cast(targetz);
                         }
-                    }
+                    } 
                 }
-                if (Config.Item("RushECombo").GetValue<bool>() == false)
-                {
-                    if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count >= 2))
-                    {
-                        if (Items.CanUseItem(3142))
-                        {
-                            Items.UseItem(3142);
-                        }
-                        Q.Cast(Game.CursorPos);
-                    }
-                }
+
             }
            
         }
@@ -600,15 +582,38 @@ namespace HikiCarry
             {
                 TumbleHandler();
             }
-            Utility.DrawCircle(Player.Position, 1500, Color.Blue);
+           
 
 
         }
         private static void Drawing_OnDraw(EventArgs args)
         {
 
-            var menuItem2 = Config.Item("RushERange").GetValue<Circle>();
-            if (menuItem2.Active) Utility.DrawCircle(Player.Position, E.Range, menuItem2.Color);
+           
+
+            var menuItem2 = Config.Item("RushQRange").GetValue<Circle>();
+            var menuItem3 = Config.Item("RushERange").GetValue<Circle>();
+            
+            
+          
+
+            if (Config.Item("RushQCombo").GetValue<bool>() && Q.IsReady())
+            {
+                if (menuItem2.Active) Utility.DrawCircle(Player.Position, Q.Range, Color.SkyBlue);
+            }
+
+            if (Config.Item("RushECombo").GetValue<bool>() && E.IsReady())
+            {
+                if (menuItem3.Active) Utility.DrawCircle(Player.Position, E.Range, Color.Yellow);
+            }
+            
+               
+            
+          
+                
+
+
+
 
         }
     }
