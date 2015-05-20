@@ -9,7 +9,7 @@ using SharpDX;
 using Geometry = LeagueSharp.Common.Geometry;
 using Color = System.Drawing.Color;
 
-namespace HikiCarry_Graves
+namespace HikiCarry
 {
     class Program
     {
@@ -124,7 +124,6 @@ namespace HikiCarry_Graves
             Config.SubMenu("Misc").AddSubMenu(new Menu("Scrying Orb Settings", "orbset"));
             Config.SubMenu("Misc").SubMenu("orbset").AddItem(new MenuItem("bT", "Auto Scrying Orb Buy!").SetValue(true));
             Config.SubMenu("Misc").SubMenu("orbset").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
-
             Config.SubMenu("Misc").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ksR", "KillSteal E!").SetValue(true));
