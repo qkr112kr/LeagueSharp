@@ -251,24 +251,33 @@ namespace HikiCarry_Caitlyn
         }
         private static void Combo()
         {
+
             if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
             {
-                var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
+                foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
+                {
+                    var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
 
-                if (Q.CanCast(targetQ) && Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
-                    Q.Cast(targetQ);
+                    if (Q.CanCast(targetQ) && Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
+                        Q.Cast(targetQ);
+                }
+              
             }
            
             if (W.IsReady() && Config.Item("RushWCombo").GetValue<bool>())
             {
+                 foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(W.Range)))
+                {
                 var targetW = W_GetBestTarget();
 
                 if (W.CanCast(targetW) && Q.GetPrediction(targetW).Hitchance >= HitChance.VeryHigh)
                     Q.Cast(targetW);
+                }
             }
 
             if (R.IsReady() && Config.Item("RushRCombo").GetValue<bool>())
             {
+                
                 var targetR = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical, true);
 
                 if (targetR != null && targetR.Health <= R.GetDamage(targetR) &&
@@ -276,6 +285,7 @@ namespace HikiCarry_Caitlyn
                 {
                     R.CastOnUnit(targetR);
                 }
+                
             }
 
            
@@ -296,10 +306,13 @@ namespace HikiCarry_Caitlyn
         {
             if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>() && Player.ManaPercent >= Config.Item("harassmana").GetValue<Slider>().Value)
             {
+                 foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
+                {
                 var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
 
                 if (Q.CanCast(targetQ) && Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
                     Q.Cast(targetQ);
+                }
             }
         }
 
