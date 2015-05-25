@@ -8,6 +8,7 @@ using LeagueSharp.Common;
 using SharpDX;
 using Geometry = LeagueSharp.Common.Geometry;
 using Color = System.Drawing.Color;
+using Collision = LeagueSharp.Common.Collision;
 
 namespace HikiCarry_Caitlyn
 {
@@ -84,8 +85,10 @@ namespace HikiCarry_Caitlyn
             //COMBO
             Config.AddSubMenu(new Menu("Combo", "Combo"));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushQCombo", "Use Q").SetValue(true));
+            Config.SubMenu("Combo").AddItem(new MenuItem("RushECombo", "Use E (Only AP Mode)").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushWCombo", "Use W").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushRCombo", "Use R").SetValue(true));
+            Config.SubMenu("Combo").AddItem(new MenuItem("combotype", "Combo Mode").SetValue(new StringList(new[] { "AD", "AP" })));
             Config.SubMenu("Combo").AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
 
             //LANECLEAR
@@ -189,7 +192,7 @@ namespace HikiCarry_Caitlyn
             }
            
         }
-
+        
         private static void Game_OnGameUpdate(EventArgs args)
         {
             Orbwalker.SetAttack(true);
@@ -247,48 +250,137 @@ namespace HikiCarry_Caitlyn
         }
         static Obj_AI_Base W_GetBestTarget()
         {
-            return HeroManager.Enemies.Where(x => W.CanCast(x) && !x.HasBuffOfType(BuffType.SpellImmunity) && W.GetPrediction(x).Hitchance >= HitChance.VeryHigh && !x.IsFacing(Player) && x.IsValidTarget(550)).OrderBy(x => x.Distance(Player, false)).FirstOrDefault();
+            return HeroManager.Enemies.Where(x => W.CanCast(x) && !x.HasBuffOfType(BuffType.SpellImmunity) && W.GetPrediction(x).Hitchance >= HitChance.High && !x.IsFacing(Player) && x.IsValidTarget(550)).OrderBy(x => x.Distance(Player, false)).FirstOrDefault();
         }
+        static Obj_AI_Base W_GetBestTargetAP()
+        {
+            return HeroManager.Enemies.Where(x => W.CanCast(x) && !x.HasBuffOfType(BuffType.SpellImmunity) && W.GetPrediction(x).Hitchance >= HitChance.Medium && !x.IsFacing(Player) && x.IsValidTarget(550)).OrderBy(x => x.Distance(Player, false)).FirstOrDefault();
+        }
+        static float Get_Ult_Dmg(Obj_AI_Base enemy)
+        {
+            float damage = 0;
+
+            if (R.IsReady())
+                damage += R.GetDamage(enemy);
+
+            return damage;
+        }
+        static bool CollisionCheck(Obj_AI_Hero source, Obj_AI_Hero target, float width)
+        {
+            var input = new PredictionInput
+            {
+                Radius = width,
+                Unit = source,
+            };
+
+            input.CollisionObjects[0] = CollisionableObjects.Heroes;
+            input.CollisionObjects[1] = CollisionableObjects.YasuoWall;
+
+            return !Collision.GetCollision(new List<Vector3> { target.ServerPosition }, input).Where(x => x.NetworkId != x.NetworkId).Any();
+        }
+        
         private static void Combo()
         {
-
-            if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
+            float uRangeCheck = ObjectManager.Player.CountEnemiesInRange(E.Range);
+            
+            switch (Config.Item("combotype").GetValue<StringList>().SelectedIndex)
             {
-                foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
-                {
-                    var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
+                case 0:
 
-                    if (Q.CanCast(targetQ) && Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
-                        Q.Cast(targetQ);
-                }
+                     if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
+          {
+              foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
+              {
+                  var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
+
+                  if (Q.CanCast(targetQ) && Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
+                      Q.Cast(targetQ);
+              }
               
-            }
+          }
            
-            if (W.IsReady() && Config.Item("RushWCombo").GetValue<bool>())
-            {
-                 foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(W.Range)))
-                {
-                var targetW = W_GetBestTarget();
+          if (W.IsReady() && Config.Item("RushWCombo").GetValue<bool>())
+          {
+               foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(W.Range)))
+              {
+              var targetW = W_GetBestTarget();
 
-                if (W.CanCast(targetW) && Q.GetPrediction(targetW).Hitchance >= HitChance.VeryHigh)
-                    Q.Cast(targetW);
-                }
-            }
+              if (W.CanCast(targetW))
+                  W.Cast(targetW);
+              }
+          }
 
-            if (R.IsReady() && Config.Item("RushRCombo").GetValue<bool>())
-            {
-                
-                var targetR = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical, true);
+            
+         
+          if (R.IsReady() && Config.Item("RushRCombo").GetValue<bool>())
+          {
+              foreach (var Rtarget in HeroManager.Enemies.Where(t => t.IsValidTarget(1500 + (500 * R.Level)) && !t.IsValidTarget(Orbwalking.GetRealAutoAttackRange(Player)) && !t.HasBuffOfType(BuffType.Invulnerability) && !t.HasBuffOfType(BuffType.SpellShield)))
+              {
+                  if (Rtarget.Health + Rtarget.HPRegenRate <= R.GetDamage(Rtarget) && CollisionCheck(Player, Rtarget, 150))
+                      R.Cast(Rtarget);
+              }
+                  
+              
+          }
 
-                if (targetR != null && targetR.Health <= R.GetDamage(targetR) &&
-                    !Orbwalking.InAutoAttackRange(targetR))
-                {
-                    R.CastOnUnit(targetR);
-                }
-                
-            }
+                    break;
+                case 1:
 
-           
+                    if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
+                    {
+                        
+                            var targetE = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical, true);
+
+                            if (E.CanCast(targetE) && E.GetPrediction(targetE).Hitchance >= HitChance.VeryHigh)
+                                E.Cast(targetE);
+
+                    }
+                    if (W.IsReady() && Config.Item("RushWCombo").GetValue<bool>())
+                    {
+                        foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(W.Range)))
+                        {
+                           
+
+                            var targetW = W_GetBestTargetAP();
+
+                            if (W.CanCast(targetW))
+                                W.Cast(targetW);
+                        }
+                    }
+                    if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
+                    {
+                        foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
+                        {
+                            var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
+
+                            if (Q.CanCast(targetQ) && Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
+                                Q.Cast(targetQ);
+                        }
+
+                    }
+
+                    if (R.IsReady() && Config.Item("RushRCombo").GetValue<bool>())
+                    {
+                        foreach (var Rtarget in HeroManager.Enemies.Where(t => t.IsValidTarget(1500 + (500 * R.Level)) && !t.IsValidTarget(Orbwalking.GetRealAutoAttackRange(Player)) && !t.HasBuffOfType(BuffType.Invulnerability) && !t.HasBuffOfType(BuffType.SpellShield)))
+                        {
+                            if (Rtarget.Health + Rtarget.HPRegenRate <= R.GetDamage(Rtarget) && CollisionCheck(Player, Rtarget, 150))
+                                R.Cast(Rtarget);
+                        }
+                    }
+
+                    break;
+            } 
+              
+         
+            
+
+
+
+
+            
+
+
+            
 
         }
         static double UnitIsImmobileUntil(Obj_AI_Base unit)
