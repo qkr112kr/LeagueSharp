@@ -85,7 +85,7 @@ namespace HikiCarry_Caitlyn
             //COMBO
             Config.AddSubMenu(new Menu("Combo", "Combo"));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushQCombo", "Use Q").SetValue(true));
-            Config.SubMenu("Combo").AddItem(new MenuItem("RushECombo", "Use E (Only AP Mode)").SetValue(true));
+            Config.SubMenu("Combo").AddItem(new MenuItem("RushECombo", "Use E").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushWCombo", "Use W").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushRCombo", "Use R").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("combotype", "Combo Mode").SetValue(new StringList(new[] { "AD", "AP" })));
@@ -143,6 +143,7 @@ namespace HikiCarry_Caitlyn
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushQRange", "Q Range").SetValue(new Circle(true, Color.SkyBlue)));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushWRange", "W Range").SetValue(new Circle(true, Color.Yellow)));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushERange", "E Range").SetValue(new Circle(true, Color.SpringGreen)));
+            Config.SubMenu("Drawings").AddItem(new MenuItem("RushRRange", "R Damage Text").SetValue(new Circle(true, Color.Crimson)));
            
 
 
@@ -150,6 +151,7 @@ namespace HikiCarry_Caitlyn
 
 
             Config.AddToMainMenu();
+            
             Game.OnUpdate += Game_OnGameUpdate;
             Obj_AI_Base.OnCreate += Obj_AI_Base_OnCreate;
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
@@ -157,7 +159,15 @@ namespace HikiCarry_Caitlyn
            
 
         }
+        private static float ComboDamage(Obj_AI_Base enemy)
+        {
+            var damage = 0d;
+           
+            if (R.IsReady())
+                damage += Player.GetSpellDamage(enemy, SpellSlot.R);
 
+            return (float)damage;
+        }
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
             if (Config.Item("agapcloser").GetValue<bool>() || Player.IsDead)
@@ -167,11 +177,14 @@ namespace HikiCarry_Caitlyn
                 E.Cast(gapcloser.Sender);
         }
 
+       
+
         private static void Drawing_OnDraw(EventArgs args)
         {
             var menuItem1 = Config.Item("RushQRange").GetValue<Circle>();
             var menuItem2 = Config.Item("RushWRange").GetValue<Circle>();
             var menuItem3 = Config.Item("RushERange").GetValue<Circle>();
+            var menuItem4 = Config.Item("RushRRange").GetValue<Circle>();
             
 
 
@@ -189,6 +202,21 @@ namespace HikiCarry_Caitlyn
             if (Config.Item("RushECombo").GetValue<bool>() && E.IsReady())
             {
                 if (menuItem3.Active) Utility.DrawCircle(Player.Position, E.Range, Color.SpringGreen);
+            }
+            if (Config.Item("RushRCombo").GetValue<bool>() && R.IsReady())
+            {
+                if (menuItem4.Active)
+
+                    foreach (
+                    var enemyVisible in
+                        ObjectManager.Get<Obj_AI_Hero>().Where(enemyVisible => enemyVisible.IsValidTarget()))
+
+                        if (ComboDamage(enemyVisible) > enemyVisible.Health)
+                        {
+                            Drawing.DrawText(Drawing.WorldToScreen(enemyVisible.Position)[0] + 50,
+                                Drawing.WorldToScreen(enemyVisible.Position)[1] - 40, Color.Red,
+                                "R = Kill");
+                        }
             }
            
         }
@@ -287,17 +315,22 @@ namespace HikiCarry_Caitlyn
             {
                 case 0:
 
-                     if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
-          {
-              foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
-              {
-                  var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
+                    if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
+                    {
+                        var targetE = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical, true);
+                        if (E.CanCast(targetE) && E.GetPrediction(targetE).Hitchance >= HitChance.VeryHigh)
+                            E.Cast(targetE);
+                    }
 
-                  if (Q.CanCast(targetQ) && Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
+                     if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
+                     {
+                     foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
+                     {
+                     var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
+                     if (Q.CanCast(targetQ) && Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
                       Q.Cast(targetQ);
-              }
-              
-          }
+                     }
+                     }
            
           if (W.IsReady() && Config.Item("RushWCombo").GetValue<bool>())
           {
@@ -417,11 +450,12 @@ namespace HikiCarry_Caitlyn
         {
             if (Config.Item("ksQ").GetValue<bool>())
             {
-                foreach (var target2 in HeroManager.Enemies.OrderByDescending(x => x.Health))
-                {
-                    if (Q.CanCast(target2) && Q.IsKillable(target2))
-                        Q.Cast(target2);
-                }
+                
+                    foreach (var targetksQ in HeroManager.Enemies.Where(t => t.IsValidTarget(Q.Range) && !t.IsValidTarget(Orbwalking.GetRealAutoAttackRange(Player))))
+                    {
+                        if (targetksQ.Health + targetksQ.HPRegenRate <= R.GetDamage(targetksQ))
+                            Q.Cast(targetksQ);
+                    }
             }
             if (Config.Item("ksR").GetValue<bool>())
             {
