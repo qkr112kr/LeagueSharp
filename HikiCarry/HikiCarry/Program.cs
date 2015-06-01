@@ -89,10 +89,14 @@ namespace HikiCarry
             Config.SubMenu("Combo").AddItem(new MenuItem("RushQCombo", "Use Q").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushECombo", "Use E").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushRCombo", "Use R").SetValue(true));
+            Config.SubMenu("Combo").AddItem(new MenuItem("RcomboEnemy", "R on x Enemy").SetValue(new Slider(3, 1, 5)));
 
             Config.SubMenu("Combo").AddItem(new MenuItem("combotype", "Combo Mode").SetValue(new StringList(new[] { "Hikigaya", "Kite" })));
             Config.SubMenu("Combo").AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
 
+            //HARASS
+            Config.AddSubMenu(new Menu("Harass", "Harass"));
+            Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use E").SetValue(true));
             //INVISIBLE KICKER
             Config.AddSubMenu(new Menu("Invisible Kicker", "Invisiblez"));
             Config.SubMenu("Invisiblez").AddItem(new MenuItem("Use", "Use Vision Ward On Combo").SetValue(new KeyBind(32, KeyBindType.Press)));
@@ -115,10 +119,7 @@ namespace HikiCarry
             }
 
 
-            //HARASS
-            Config.AddSubMenu(new Menu("Harass", "Harass"));
-            Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use E", true).SetValue(true));
-            Config.SubMenu("Harass").AddItem(new MenuItem("harassmana", "Haras Mana Percent").SetValue(new Slider(30, 0, 100)));
+           
             //MISC
             Config.AddSubMenu(new Menu("Misc", "Misc"));
             Config.SubMenu("Misc").AddSubMenu(new Menu("Scrying Orb Settings", "orbset"));
@@ -127,7 +128,6 @@ namespace HikiCarry
             Config.SubMenu("Misc").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!", true).SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ksR", "KillSteal E!").SetValue(true));
-            Config.SubMenu("Misc").AddItem(new MenuItem("onevoneactive", "1v1 Mode").SetValue(new KeyBind('K', KeyBindType.Toggle, false)));
             Config.SubMenu("Misc").AddItem(new MenuItem("walltumble", "Wall Tumble")).SetValue(new KeyBind("U".ToCharArray()[0], KeyBindType.Press));
 
             //DRAWINGS
@@ -282,7 +282,7 @@ namespace HikiCarry
             Orbwalker.SetAttack(true);
 
 
-
+            
             //COMBO
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
@@ -291,13 +291,22 @@ namespace HikiCarry
 
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
             {
-                Harass();
+                if (E.IsReady() && Config.Item("RushEHarass").GetValue<bool>())
+                {
+                    var target = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
+                    if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count >= 2))
+                    {
+                        E.Cast(target);
+                    }
+                }
+
             }
 
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
             {
                 Clear();
             }
+           
             if (Config.Item("ksR").GetValue<bool>())
             {
                 Killsteal();
@@ -313,9 +322,32 @@ namespace HikiCarry
                 TumbleHandler();
             }
            
+           
 
         }
         private static IEnumerable<Vector3> GetPossibleQPositions()
+        {
+            var pointList = new List<Vector3>();
+
+            var j = 300;
+
+            var offset = (int)(2 * Math.PI * j / 100);
+
+            for (var i = 0; i <= offset; i++)
+            {
+                var angle = i * Math.PI * 2 / offset;
+                var point = new Vector3((float)(ObjectManager.Player.Position.X + j * Math.Cos(angle)),
+                    (float)(ObjectManager.Player.Position.Y - j * Math.Sin(angle)),
+                    ObjectManager.Player.Position.Z);
+
+                if (!NavMesh.GetCollisionFlags(point).HasFlag(CollisionFlags.Wall))
+                    pointList.Add(point);
+            }
+
+
+            return pointList;
+        }
+        private static IEnumerable<Vector3> dodgeQ()
         {
             var pointList = new List<Vector3>();
 
@@ -357,143 +389,140 @@ namespace HikiCarry
                     var target0 = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
                     float rangez0 = ObjectManager.Player.CountEnemiesInRange(1500);
                     //start hikigaya
-                   
-                     /*   if (E.IsReady() && rangez0 == 1)
+
+                    /*   if (E.IsReady() && rangez0 == 1)
+                       {
+                           foreach (
+                         var qPosition in
+                           GetPossibleQPositions()
+                           .OrderBy(qPosition => qPosition.Distance(target0.ServerPosition)))
+                           {
+                               if (qPosition.Distance(target0.Position) < E.Range)
+                                   E.UpdateSourcePosition(qPosition, qPosition);
+                               var targetPosition = E.GetPrediction(target0).CastPosition;
+                               var finalPosition = targetPosition.Extend(qPosition, 400);
+                               if (finalPosition.IsWall())
+                               {
+                                   Q.Cast(qPosition);
+                               }
+                               else
+                               {
+                                   foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(E.Range) && h.Path.Count() < 2))
+                                   {
+                                       E.UpdateSourcePosition(Player.Position, Player.Position);
+                                       var targetPositions = E.GetPrediction(targetz).CastPosition;
+                                       var finalPositions = targetPositions.Extend(Player.ServerPosition, 400);
+                                       if (finalPositions.IsWall())
+                                       {
+                                           Q.Cast(Game.CursorPos);
+                                           E.Cast(targetz);
+                                       }
+                                   }
+                               }
+                           }
+                       }
+                   */
+
+                    if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
+                    {
+                        if (target0.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2))
                         {
-                            foreach (
-                          var qPosition in
-                            GetPossibleQPositions()
-                            .OrderBy(qPosition => qPosition.Distance(target0.ServerPosition)))
+                            if (Items.CanUseItem(3142))
                             {
-                                if (qPosition.Distance(target0.Position) < E.Range)
-                                    E.UpdateSourcePosition(qPosition, qPosition);
-                                var targetPosition = E.GetPrediction(target0).CastPosition;
-                                var finalPosition = targetPosition.Extend(qPosition, 400);
-                                if (finalPosition.IsWall())
-                                {
-                                    Q.Cast(qPosition);
-                                }
-                                else
-                                {
-                                    foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(E.Range) && h.Path.Count() < 2))
-                                    {
-                                        E.UpdateSourcePosition(Player.Position, Player.Position);
-                                        var targetPositions = E.GetPrediction(targetz).CastPosition;
-                                        var finalPositions = targetPositions.Extend(Player.ServerPosition, 400);
+                                Items.UseItem(3142);
+                            }
+                            Q.Cast(Game.CursorPos);
+                        }
+                    }
+                    if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
+                    {
 
-                                        if (finalPositions.IsWall())
-                                        {
-                                            Q.Cast(Game.CursorPos);
-                                            E.Cast(targetz);
-                                        }
-                                    }
-                                }
 
+                        foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                        {
+
+
+                            var EPred = E.GetPrediction(En);
+                            int pushDist = 425;
+                            var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
+
+                            for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
+                            {
+                                Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+
+                                if (loc3.IsWall() || isAllyFountain(FinalPosition))
+                                    E.Cast(En);
                             }
                         }
-                    */
-                    
-                        if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
-                        {
-                            if (target0.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2))
-                            {
-                                if (Items.CanUseItem(3142))
-                                {
-                                    Items.UseItem(3142);
-                                }
-                                Q.Cast(Game.CursorPos);
-                            }
-                        }
-                        if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
-                        {
-                            
+                    }
 
-                            foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
-                            {
-
-
-                                var EPred = E.GetPrediction(En);
-                                int pushDist = 425;
-                                var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
-
-                                for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
-                                {
-                                    Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
-
-                                    if (loc3.IsWall() || isAllyFountain(FinalPosition))
-                                        E.Cast(En);
-                                }
-                            }
-                        }
-                    
-
+                    if (R.IsReady() && Config.Item("RushRCombo").GetValue<bool>() && Player.CountEnemiesInRange(1000) >= Config.Item("RcomboEnemy").GetValue<Slider>().Value)
+                    {
+                        R.Cast();
+                    }
 
 
                     //finish hikigaya
 
-                    
+
                     break;
-                    case 1:
-                     var target1 = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
+                case 1:
+                    var target1 = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
                     float rangez1 = ObjectManager.Player.CountEnemiesInRange(1500);
-                   
-                   
-                        if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
+
+
+                    if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
+                    {
+                        foreach (
+                   var en in
+                       HeroManager.Enemies.Where(
+                           hero =>
+                               hero.IsValidTarget(550)))
                         {
-                             foreach (
-                        var en in
-                            HeroManager.Enemies.Where(
-                                hero =>
-                                    hero.IsValidTarget(550)))
-                             {
-                                 Q.Cast(Game.CursorPos);
-                             }
-                            
-                               
-                            
+                            Q.Cast(Game.CursorPos);
                         }
-                        if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
+
+
+
+                    }
+                    if (E.IsReady() && Config.Item("RushECombo").GetValue<bool>())
+                    {
+
+
+                        foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
                         {
 
 
-                            foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                            var EPred = E.GetPrediction(En);
+                            int pushDist = 425;
+                            var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
+
+                            for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
                             {
+                                Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
 
-
-                                var EPred = E.GetPrediction(En);
-                                int pushDist = 425;
-                                var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
-
-                                for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
-                                {
-                                    Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
-
-                                    if (loc3.IsWall() || isAllyFountain(FinalPosition))
-                                        E.Cast(En);
-                                }
+                                if (loc3.IsWall() || isAllyFountain(FinalPosition))
+                                    E.Cast(En);
                             }
                         }
-                    
-                break;
-            } 
-        }
-        private static void Harass()
-        {
-            if (E.IsReady() && Config.Item("RushEHarass").GetValue<bool>() && Player.ManaPercent >= Config.Item("harassmana").GetValue<Slider>().Value)
-            {
-                var target = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
-                if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count >= 2))
-                {
-                    E.Cast((Obj_AI_Base)target);
-                }
+                    }
+                    if (R.IsReady() && Config.Item("RushRCombo").GetValue<bool>() && Player.CountEnemiesInRange(1000) >= Config.Item("RcomboEnemy").GetValue<Slider>().Value)
+                    {
+                        R.Cast();
+                    }
 
+                    break;
             }
         }
+        
+       
         private static void Clear()
         {
            
 
         }
+       
+         
 
         private static void MoveToLimited(Vector3 where)
         {
@@ -553,6 +582,7 @@ namespace HikiCarry
                 if (menuItem3.Active) Utility.DrawCircle(Player.Position, E.Range, Color.Yellow);
             }
             
+           
 
         }
 
@@ -564,8 +594,38 @@ namespace HikiCarry
                     E.Cast(target);
             }
         }
+        private static void graBDodger() // work in progress
+            {
+            foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(h => h.IsValidTarget()))
+            {
+                foreach (var missile in ObjectManager.Get<Obj_SpellMissile>().Where(m => m.IsEnemy && !m.SpellCaster.IsMinion))
+                {
+                    
+                        string[] Spells = {"ThreshQMissile", "LuxMaliceCannon"};
+
+
+                        if (missile.SData.Name == "ThreshQMissile")
+                        {
+
+
+                            Q.Cast(Game.CursorPos);
+                        }
+                            
+                        
+
+
+                    
+                }
+
+
+            }
 
 
 
+
+
+    }
+
+        
     }
 }

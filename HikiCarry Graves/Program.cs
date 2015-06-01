@@ -85,6 +85,7 @@ namespace HikiCarry_Graves
             //COMBO
             Config.AddSubMenu(new Menu("Combo", "Combo"));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushQCombo", "Use Q").SetValue(true));
+            Config.SubMenu("Combo").AddItem(new MenuItem("RushQComboRange", "Use Q Combo Range").SetValue(new Slider(500, 0, 720)));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushWCombo", "Use W").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushECombo", "Use E").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("RushRCombo", "Use R").SetValue(true));
@@ -127,14 +128,15 @@ namespace HikiCarry_Graves
             Config.AddSubMenu(new Menu("Misc", "Misc"));
             Config.SubMenu("Misc").AddItem(new MenuItem("ksR", "KillSteal R!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Scrying Orb!").SetValue(true));
-            Config.SubMenu("Misc").AddItem(new MenuItem("qEQ", "Quick E+Q").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press)));
+           // Config.SubMenu("Misc").AddItem(new MenuItem("qEQ", "Quick E+Q").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press)));
             Config.SubMenu("Misc").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
 
             //DRAWINGS
             Config.AddSubMenu(new Menu("Drawings", "Drawings"));
-            Config.SubMenu("Drawings").AddItem(new MenuItem("RushQRange", "Q Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
+            Config.SubMenu("Drawings").AddItem(new MenuItem("RushQRange", "Max Q Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
+            Config.SubMenu("Drawings").AddItem(new MenuItem("RushQSelectRange", "Selected Q Range").SetValue(new Circle(true, Color.Gold)));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushWRange", "W Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
-            Config.SubMenu("Drawings").AddItem(new MenuItem("RushRRange", "E Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
+            Config.SubMenu("Drawings").AddItem(new MenuItem("RushRRange", "R Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
          
 
 
@@ -273,8 +275,9 @@ namespace HikiCarry_Graves
             {
                 Player.BuyItem(ItemId.Scrying_Orb_Trinket);
             }
-            if (Config.Item("qEQ").GetValue<KeyBind>().Active)
+          /* if (Config.Item("qEQ").GetValue<KeyBind>().Active)
             {
+                Orbwalking.MoveTo(Game.CursorPos);
                 if (E.IsReady() && Q.IsReady())
                 {
                     foreach (
@@ -288,11 +291,12 @@ namespace HikiCarry_Graves
                         Q.Cast(targetQ);
                     }
 
+
                 }
                 
 
 
-            }
+            }*/
 
         }
 
@@ -323,7 +327,7 @@ namespace HikiCarry_Graves
 
             if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
             {
-                var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
+                var targetQ = TargetSelector.GetTarget(Config.Item("RushQComboRange").GetValue<Slider>().Value, TargetSelector.DamageType.Physical);
                 Q.Cast(targetQ);
 
             }
@@ -355,7 +359,7 @@ namespace HikiCarry_Graves
             }
             if (Q.IsReady() && Config.Item("RushQCombo").GetValue<bool>())
             {
-                var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
+                var targetQ = TargetSelector.GetTarget(Config.Item("RushQComboRange").GetValue<Slider>().Value, TargetSelector.DamageType.Physical);
                 Q.Cast(targetQ);
 
             }
@@ -398,20 +402,27 @@ namespace HikiCarry_Graves
             var menuItem2 = Config.Item("RushQRange").GetValue<Circle>();
             var menuItem3 = Config.Item("RushWRange").GetValue<Circle>();
             var menuItem4 = Config.Item("RushRRange").GetValue<Circle>();
+            var menuItem5 = Config.Item("RushQSelectRange").GetValue<Circle>();
+            
 
             if (Config.Item("RushQCombo").GetValue<bool>() && Q.IsReady())
             {
-                if (menuItem2.Active) Utility.DrawCircle(Player.Position, Q.Range, menuItem2.Color);
+                if (menuItem2.Active) Utility.DrawCircle(Player.Position, Q.Range, Color.HotPink);
             }
 
             if (Config.Item("RushWCombo").GetValue<bool>() && W.IsReady())
             {
-                if (menuItem3.Active) Utility.DrawCircle(Player.Position, W.Range, menuItem3.Color);
+                if (menuItem3.Active) Utility.DrawCircle(Player.Position, W.Range, Color.LightSeaGreen);
             }
             if (Config.Item("RushRCombo").GetValue<bool>() && R.IsReady())
             {
-                if (menuItem4.Active) Utility.DrawCircle(Player.Position, R.Range, menuItem4.Color);
+                if (menuItem4.Active) Utility.DrawCircle(Player.Position, R.Range, Color.GreenYellow);
             }
+            if (Config.Item("RushQCombo").GetValue<bool>() && Q.IsReady())
+            {
+                if (menuItem5.Active) Utility.DrawCircle(Player.Position, Config.Item("RushQComboRange").GetValue<Slider>().Value, Color.Gold);
+            }
+
            
         }
 

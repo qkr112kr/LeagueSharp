@@ -92,10 +92,15 @@ namespace HikiCarry_Kalista
             //LANECLEAR
             Config.AddSubMenu(new Menu("LaneClear", "LaneClear"));
             Config.SubMenu("LaneClear").AddItem(new MenuItem("RushEClear", "Use E", true).SetValue(true));
-            Config.SubMenu("LaneClear").AddSubMenu(new Menu("Mob Steal Set", "mobset"));
-            Config.SubMenu("LaneClear").SubMenu("mobset").AddItem(new MenuItem("stealactive", "Steal Active!").SetValue(true));
-            Config.SubMenu("LaneClear").SubMenu("mobset").AddItem(new MenuItem("dragonsteal", "Dragon Steal with E!").SetValue(true));
-            Config.SubMenu("LaneClear").SubMenu("mobset").AddItem(new MenuItem("baronsteal", "Baron Steal with E!").SetValue(true));
+            Config.SubMenu("LaneClear").AddItem(new MenuItem("RushEClearSlider", "If Can Kill Minion >=", true).SetValue(new Slider(2, 1, 5)));
+
+            Config.AddSubMenu(new Menu("JungleClear", "JungleClear"));
+            Config.SubMenu("JungleClear").AddItem(new MenuItem("RushEJClear", "Use E", true).SetValue(true));
+            Config.SubMenu("JungleClear").AddSubMenu(new Menu("Mob Steal Set", "mobset"));
+            Config.SubMenu("JungleClear").SubMenu("mobset").AddItem(new MenuItem("stealactive", "Steal Active!").SetValue(true));
+            Config.SubMenu("JungleClear").SubMenu("mobset").AddItem(new MenuItem("dragonsteal", "Dragon Steal with E!").SetValue(true));
+            Config.SubMenu("JungleClear").SubMenu("mobset").AddItem(new MenuItem("baronsteal", "Baron Steal with E!").SetValue(true));
+           
 
             //INVISIBLE KICKER
             Config.AddSubMenu(new Menu("Invisible Kicker", "Invisiblez"));
@@ -199,6 +204,7 @@ namespace HikiCarry_Kalista
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
             {
                 Clear();
+                JClear();
             }
             
             if (Config.Item("ksQ").GetValue<bool>())
@@ -209,6 +215,21 @@ namespace HikiCarry_Kalista
             if (Config.Item("bT").GetValue<bool>() && Player.Level >= Config.Item("bluetrinketlevel").GetValue<Slider>().Value && Player.InShop() && !(Items.HasItem(3342) || Items.HasItem(3363)))
             {
                 Player.BuyItem(ItemId.Scrying_Orb_Trinket);
+            }
+            if (Config.Item("stealactive").GetValue<bool>())
+            {
+                if (Config.Item("dragonsteal").GetValue<bool>() && Config.Item("baronsteal").GetValue<bool>())
+                {
+                    var minionz = MinionManager.GetMinions(E.Range, MinionTypes.All, MinionTeam.NotAlly);
+                    foreach (var m in minionz)
+                    {
+                        if ((m.BaseSkinName.Contains("Dragon") || m.BaseSkinName.Contains("Baron")) && E.IsKillable(m))
+                        {
+                            E.Cast();
+                        }
+                    }
+                }
+
             }
             
         }
@@ -282,40 +303,47 @@ namespace HikiCarry_Kalista
 
             }
         }
-        private static void Clear()
+        static void Clear()
         {
+            var Minions = MinionManager.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.Enemy);
+
+            if (Minions.Count <= 0)
+                return;
+
             if (Config.Item("RushEClear").GetValue<bool>() && E.IsReady())
             {
 
-                var mns = MinionManager.GetMinions(Player.ServerPosition, E.Range);
-                var mkc = mns.Count(x => E.CanCast(x) && x.Health <= E.GetDamage(x));
+                var mkc = 0;
 
-                if (mkc >= 2)
-                {
+                foreach (var minion in Minions.Where(x => E.CanCast(x) && x.Health <= E.GetDamage(x))) { mkc++; }
+
+                if (mkc >= Config.Item("RushEClearSlider", true).GetValue<Slider>().Value)
                     E.Cast();
-                }
             }
+
             
-            if (Config.Item("stealactive").GetValue<bool>())
-            {
-                if (Config.Item("dragonsteal").GetValue<bool>() && Config.Item("baronsteal").GetValue<bool>())
-                {
-                    var minionz = MinionManager.GetMinions(E.Range, MinionTypes.All, MinionTeam.NotAlly);
-                    foreach (var m in minionz)
-                    {
-                        if ((m.BaseSkinName.Contains("Dragon") || m.BaseSkinName.Contains("Baron")) && E.IsKillable(m))
-                        {
-                            E.Cast();
-                        }
-                    }
-                }
-                
-            }
+            
            
            
         }
-      
 
+        static void JClear()
+        {
+            var Mobs = MinionManager.GetMinions(Player.ServerPosition, Orbwalking.GetRealAutoAttackRange(Player) + 100, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+
+            if (Mobs.Count <= 0)
+                return;
+
+          
+
+            if (Config.Item("RushEJClear", true).GetValue<Boolean>() && E.CanCast(Mobs[0]))
+            {
+                if (Mobs[0].Health + (Mobs[0].HPRegenRate / 2) <= E.GetDamage(Mobs[0]))
+                    E.Cast();
+            }
+
+
+        }
 
         private static void Obj_AI_Hero_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
