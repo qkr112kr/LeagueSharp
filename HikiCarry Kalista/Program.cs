@@ -91,7 +91,7 @@ namespace HikiCarry_Kalista
 
             //LANECLEAR
             Config.AddSubMenu(new Menu("LaneClear", "LaneClear"));
-            Config.SubMenu("LaneClear").AddItem(new MenuItem("RushEClear", "Use E", true).SetValue(true));
+            Config.SubMenu("LaneClear").AddItem(new MenuItem("RushEClear", "Use E").SetValue(true));
             Config.SubMenu("LaneClear").AddItem(new MenuItem("RushEClearSlider", "If Can Kill Minion >=", true).SetValue(new Slider(2, 1, 5)));
 
             Config.AddSubMenu(new Menu("JungleClear", "JungleClear"));
@@ -305,22 +305,17 @@ namespace HikiCarry_Kalista
         }
         static void Clear()
         {
-            var Minions = MinionManager.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.Enemy);
-
-            if (Minions.Count <= 0)
-                return;
-
             if (Config.Item("RushEClear").GetValue<bool>() && E.IsReady())
             {
-
-                var mkc = 0;
-
-                foreach (var minion in Minions.Where(x => E.CanCast(x) && x.Health <= E.GetDamage(x))) { mkc++; }
-
+                var Minions = MinionManager.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.Enemy);
+                var mns = MinionManager.GetMinions(Player.ServerPosition, E.Range);
+                var mkc = mns.Count(x => E.CanCast(x) && x.Health <= E.GetDamage(x));
                 if (mkc >= Config.Item("RushEClearSlider", true).GetValue<Slider>().Value)
+                {
                     E.Cast();
+                }
             }
-
+            
             
             
            
