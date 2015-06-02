@@ -18,6 +18,8 @@ namespace HikiCarry
         public static List<Spell> SpellList = new List<Spell>();
         static List<Spells> SpellListt = new List<Spells>();
         static int Delay = 0;
+        private static Obj_AI_Hero me;
+        private static SpellSlot flashSlot;
 
         public static Menu Config;
 
@@ -45,6 +47,7 @@ namespace HikiCarry
 
         private static void Game_OnGameLoad(EventArgs args)
         {
+           
             Player = ObjectManager.Player;
             if (Player.BaseSkinName != ChampionName) return;
 
@@ -93,7 +96,23 @@ namespace HikiCarry
 
             Config.SubMenu("Combo").AddItem(new MenuItem("combotype", "Combo Mode").SetValue(new StringList(new[] { "Hikigaya", "Kite" })));
             Config.SubMenu("Combo").AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
+          
+            //COMBAT
+            Config.AddSubMenu(new Menu("Combat", "Combat"));
 
+            Config.SubMenu("Combat").AddSubMenu(new Menu("vs Graves", "gravesset")); // graves set begin
+            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsCGraves", "Combat Mode").SetValue(true));
+            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsflashGraves", "Position E to Flash").SetValue(true));
+            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsQGraves", "Use Q").SetValue(true));
+            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsEGraves", "Use E").SetValue(true));
+            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsRGraves", "Use R").SetValue(true));
+            /*
+            Config.SubMenu("Combat").AddSubMenu(new Menu("vs Draven", "dravenset")); // draven set begin
+            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsCDraven", "Combat Mode").SetValue(true));
+            Config.SubMenu("Combat").SubMenu("dravenset").AddItem(new MenuItem("vsflashDraven", "Flash E").SetValue(true));
+            Config.SubMenu("Combat").SubMenu("dravenset").AddItem(new MenuItem("vsEDraven", "Use E").SetValue(true));
+            Config.SubMenu("Combat").SubMenu("dravenset").AddItem(new MenuItem("vsRDraven", "Use R").SetValue(true));
+          */
             //HARASS
             Config.AddSubMenu(new Menu("Harass", "Harass"));
             Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use E").SetValue(true));
@@ -148,6 +167,60 @@ namespace HikiCarry
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += Interrupter2_OnInterruptableTarget;
 
+
+
+
+        }
+        private static void Game_OnGameUpdate(EventArgs args)
+        {
+            Orbwalker.SetAttack(true);
+
+
+
+            //COMBO
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+            {
+                if (Config.Item("vsCGraves").GetValue<bool>())
+                {
+                    gravesVS();
+                }
+                Combo();
+            }
+
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+            {
+                if (E.IsReady() && Config.Item("RushEHarass").GetValue<bool>())
+                {
+                    var target = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
+                    if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count >= 2))
+                    {
+                        E.Cast(target);
+                    }
+                }
+
+            }
+
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+            {
+                Clear();
+            }
+
+            if (Config.Item("ksR").GetValue<bool>())
+            {
+                Killsteal();
+            }
+
+            if (Config.Item("bT").GetValue<bool>() && Player.Level >= Config.Item("bluetrinketlevel").GetValue<Slider>().Value && Player.InShop() && !(Items.HasItem(3342) || Items.HasItem(3363)))
+            {
+                Player.BuyItem(ItemId.Scrying_Orb_Trinket);
+            }
+
+            if (Config.Item("walltumble").GetValue<KeyBind>().Active)
+            {
+                TumbleHandler();
+            }
+
+           
 
 
 
@@ -277,54 +350,7 @@ namespace HikiCarry
                 }
             }
         }
-        private static void Game_OnGameUpdate(EventArgs args)
-        {
-            Orbwalker.SetAttack(true);
 
-
-            
-            //COMBO
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
-            {
-                Combo();
-            }
-
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
-            {
-                if (E.IsReady() && Config.Item("RushEHarass").GetValue<bool>())
-                {
-                    var target = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
-                    if (target.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count >= 2))
-                    {
-                        E.Cast(target);
-                    }
-                }
-
-            }
-
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
-            {
-                Clear();
-            }
-           
-            if (Config.Item("ksR").GetValue<bool>())
-            {
-                Killsteal();
-            }
-
-            if (Config.Item("bT").GetValue<bool>() && Player.Level >= Config.Item("bluetrinketlevel").GetValue<Slider>().Value && Player.InShop() && !(Items.HasItem(3342) || Items.HasItem(3363)))
-            {
-                Player.BuyItem(ItemId.Scrying_Orb_Trinket);
-            }
-
-            if (Config.Item("walltumble").GetValue<KeyBind>().Active)
-            {
-                TumbleHandler();
-            }
-           
-           
-
-        }
         private static IEnumerable<Vector3> GetPossibleQPositions()
         {
             var pointList = new List<Vector3>();
@@ -386,6 +412,7 @@ namespace HikiCarry
             switch (Config.Item("combotype").GetValue<StringList>().SelectedIndex)
             {
                 case 0:
+                   
                     var target0 = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
                     float rangez0 = ObjectManager.Player.CountEnemiesInRange(1500);
                     //start hikigaya
@@ -594,6 +621,118 @@ namespace HikiCarry
                     E.Cast(target);
             }
         }
+
+        private static void gravesVS()
+        {
+            var enemies = HeroManager.Enemies;
+
+            me = ObjectManager.Player;
+            flashSlot = me.GetSpellSlot("SummonerFlash");
+            Player.Spellbook.CastSpell(flashSlot, Game.CursorPos);
+            if (Player.CountEnemiesInRange(1000) == 1)
+            {
+                foreach (var h in enemies)
+                {
+                    if (h.Name == "Graves")
+                    {
+                        if (Config.Item("vsflashGraves").GetValue<bool>()) // flash e Confrimed
+                        {
+                            foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                            {
+
+                                var target0 = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
+
+                                foreach (
+                             var qPosition in
+                               GetPossibleQPositions()
+                               .OrderBy(qPosition => qPosition.Distance(target0.ServerPosition)))
+                                {
+                                    if (qPosition.Distance(target0.Position) < E.Range)
+                                        E.UpdateSourcePosition(qPosition, qPosition);
+                                    var targetPosition = E.GetPrediction(target0).CastPosition;
+                                    var finalPosition = targetPosition.Extend(qPosition, 400);
+                                    if (finalPosition.IsWall())
+                                    {
+                                        Player.Spellbook.CastSpell(flashSlot, qPosition);
+
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (Config.Item("vsEGraves").GetValue<bool>() && E.IsReady())
+                            {
+                                foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                                {
+
+
+                                    var EPred = E.GetPrediction(En);
+                                    int pushDist = 425;
+                                    var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
+
+                                    for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
+                                    {
+                                        Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+
+                                        if (loc3.IsWall() || isAllyFountain(FinalPosition))
+                                            E.Cast(En);
+                                    }
+                                }
+                            }
+                            if (Config.Item("vsRGraves").GetValue<bool>() && R.IsReady() && Config.Item("vsQGraves").GetValue<bool>() && Q.IsReady())
+                            {
+                               
+                                if (R.IsReady() && Config.Item("vsRGraves").GetValue<bool>())
+                                {
+                                    R.Cast();
+                                }
+                                if (Q.IsReady() && Config.Item("vsQGraves").GetValue<bool>())
+                                {
+                                    Q.Cast(Game.CursorPos);
+                                }
+                            }
+                        }
+                        if (Config.Item("vsEGraves").GetValue<bool>() && E.IsReady())
+                        {
+                            foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                            {
+
+
+                                var EPred = E.GetPrediction(En);
+                                int pushDist = 425;
+                                var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
+
+                                for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
+                                {
+                                    Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+
+                                    if (loc3.IsWall() || isAllyFountain(FinalPosition))
+                                        E.Cast(En);
+                                }
+                            }
+                        }
+                        if (Config.Item("vsRGraves").GetValue<bool>() && R.IsReady() && Config.Item("vsQGraves").GetValue<bool>() && Q.IsReady())
+                        {
+                           
+                            if (R.IsReady() && Config.Item("vsRGraves").GetValue<bool>())
+                            {
+                                R.Cast();
+                            }
+                            if (Q.IsReady() && Config.Item("vsQGraves").GetValue<bool>())
+                            {
+                                Q.Cast(Game.CursorPos);
+                            }
+                        }
+
+
+
+
+                    }
+                }
+            }
+        }
+
         private static void graBDodger() // work in progress
             {
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(h => h.IsValidTarget()))
