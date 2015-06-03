@@ -628,7 +628,7 @@ namespace HikiCarry
 
             me = ObjectManager.Player;
             flashSlot = me.GetSpellSlot("SummonerFlash");
-            Player.Spellbook.CastSpell(flashSlot, Game.CursorPos);
+            
             if (Player.CountEnemiesInRange(1000) == 1)
             {
                 foreach (var h in enemies)
