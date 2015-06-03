@@ -100,12 +100,12 @@ namespace HikiCarry
             //COMBAT
             Config.AddSubMenu(new Menu("Combat", "Combat"));
 
-            Config.SubMenu("Combat").AddSubMenu(new Menu("vs Graves", "gravesset")); // graves set begin
-            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsCGraves", "Combat Mode").SetValue(true));
-            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsflashGraves", "Position E to Flash").SetValue(true));
-            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsQGraves", "Use Q").SetValue(true));
-            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsEGraves", "Use E").SetValue(true));
-            Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsRGraves", "Use R").SetValue(true));
+            Config.SubMenu("Combat").AddItem(new MenuItem("gravees", "vs Graves Settings"));
+            Config.SubMenu("Combat").AddItem(new MenuItem("vsCGraves", "Combat Mode").SetValue(false));
+            Config.SubMenu("Combat").AddItem(new MenuItem("vsflashGraves", "Position E to Flash").SetValue(true));
+            Config.SubMenu("Combat").AddItem(new MenuItem("vsQGraves", "Position E to Q").SetValue(false));
+            Config.SubMenu("Combat").AddItem(new MenuItem("vsEGraves", "Use E").SetValue(true));
+            Config.SubMenu("Combat").AddItem(new MenuItem("vsRGraves", "Use R").SetValue(true));
             /*
             Config.SubMenu("Combat").AddSubMenu(new Menu("vs Draven", "dravenset")); // draven set begin
             Config.SubMenu("Combat").SubMenu("gravesset").AddItem(new MenuItem("vsCDraven", "Combat Mode").SetValue(true));
@@ -593,6 +593,7 @@ namespace HikiCarry
 
         private static void Drawing_OnDraw(EventArgs args)
         {
+            
             var menuItem2 = Config.Item("RushQRange").GetValue<Circle>();
             var menuItem3 = Config.Item("RushERange").GetValue<Circle>();
 
@@ -624,113 +625,119 @@ namespace HikiCarry
 
         private static void gravesVS()
         {
-            var enemies = HeroManager.Enemies;
 
-            me = ObjectManager.Player;
-            flashSlot = me.GetSpellSlot("SummonerFlash");
-            
-            if (Player.CountEnemiesInRange(1000) == 1)
+
+
+           
+            foreach (var targetz in HeroManager.Enemies.Where(h => h.IsValidTarget(1000) && h.ChampionName =="Graves"))
             {
-                foreach (var h in enemies)
+                me = ObjectManager.Player;
+                flashSlot = me.GetSpellSlot("SummonerFlash");
+                float range = Player.CountEnemiesInRange(1000);
+            if (Player.CountEnemiesInRange(1000) == 1 && Config.Item("vsCGraves").GetValue<bool>() == true && targetz.ChampionName == "Graves")
+            {
+
+                Drawing.DrawText(600, 0, System.Drawing.Color.Yellow, "Graves 1V1 Mode Activated!");
+                if (R.IsReady() && Config.Item("vsRGraves").GetValue<bool>() && Player.CountEnemiesInRange(750) == 1)
                 {
-                    if (h.Name == "Graves")
+                    foreach (
+                    var en in
+                        HeroManager.Enemies.Where(
+                            hero =>
+                                hero.IsValidTarget(650) && Player.CountEnemiesInRange(650) == 1))
                     {
-                        if (Config.Item("vsflashGraves").GetValue<bool>()) // flash e Confrimed
+                        R.Cast();
+                    }
+                   
+                }
+                if (flashSlot.IsReady() && Config.Item("vsflashGraves").GetValue<bool>() == true && E.IsReady())
+                {
+                    foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                    {
+                        foreach (
+                    var en in
+                        HeroManager.Enemies.Where(
+                            hero =>
+                                hero.IsValidTarget(E.Range) && Player.CountEnemiesInRange(E.Range) == 1))
                         {
-                            foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                            var target0 = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
+
+                            foreach (
+                         var qPosition in
+                           GetPossibleQPositions()
+                           .OrderBy(qPosition => qPosition.Distance(target0.ServerPosition)))
                             {
-
-                                var target0 = TargetSelector.GetTarget(550, TargetSelector.DamageType.Physical);
-
-                                foreach (
-                             var qPosition in
-                               GetPossibleQPositions()
-                               .OrderBy(qPosition => qPosition.Distance(target0.ServerPosition)))
+                                if (qPosition.Distance(target0.Position) < E.Range)
+                                    E.UpdateSourcePosition(qPosition, qPosition);
+                                var targetPosition = E.GetPrediction(target0).CastPosition;
+                                var finalPosition = targetPosition.Extend(qPosition, 400);
+                                if (finalPosition.IsWall())
                                 {
-                                    if (qPosition.Distance(target0.Position) < E.Range)
-                                        E.UpdateSourcePosition(qPosition, qPosition);
-                                    var targetPosition = E.GetPrediction(target0).CastPosition;
-                                    var finalPosition = targetPosition.Extend(qPosition, 400);
-                                    if (finalPosition.IsWall())
-                                    {
-                                        Player.Spellbook.CastSpell(flashSlot, qPosition);
+                                    Player.Spellbook.CastSpell(flashSlot, qPosition);
 
-                                    }
                                 }
                             }
                         }
-                        else
-                        {
-                            if (Config.Item("vsEGraves").GetValue<bool>() && E.IsReady())
-                            {
-                                foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
-                                {
-
-
-                                    var EPred = E.GetPrediction(En);
-                                    int pushDist = 425;
-                                    var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
-
-                                    for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
-                                    {
-                                        Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
-
-                                        if (loc3.IsWall() || isAllyFountain(FinalPosition))
-                                            E.Cast(En);
-                                    }
-                                }
-                            }
-                            if (Config.Item("vsRGraves").GetValue<bool>() && R.IsReady() && Config.Item("vsQGraves").GetValue<bool>() && Q.IsReady())
-                            {
-                               
-                                if (R.IsReady() && Config.Item("vsRGraves").GetValue<bool>())
-                                {
-                                    R.Cast();
-                                }
-                                if (Q.IsReady() && Config.Item("vsQGraves").GetValue<bool>())
-                                {
-                                    Q.Cast(Game.CursorPos);
-                                }
-                            }
-                        }
-                        if (Config.Item("vsEGraves").GetValue<bool>() && E.IsReady())
-                        {
-                            foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
-                            {
-
-
-                                var EPred = E.GetPrediction(En);
-                                int pushDist = 425;
-                                var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
-
-                                for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
-                                {
-                                    Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
-
-                                    if (loc3.IsWall() || isAllyFountain(FinalPosition))
-                                        E.Cast(En);
-                                }
-                            }
-                        }
-                        if (Config.Item("vsRGraves").GetValue<bool>() && R.IsReady() && Config.Item("vsQGraves").GetValue<bool>() && Q.IsReady())
-                        {
-                           
-                            if (R.IsReady() && Config.Item("vsRGraves").GetValue<bool>())
-                            {
-                                R.Cast();
-                            }
-                            if (Q.IsReady() && Config.Item("vsQGraves").GetValue<bool>())
-                            {
-                                Q.Cast(Game.CursorPos);
-                            }
-                        }
-
-
-
-
+                        
                     }
                 }
+                if (Config.Item("vsflashGraves").GetValue<bool>() == false && Q.IsReady() && Player.CountEnemiesInRange(1000) == 1)
+                {
+                    var target = TargetSelector.GetTarget(625, TargetSelector.DamageType.Physical);
+                     var pushDistance = 400;
+                    foreach (
+                           var qPosition in
+                             GetPossibleQPositions()
+                             .OrderBy(qPosition => qPosition.Distance(target.ServerPosition)))
+                    {
+                        if (qPosition.Distance(target.Position) < E.Range)
+                          E.UpdateSourcePosition(qPosition, qPosition);
+                       var targetPosition = E.GetPrediction(target).CastPosition;
+                        var finalPosition = targetPosition.Extend(qPosition, -pushDistance);
+                        if (finalPosition.IsWall())
+                       {
+                           Q.Cast(qPosition);
+                           
+                       }
+                   }
+                }
+                if (Config.Item("vsEGraves").GetValue<bool>() && E.IsReady())
+                {
+                    foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                    {
+
+
+                        var EPred = E.GetPrediction(En);
+                        int pushDist = 425;
+                        var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
+
+                        for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
+                        {
+                            Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+
+                            if (loc3.IsWall() || isAllyFountain(FinalPosition))
+                                E.Cast(En);
+                        }
+                    }
+                }
+                if (Q.IsReady() && Config.Item("vsQGraves").GetValue<bool>())
+                {
+                    foreach (
+                    var en in
+                        HeroManager.Enemies.Where(
+                            hero =>
+                                hero.IsValidTarget(550) && Player.CountEnemiesInRange(550) == 1))
+                    {
+                        Q.Cast(Game.CursorPos);
+                    }
+                    
+                }
+
             }
+                       }
+           
+           
+               
         }
 
         private static void graBDodger() // work in progress
