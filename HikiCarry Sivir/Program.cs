@@ -64,6 +64,8 @@ namespace HikiCarry_Sivir
             SpellListt.Add(new Spells { ChampionName = "talon", SpellName = "talonshadowassault", slot = SpellSlot.R }); //Talon R
             SpellListt.Add(new Spells { ChampionName = "monkeyking", SpellName = "monkeykingdecoy", slot = SpellSlot.W }); //Wukong W
 
+            SpellListt.Add(new Spells { ChampionName = "Graves", SpellName = "GravesClusterShot", slot = SpellSlot.Q });   //Akali Graves
+
             //MENU
             Config = new Menu("HikiCarry - Sivir", "HikiCarry - Sivir", true);
 
@@ -123,6 +125,7 @@ namespace HikiCarry_Sivir
            
             //MISC
             Config.AddSubMenu(new Menu("Misc", "Misc"));
+            Config.SubMenu("Misc").AddItem(new MenuItem("useE", "Dodge with E").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("ksQ", "KillSteal Q!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("AinQ", "Auto Q Inmobile Target!").SetValue(true));
             Config.SubMenu("Misc").AddItem(new MenuItem("bT", "Auto Buy Scrying Orb!").SetValue(true));
@@ -164,11 +167,14 @@ namespace HikiCarry_Sivir
             Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
             Obj_AI_Base.OnCreate += Obj_AI_Base_OnCreate;
             Drawing.OnDraw += Drawing_OnDraw;
+           
 
 
 
 
         }
+
+       
         static float GetComboDamage(Obj_AI_Base enemy)
         {
             float damage = 0;
@@ -240,7 +246,87 @@ namespace HikiCarry_Sivir
 
         private static void Obj_AI_Hero_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
+            if (Config.Item("useE").GetValue<bool>())
+            {
+                string[] Spells = {"AhriSeduce"
+                                          , "InfernalGuardian"
+                                          , "EnchantedCrystalArrow"
+                                          , "InfernalGuardian"
+                                          , "EnchantedCrystalArrow"
+                                          , "RocketGrab"
+                                          , "BraumQ"
+                                          , "CassiopeiaPetrifyingGaze"
+                                          , "DariusAxeGrabCone"
+                                          , "DravenDoubleShot"
+                                          , "DravenRCast"
+                                          , "EzrealTrueshotBarrage"
+                                          , "FizzMarinerDoom"
+                                          , "GnarBigW"
+                                          , "GnarR"
+                                          , "GragasR"
+                                          , "GravesChargeShot"
+                                          , "GravesClusterShot"
+                                          , "JarvanIVDemacianStandard"
+                                          , "JinxW"
+                                          , "JinxR"
+                                          , "KarmaQ"
+                                          , "KogMawLivingArtillery"
+                                          , "LeblancSlide"
+                                          , "LeblancSoulShackle"
+                                          , "LeonaSolarFlare"
+                                          , "LuxLightBinding"
+                                          , "LuxLightStrikeKugel"
+                                          , "LuxMaliceCannon"
+                                          , "UFSlash"
+                                          , "DarkBindingMissile"
+                                          , "NamiQ"
+                                          , "NamiR"
+                                          , "OrianaDetonateCommand"
+                                          , "RengarE"
+                                          , "rivenizunablade"
+                                          , "RumbleCarpetBombM"
+                                          , "SejuaniGlacialPrisonStart"
+                                          , "SionR"
+                                          , "ShenShadowDash"
+                                          , "SonaR"
+                                          , "ThreshQ"
+                                          , "ThreshEFlay"
+                                          , "VarusQMissilee"
+                                          , "VarusR"
+                                          , "VeigarBalefulStrike"
+                                          , "VelkozQ"
+                                          , "Vi-q"
+                                          , "Laser"
+                                          , "xeratharcanopulse2"
+                                          , "XerathArcaneBarrage2"
+                                          , "XerathMageSpear"
+                                          , "xerathrmissilewrapper"
+                                          , "yasuoq3w"
+                                          , "ZacQ"
+                                          , "ZedShuriken"
+                                          , "ZiggsQ"
+                                          , "ZiggsW"
+                                          , "ZiggsE"
+                                          , "ZiggsR"
+                                          , "ZileanQ"
+                                          , "ZyraQFissure"
+                                          , "ZyraGraspingRoots"
+                                      };
+                for (int i = 0; i <= 61; i++)
+                {
+                    if (args.SData.Name == Spells[i])
+                    {
+                        if (sender is Obj_AI_Hero && sender.IsEnemy && args.Target.IsMe && !args.SData.IsAutoAttack() && E.IsReady())
+                        {
+                            E.Cast();
+                        }
+                    }
+                }
+            }
+           
+           
             
+
             if (!Config.Item("Use").GetValue<KeyBind>().Active)
                 return;
 
@@ -270,6 +356,8 @@ namespace HikiCarry_Sivir
                     Delay = Environment.TickCount;
                 }
             }
+            
+        
         }
         static double UnitIsImmobileUntil(Obj_AI_Base unit)
         {
@@ -338,24 +426,26 @@ namespace HikiCarry_Sivir
                                 hero.IsValidTarget(Q.Range)))
                 {
                     var targetQ = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
-                    if (Q.GetPrediction(targetQ).Hitchance >= HitChance.VeryHigh)
+                    if (Q.CanCast(targetQ))
                     {
                         Q.Cast(targetQ);
                     }
                 }
             }
+
             if (W.IsReady() && Config.Item("RushWCombo").GetValue<bool>())
             {
                 foreach (
                     var en in
                         HeroManager.Enemies.Where(
                             hero =>
-                                hero.IsValidTarget(W.Range)))
+                                hero.IsValidTarget(500)))
                 {
-                    var targetW = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Physical);
-                    W.Cast(targetW);
+                        W.Cast();
+                    
                 }
             }
+            
             if (R.IsReady() && Config.Item("RushRCombo").GetValue<bool>() && Player.CountEnemiesInRange(1000) >= Config.Item("RcomboEnemy").GetValue<Slider>().Value)
             {
                 R.Cast();
