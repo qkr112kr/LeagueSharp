@@ -121,8 +121,7 @@ namespace HikiCarry_Graves
 
             //HARASS
             Config.AddSubMenu(new Menu("Harass", "Harass"));
-            Config.SubMenu("Harass").AddItem(new MenuItem("RushQHarass", "Use Q", true).SetValue(true));
-            Config.SubMenu("Harass").AddItem(new MenuItem("RushEHarass", "Use W", true).SetValue(true));
+            Config.SubMenu("Harass").AddItem(new MenuItem("RushQHarass", "Use Q").SetValue(true));
             Config.SubMenu("Harass").AddItem(new MenuItem("harassmana", "Haras Mana Percent").SetValue(new Slider(30, 0, 100)));
             //MISC
             Config.AddSubMenu(new Menu("Misc", "Misc"));
@@ -137,8 +136,6 @@ namespace HikiCarry_Graves
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushQSelectRange", "Selected Q Range").SetValue(new Circle(true, Color.Gold)));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushWRange", "W Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushRRange", "R Range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(255, 255, 255, 255))));
-         
-
 
 
 
@@ -147,10 +144,24 @@ namespace HikiCarry_Graves
             Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
             Obj_AI_Base.OnCreate += Obj_AI_Base_OnCreate;
             Drawing.OnDraw += Drawing_OnDraw;
+            Orbwalking.AfterAttack += Orbwalking_OnAfterAttack;
            
 
 
 
+        }
+
+        private static void Orbwalking_OnAfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && Config.Item("RushQCombo").GetValue<bool>())
+            {
+                if (unit.IsMe && Q.IsReady())
+                {
+                    var targetQ = TargetSelector.GetTarget(Config.Item("RushQComboRange").GetValue<Slider>().Value, TargetSelector.DamageType.Physical);
+                    Q.Cast(targetQ);
+                    Orbwalking.ResetAutoAttackTimer();
+                }
+            }
         }
 
         private static void Obj_AI_Base_OnCreate(GameObject sender, EventArgs args)
