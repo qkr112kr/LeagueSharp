@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -144,6 +145,7 @@ namespace HikiCarry_Kalista
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushWRange", "W Range").SetValue(new Circle(true, Color.Yellow)));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushERange", "E Range").SetValue(new Circle(true, Color.SpringGreen)));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushRRange", "R Range").SetValue(new Circle(true, Color.Crimson)));
+            Config.SubMenu("Drawings").AddItem(new MenuItem("DrawEPercent", "E % On Enemy", true).SetValue(true));
           
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "E Damage").SetValue(true);
             var drawFill = new MenuItem("RushDrawEDamageFill", "E Damage Fill").SetValue(new Circle(true, Color.SeaGreen));
@@ -176,13 +178,19 @@ namespace HikiCarry_Kalista
         }
         static float GetComboDamage(Obj_AI_Base enemy)
         {
-            float damage = 0;
-           
+           float damage = 0;
 
             if (E.IsReady())
-                damage += E.GetDamage(enemy);
+            damage += E.GetDamage(enemy);
+            
+                var stacz = E.GetDamage(enemy);
+                float edamagedraw = stacz * 100 / enemy.Health;
+                var yx = Drawing.WorldToScreen(enemy.Position);
+                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.Red, "E Stack on Enemy HP %" + edamagedraw);
+            
             return damage;
         }
+        
 
         private static void Game_OnGameUpdate(EventArgs args)
         {
