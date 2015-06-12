@@ -19,6 +19,8 @@ namespace HikiCarry_Kalista
         static List<Spells> SpellListt = new List<Spells>();
         static int Delay = 0;
 
+        public static Obj_AI_Hero tar;
+
         public static Menu Config;
 
         public static Spell Q;
@@ -90,6 +92,13 @@ namespace HikiCarry_Kalista
             Config.AddSubMenu(new Menu("Harass", "Harass"));
             Config.SubMenu("Harass").AddItem(new MenuItem("RushQHarass", "Use Q", true).SetValue(true));
 
+            //LASTHIT
+            Config.AddSubMenu(new Menu("LastHit", "LastHit"));
+            Config.SubMenu("LastHit").AddItem(new MenuItem("RushELast", "Use E").SetValue(true));
+            Config.SubMenu("LastHit").AddItem(new MenuItem("RushESiege", "Use E Siege Minions").SetValue(true));
+            Config.SubMenu("LastHit").AddItem(new MenuItem("lastmana", "Last Hit Mana Percent").SetValue(new Slider(30, 0, 100)));
+
+
             //LANECLEAR
             Config.AddSubMenu(new Menu("LaneClear", "LaneClear"));
             Config.SubMenu("LaneClear").AddItem(new MenuItem("RushEClear", "Use E").SetValue(true));
@@ -124,7 +133,13 @@ namespace HikiCarry_Kalista
 
             }
 
-
+            Config.AddSubMenu(new Menu("Items", "Items"));
+            Config.SubMenu("Items").AddSubMenu(new Menu("BOTRK Settings", "BOTRKset"));
+            Config.SubMenu("Items").SubMenu("BOTRKset").AddItem(new MenuItem("useBOTRK", "Use BOTRK").SetValue(true));
+            Config.SubMenu("Items").SubMenu("BOTRKset").AddItem(new MenuItem("myhp", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
+            Config.SubMenu("Items").SubMenu("BOTRKset").AddItem(new MenuItem("theirhp", "Use if enemy HP < %").SetValue(new Slider(20, 0, 100)));
+            Config.SubMenu("Items").AddSubMenu(new Menu("Ghostblade Settings", "GBladeset"));
+            Config.SubMenu("Items").SubMenu("GBladeset").AddItem(new MenuItem("useGBLADE", "Use Ghostblade").SetValue(true));
             
             //MISC
             Config.AddSubMenu(new Menu("Misc", "Misc"));
@@ -174,7 +189,27 @@ namespace HikiCarry_Kalista
             Game.OnUpdate += Game_OnGameUpdate;
             Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
             Obj_AI_Base.OnCreate += Obj_AI_Base_OnCreate;
+            Orbwalking.AfterAttack += Orbwalking_AfterAttack;
             Drawing.OnDraw += Drawing_OnDraw;
+        }
+
+        private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            tar = (Obj_AI_Hero)target;
+            if (Config.Item("useBOTRK").GetValue<bool>() && ((tar.Health / tar.MaxHealth) < Config.Item("theirhp").GetValue<Slider>().Value) && ((ObjectManager.Player.Health / ObjectManager.Player.MaxHealth) < Config.Item("myhp").GetValue<Slider>().Value))
+            {
+                if (Items.CanUseItem(3153))
+                {
+                    Items.UseItem(3153, tar);
+                }
+            }
+            if (Config.Item("useGBLADE").GetValue<bool>())
+            {
+                if (Items.CanUseItem(3142))
+                {
+                    Items.UseItem(3142);
+                }
+            }
         }
         static float GetComboDamage(Obj_AI_Base enemy)
         {
@@ -182,12 +217,22 @@ namespace HikiCarry_Kalista
 
             if (E.IsReady())
             damage += E.GetDamage(enemy);
+
             
                 var stacz = E.GetDamage(enemy);
                 float edamagedraw = stacz * 100 / enemy.Health;
-                var yx = Drawing.WorldToScreen(enemy.Position);
-                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.Red, "E Stack on Enemy HP %" + edamagedraw);
-            
+                int edraw = (int)Math.Ceiling(edamagedraw);
+                if (edraw >= 100)
+                {
+                    var yx = Drawing.WorldToScreen(enemy.Position);
+                    Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "STACK OVERLOAD - FUCK THEM ALL !");
+                }
+                if (edraw <100)
+                {
+                    var yx = Drawing.WorldToScreen(enemy.Position);
+                    Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "E Stack on Enemy HP %" + edraw);
+                }
+
             return damage;
         }
         
@@ -213,6 +258,11 @@ namespace HikiCarry_Kalista
             {
                 Clear();
                 JClear();
+                
+            }
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+            {
+                LHit();
             }
             
             if (Config.Item("ksQ").GetValue<bool>())
@@ -252,7 +302,32 @@ namespace HikiCarry_Kalista
             
         }
 
-       
+        private static void LHit()
+        {
+            if (E.IsReady() && Config.Item("RushESiege").GetValue<bool>())
+            {
+                var Minions = MinionManager.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.Enemy);
+                foreach (var minion in Minions)
+                {
+                    if (E.IsReady() && minion.BaseSkinName.Contains("MinionSiege") && E.IsKillable(minion))
+                    {
+                        E.Cast();
+                    }
+                }
+            }
+
+            if (E.IsReady() && Config.Item("RushELast").GetValue<bool>())
+            {
+                var Minions = MinionManager.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.Enemy);
+                foreach (var minion in Minions)
+                {
+                    if (E.IsReady() && minion.Health < E.GetDamage(minion) && Player.ManaPercent >= Config.Item("lastmana").GetValue<Slider>().Value)
+                    {
+                        E.Cast();
+                    }
+                }
+            }
+        }
 
         private static void Combo()
         {
@@ -282,7 +357,7 @@ namespace HikiCarry_Kalista
                 {
                     foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsMe))
                     {
-                        if (hero.Health<E.GetDamage(hero))
+                        if (hero.Health+20<E.GetDamage(hero))
                         {
                             E.Cast(hero);
                         }
