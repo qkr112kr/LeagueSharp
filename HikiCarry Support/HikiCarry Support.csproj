@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1E962507-B0B5-4299-BF49-B6DB51116BB1}</ProjectGuid>
+    <ProjectGuid>{D83F2004-FD29-4378-B697-323C3CEA860E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HikiCarry_Leona</RootNamespace>
-    <AssemblyName>HikiCarry Leona</AssemblyName>
+    <RootNamespace>HikiCarry_Support</RootNamespace>
+    <AssemblyName>HikiCarry Support</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PreBuildEvent />
@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Champions\Leona.cs" />
     <Compile Include="DamageIndicator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
