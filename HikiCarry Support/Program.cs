@@ -111,14 +111,14 @@ namespace HikiCarry_Support
 
             }
 
-            
+
 
             //MISC
             Config.AddSubMenu(new Menu("Misc Settings", "Misc Settings"));
             Config.SubMenu("Misc Settings").AddSubMenu(new Menu("Gapcloser & Interrupter Settings", "giset"));
             Config.SubMenu("Misc Settings").SubMenu("giset").AddItem(new MenuItem("gapclose", "Anti-Gapcloser with Q").SetValue(true));
             Config.SubMenu("Misc Settings").SubMenu("giset").AddItem(new MenuItem("interrupter", "Interrupter with Q").SetValue(true));
-            
+
 
 
 
@@ -129,7 +129,7 @@ namespace HikiCarry_Support
             Config.AddSubMenu(new Menu("Drawings", "Drawings"));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushERange", "E Range").SetValue(new Circle(true, Color.SpringGreen)));
             Config.SubMenu("Drawings").AddItem(new MenuItem("RushRRange", "R Range").SetValue(new Circle(true, Color.Crimson)));
-           
+
 
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "R Damage").SetValue(true);
             var drawFill = new MenuItem("RushDrawEDamageFill", "R Damage Fill").SetValue(new Circle(true, Color.SeaGreen));
@@ -165,7 +165,7 @@ namespace HikiCarry_Support
 
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-           
+
             if (gapcloser.Sender.IsValidTarget(1000))
             {
                 Render.Circle.DrawCircle(gapcloser.Sender.Position, gapcloser.Sender.BoundingRadius, Color.Gold, 5);
@@ -247,16 +247,16 @@ namespace HikiCarry_Support
 
             if (R.IsReady() && Config.Item("rCombo").GetValue<bool>())
             {
-                    var t2 = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Magical);
-                    var Wcount = Utility.CountEnemiesInRange(Player, R.Range);
-                    var ReqWcount = Config.Item("renemyhit").GetValue<Slider>().Value;
-                    if (ReqWcount >= Wcount)
-                    {
-                        R.Cast(t2);
-                    }
+                var t2 = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Magical);
+                var Wcount = Utility.CountEnemiesInRange(Player, R.Range);
+                var ReqWcount = Config.Item("renemyhit").GetValue<Slider>().Value;
+                if (ReqWcount >= Wcount)
+                {
+                    R.Cast(t2);
+                }
             }
-           
-            
+
+
 
         }
 
@@ -356,7 +356,7 @@ namespace HikiCarry_Support
         private static void Drawing_OnDraw(EventArgs args)
         {
 
-            
+
             var menuItem3 = Config.Item("RushERange").GetValue<Circle>();
             var menuItem4 = Config.Item("RushRRange").GetValue<Circle>();
 
@@ -364,7 +364,7 @@ namespace HikiCarry_Support
 
 
 
-           
+
             if (menuItem3.Active && E.IsReady())
             {
                 Render.Circle.DrawCircle(Player.Position, E.Range, Color.SpringGreen);
