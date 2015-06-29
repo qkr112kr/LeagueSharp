@@ -10,7 +10,7 @@ using Color = System.Drawing.Color;
 
 namespace HikiCarry_Support
 {
-    internal class DamageIndicator
+    class DamageIndicator
     {
         public delegate float DamageToUnitDelegate(Obj_AI_Hero hero);
 
