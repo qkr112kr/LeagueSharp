@@ -117,7 +117,7 @@ namespace HikiCarry_Support
             Config.AddSubMenu(new Menu("Misc Settings", "Misc Settings"));
             Config.SubMenu("Misc Settings").AddSubMenu(new Menu("Gapcloser & Interrupter Settings", "giset"));
             Config.SubMenu("Misc Settings").SubMenu("giset").AddItem(new MenuItem("gapclose", "Anti-Gapcloser with Q").SetValue(true));
-            Config.SubMenu("Misc Settings").SubMenu("giset").AddItem(new MenuItem("interrupter", "Interrupter with Q").SetValue(new Slider(6, 0, 18)));
+            Config.SubMenu("Misc Settings").SubMenu("giset").AddItem(new MenuItem("interrupter", "Interrupter with Q").SetValue(true));
             
 
 
@@ -250,7 +250,7 @@ namespace HikiCarry_Support
                     var t2 = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Magical);
                     var Wcount = Utility.CountEnemiesInRange(Player, R.Range);
                     var ReqWcount = Config.Item("renemyhit").GetValue<Slider>().Value;
-                    if (ReqWcount <= Wcount)
+                    if (ReqWcount >= Wcount)
                     {
                         R.Cast(t2);
                     }
