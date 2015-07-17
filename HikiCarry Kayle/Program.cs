@@ -212,17 +212,6 @@ namespace HikiCarry_Kayle
                 rAlly();
             }
         }
-        private static void wAlly()
-        {
-            foreach (var ally in HeroManager.Allies)
-            {
-                if (ally.HealthPercent <= Config.Item("wHealAllyPercent").GetValue<Slider>().Value
-                    && !ally.IsRecalling() && !ally.IsDead)
-                {
-                    W.Cast(ally);
-                }
-            }
-        }
         private static void haraSS()
         {
             if (ObjectManager.Player.ManaPercent > Config.Item("manaHarass").GetValue<Slider>().Value)
@@ -297,16 +286,27 @@ namespace HikiCarry_Kayle
                 }
             }
         }
+        private static void wAlly()
+        {
+            foreach (var ally in HeroManager.Allies)
+            {
+                if (ally.HealthPercent <= Config.Item("wHealAllyPercent").GetValue<Slider>().Value
+                    && !ally.IsRecalling() && !ally.IsDead)
+                {
+                    W.Cast(ally);
+                }
+            }
+        }
         private static void wKayle()
         {
-            if (ObjectManager.Player.HealthPercent <= Config.Item("wHealMePercent").GetValue<Slider>().Value)
+            if (ObjectManager.Player.HealthPercent <= Config.Item("wHealMePercent").GetValue<Slider>().Value && !Player.IsRecalling())
             {
                 W.Cast(ObjectManager.Player);
             }
         }
         private static void rKayle() 
         {
-            if (ObjectManager.Player.HealthPercent <= Config.Item("rMinHpMe").GetValue<Slider>().Value)
+            if (ObjectManager.Player.HealthPercent <= Config.Item("rMinHpMe").GetValue<Slider>().Value && !Player.IsRecalling())
             {
                 R.Cast(ObjectManager.Player);
             }
