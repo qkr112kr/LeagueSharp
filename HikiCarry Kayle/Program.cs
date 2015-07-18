@@ -238,9 +238,10 @@ namespace HikiCarry_Kayle
             }
             if (W.IsReady() && Config.Item("wAllyHeal").GetValue<bool>())
             {
-                foreach (var ally in HeroManager.Allies.Where(ally => ally.IsValidTarget(W.Range) && !ally.IsMe && !ally.IsDead && !ally.IsRecalling()))
+                foreach (var ally in HeroManager.Allies)
                 {
-                    if (ally.HealthPercent <= Config.Item("wHealAllyPercent").GetValue<Slider>().Value)
+                    if (!ally.IsMe && ally.HealthPercent <= Config.Item("wHealAllyPercent").GetValue<Slider>().Value
+                        && !ally.IsRecalling() && !ally.IsDead)
                     {
                         W.Cast(ally);
                     }
@@ -248,11 +249,12 @@ namespace HikiCarry_Kayle
             }
             if (R.IsReady() && Config.Item("rAlly").GetValue<bool>())
             {
-                foreach (var ally in HeroManager.Allies.Where(ally => ally.IsValidTarget(R.Range) && !ally.IsMe && !ally.IsDead && !ally.IsRecalling()))
+                foreach (var allyx in HeroManager.Allies)
                 {
-                    if (ally.HealthPercent <= Config.Item("rAllyHP").GetValue<Slider>().Value)
+                    if (!allyx.IsMe && allyx.HealthPercent <= Config.Item("rAllyHP").GetValue<Slider>().Value
+                        && !allyx.IsRecalling() && !allyx.IsDead)
                     {
-                            R.Cast(ally);
+                       R.Cast(allyx);
                     }
                 }
             }
