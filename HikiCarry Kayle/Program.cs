@@ -26,6 +26,11 @@ namespace HikiCarry_Kayle
         public static Spell E;
         public static Spell R;
         public static SpellSlot Ignite;
+        public static SpellSlot smiteSlot = SpellSlot.Unknown;
+        public static readonly int[] Smites = { 1039, 3713, 3726, 3725, 3726, 3723, 3711, 3722,
+                                                  3721, 3720, 3719, 3715, 3718, 3717, 3716, 
+                                                  3714, 3706, 3710, 3709, 3708, 3707 }; //smite id's
+
 
         private static Obj_AI_Hero Player;
         public struct Spells
@@ -98,18 +103,27 @@ namespace HikiCarry_Kayle
             Config.SubMenu("Clear Settings").AddItem(new MenuItem("eClear", "Use E").SetValue(true));
             Config.SubMenu("Clear Settings").AddItem(new MenuItem("manaClear", "Clear Mana Percent").SetValue(new Slider(30, 1, 100)));
 
+            Config.AddSubMenu(new Menu("Jungle Settings", "Jungle Settings"));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("JungCheck", "                 Ulti Settings"));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("rJungle", "Use R").SetValue(true));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("rJungleHp", "Min Percentage of HP for R").SetValue(new Slider(2, 1, 100)));
 
             //HEAL 
             Config.AddSubMenu(new Menu("Heal and Ulti Settings", "Heal and Ulti Settings"));
+            
+            Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("kayleset", "                 Kayle Settings"));
             Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("wHeal", "Use W").SetValue(true));
             Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("wHealMePercent", "Min Percentage of HP for W").SetValue(new Slider(30, 1, 100)));
-            Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("wAllyHeal", "Use W for Ally").SetValue(true));
-            Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("wHealAllyPercent", "Ally Min Percentage of HP").SetValue(new Slider(10, 1, 100)));
             Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("rMe", "Use R").SetValue(true));
             Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("rMinHpMe", "Min Percentage of HP for R").SetValue(new Slider(20, 1, 100)));
+            
+            Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("allyset", "                 Ally Settings"));
+            Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("wAllyHeal", "Use W for Ally").SetValue(true));
+            Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("wHealAllyPercent", "Ally Min Percentage of HP").SetValue(new Slider(10, 1, 100)));
             Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("rAlly", "Use R for Ally").SetValue(true));
             Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("rAllyHP", "Min Percentage of HP for R").SetValue(new Slider(10, 1, 100)));
-            
+
+
             //INVISIBLE KICKER
             Config.AddSubMenu(new Menu("Invisible Kicker", "Invisiblez"));
             Config.SubMenu("Invisiblez").AddItem(new MenuItem("Use", "Use Vision Ward On Combo").SetValue(new KeyBind(32, KeyBindType.Press)));
@@ -167,7 +181,6 @@ namespace HikiCarry_Kayle
 
             Config.AddItem(new MenuItem("summonerz", "            Summoner Spell Settings"));
             Config.AddItem(new MenuItem("signite", "Use [IGNITE]").SetValue(true));
-
             Config.AddToMainMenu();
             Game.OnUpdate += Game_OnGameUpdate;
             Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
@@ -175,8 +188,7 @@ namespace HikiCarry_Kayle
             
             Drawing.OnDraw += Drawing_OnDraw;
         }
-        
-
+ 
         private static void Game_OnGameUpdate(EventArgs args)
         {
             Orbwalker.SetAttack(true);
@@ -193,25 +205,59 @@ namespace HikiCarry_Kayle
                 haraSS();
             }
 
-            if (W.IsReady() && Config.Item("wHeal").GetValue<bool>())
+            if (W.IsReady() && Config.Item("wHeal").GetValue<bool>()) // W HEAL TO KAYLE
             {
-                wKayle();
+                if (Player.HealthPercent <= Config.Item("wHealMePercent").GetValue<Slider>().Value && !Player.IsRecalling())
+                {
+                    W.Cast(Player);
+                }
             }
-
+            if (Player.InventoryItems.Any(item => Smites.Any(t => t == (int)(item.Id)))) //smite id check
+            {
+                if (R.IsReady() && Config.Item("rJungle").GetValue<bool>()) // R TO KAYLE jungle
+                {
+                    var yx = Drawing.WorldToScreen(Player.Position);
+                    Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "Jungle");
+                    if (Player.HealthPercent <= Config.Item("rJungleHp").GetValue<Slider>().Value && !Player.IsRecalling())
+                    {
+                        R.Cast(Player);
+                    }
+                }
+            }
+            else
+            {
+                if (R.IsReady() && Config.Item("rMe").GetValue<bool>()) // definetly not jungle
+                {
+                    var yx = Drawing.WorldToScreen(Player.Position);
+                    Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "NOT JUNGLE");
+                    if (Player.HealthPercent <= Config.Item("rMinHpMe").GetValue<Slider>().Value && !Player.IsRecalling())
+                    {
+                        R.Cast(Player);
+                    }
+                }
+            }
             if (W.IsReady() && Config.Item("wAllyHeal").GetValue<bool>())
             {
-                wAlly();
-            }
-
-            if (R.IsReady() && Config.Item("rMe").GetValue<bool>())
-            {
-                rKayle();
+                foreach (var ally in HeroManager.Allies.Where(ally => ally.IsValidTarget(W.Range) && !ally.IsMe && !ally.IsDead && !ally.IsRecalling()))
+                {
+                    if (ally.HealthPercent <= Config.Item("wHealAllyPercent").GetValue<Slider>().Value)
+                    {
+                        W.Cast(ally);
+                    }
+                }
             }
             if (R.IsReady() && Config.Item("rAlly").GetValue<bool>())
             {
-                rAlly();
+                foreach (var ally in HeroManager.Allies.Where(ally => ally.IsValidTarget(R.Range) && !ally.IsMe && !ally.IsDead && !ally.IsRecalling()))
+                {
+                    if (ally.HealthPercent <= Config.Item("rAllyHP").GetValue<Slider>().Value)
+                    {
+                            R.Cast(ally);
+                    }
+                }
             }
         }
+
         private static void haraSS()
         {
             if (ObjectManager.Player.ManaPercent > Config.Item("manaHarass").GetValue<Slider>().Value)
@@ -245,8 +291,8 @@ namespace HikiCarry_Kayle
         }
         private static void cLear()
         {
-            var qMinion = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All);
-            var eMinion = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range +150, MinionTypes.All);
+            var qMinion = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.Enemy);
+            var eMinion = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range + 150, MinionTypes.All, MinionTeam.Enemy);
 
             if (ObjectManager.Player.ManaPercent > Config.Item("manaClear").GetValue<Slider>().Value)
             {
@@ -273,42 +319,6 @@ namespace HikiCarry_Kayle
                         }
                     }
                 }
-            }
-        }
-        private static void rAlly()
-        {
-            foreach (var ally in HeroManager.Allies)
-            {
-                if (ally.HealthPercent <= Config.Item("rAllyHP").GetValue<Slider>().Value
-                    && !ally.IsRecalling() && !ally.IsDead)
-                {
-                    R.Cast(ally);
-                }
-            }
-        }
-        private static void wAlly()
-        {
-            foreach (var ally in HeroManager.Allies)
-            {
-                if (ally.HealthPercent <= Config.Item("wHealAllyPercent").GetValue<Slider>().Value
-                    && !ally.IsRecalling() && !ally.IsDead)
-                {
-                    W.Cast(ally);
-                }
-            }
-        }
-        private static void wKayle()
-        {
-            if (ObjectManager.Player.HealthPercent <= Config.Item("wHealMePercent").GetValue<Slider>().Value && !Player.IsRecalling())
-            {
-                W.Cast(ObjectManager.Player);
-            }
-        }
-        private static void rKayle() 
-        {
-            if (ObjectManager.Player.HealthPercent <= Config.Item("rMinHpMe").GetValue<Slider>().Value && !Player.IsRecalling())
-            {
-                R.Cast(ObjectManager.Player);
             }
         }
         private static void Combo()
@@ -338,6 +348,8 @@ namespace HikiCarry_Kayle
                         E.Cast();
                 }
             }
+            
+
             if (Ignite.IsReady() && Config.Item("signite").GetValue<bool>())
             {
                 if (GetComboDamage(target) > target.Health - 100)
@@ -345,6 +357,7 @@ namespace HikiCarry_Kayle
                     Player.Spellbook.CastSpell(Ignite, target);
                 }
             }
+
             
 
         }
