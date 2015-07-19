@@ -17,6 +17,7 @@ namespace HikiCarry_Vayne_Masterrace
         public static List<Spell> SpellList = new List<Spell>();
         public static Menu Config;
         private static Obj_AI_Hero Player = ObjectManager.Player;
+        private static SpellSlot Flash;
 
         public struct Spells
         {
@@ -77,6 +78,17 @@ namespace HikiCarry_Vayne_Masterrace
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!").SetValue(true));
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!").SetValue(true));
 
+            Config.AddSubMenu(new Menu("Combat Settings", "Combat Settings"));
+            Config.SubMenu("Combat Settings").AddSubMenu(new Menu("Graves Settings", "Graves Settings"));
+            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("combatGraves", "Combat Graves").SetValue(true));
+            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("positioning", "Wall Condemn Method").SetValue(new StringList(new[] { "Repositioning with Flash", "Repositioning with Q" })));
+            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("qCombat", "Use Q").SetValue(true));
+            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("eCombat", "Use E").SetValue(true));
+            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("fCombat", "Use Flash").SetValue(true));
+            Config.SubMenu("Combat Settings").AddItem(new MenuItem("combatmode", "Combat Mode").SetValue(true));
+           
+            
+
             Config.AddSubMenu(new Menu("Draw Settings", "Draw Settings"));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.SpringGreen)));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.Crimson)));
@@ -95,7 +107,7 @@ namespace HikiCarry_Vayne_Masterrace
 
 
             Config.AddItem(new MenuItem("masterracec0mb0", "                HikiCarry Masterrace Mode"));
-            Config.AddItem(new MenuItem("cType", "Combo Type").SetValue(new StringList(new[] { "HIKIGAYA", "FULLY KITE" })));
+            Config.AddItem(new MenuItem("cType", "Combo Type").SetValue(new StringList(new[] { "BURST", "NORMAL" })));
             Config.AddItem(new MenuItem("hType", "Harass Type").SetValue(new StringList(new[] { "2 SILVER STACK + Q", "2 SILVER STACK + E" })));
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "W Damage").SetValue(true);
             var drawFill = new MenuItem("RushDrawEDamageFill", "W Damage Fill").SetValue(new Circle(true, Color.Yellow));
@@ -143,6 +155,7 @@ namespace HikiCarry_Vayne_Masterrace
                 }
             }
         }
+
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
             if (Config.Item("agapcloser").GetValue<bool>())
@@ -299,16 +312,117 @@ namespace HikiCarry_Vayne_Masterrace
             break;
             }
         }
-        private static void BlueOrb()
+        private static IEnumerable<Vector3> CondemnPosition()
         {
-            if (Config.Item("bT").GetValue<bool>())
+            var pointList = new List<Vector3>();
+            var j = 300;
+            var offset = (int)(2 * Math.PI * j / 100);
+            for (var i = 0; i <= offset; i++)
             {
-                if (Player.Level >= Config.Item("bluetrinketlevel").GetValue<Slider>().Value && Player.InShop() && !(Items.HasItem(3342) || Items.HasItem(3363)))
+                var angle = i * Math.PI * 2 / offset;
+                var point = new Vector3((float)(ObjectManager.Player.Position.X + j * Math.Cos(angle)),
+                    (float)(ObjectManager.Player.Position.Y - j * Math.Sin(angle)),
+                    ObjectManager.Player.Position.Z);
+
+                if (!NavMesh.GetCollisionFlags(point).HasFlag(CollisionFlags.Wall))
+                    pointList.Add(point);
+            }
+            return pointList;
+        }
+        private static void combatGraves()
+        {
+            if (Config.Item("combatgraves").GetValue<bool>() && Q.IsReady() && E.IsReady())
+            {
+                var pushDistance = 400;
+                Flash = Player.GetSpellSlot("SummonerFlash");
+                float range1000 = Player.CountEnemiesInRange(1000);
+                float range750  = Player.CountEnemiesInRange(750);
+                float range650  = Player.CountEnemiesInRange(750);
+
+
+                switch (Config.Item("positioning").GetValue<StringList>().SelectedIndex)
                 {
-                    Player.BuyItem(ItemId.Scrying_Orb_Trinket);
+                    case 0:
+                        foreach (var vsGraves in HeroManager.Enemies.Where(h => h.IsValidTarget(1000) && h.ChampionName == "Graves"))
+                        {
+                            if (range1000 == 1 && vsGraves.ChampionName == "Graves")
+                            {
+                                if (R.IsReady() && Config.Item("rCombat").GetValue<bool>() && range750 == 1)
+                                {
+                                    if (vsGraves.IsValidTarget(650) && range650 == 1)
+                                    {
+                                        R.Cast();
+                                    }
+                                }
+                                if (Config.Item("fCombat").GetValue<bool>() && Config.Item("eCombat").GetValue<bool>() && Flash.IsReady() && vsGraves.IsValidTarget(E.Range))
+                                {
+                                    foreach (
+                             var qPosition in
+                               CondemnPosition()
+                               .OrderBy(qPosition => qPosition.Distance(vsGraves.ServerPosition)))
+                                    {
+                                        if (qPosition.Distance(vsGraves.Position) < E.Range)
+                                            E.UpdateSourcePosition(qPosition, qPosition);
+                                        var targetPosition = E.GetPrediction(vsGraves).CastPosition;
+                                        var finalPosition = targetPosition.Extend(qPosition, 400);
+                                        if (finalPosition.IsWall())
+                                        {
+                                            Player.Spellbook.CastSpell(Flash, qPosition);
+
+                                        }
+                                        if (E.IsReady())
+                                        {
+                                            E.Cast(vsGraves);
+                                        }
+
+                                    }
+                                }
+                                if (Q.IsReady() && Config.Item("qCombat").GetValue<bool>())
+                                {
+                                    if (vsGraves.IsValidTarget(Q.Range))
+                                    {
+                                        Q.Cast(Game.CursorPos);
+                                    }
+                                }
+
+                            }
+                        }
+                        break;
+                    case 1:
+                        foreach (var vsGraves in HeroManager.Enemies.Where(h => h.IsValidTarget(1000) && h.ChampionName == "Graves"))
+                        {
+                            if (range1000 == 1 && vsGraves.ChampionName == "Graves")
+                            {
+                                if (R.IsReady() && Config.Item("rCombat").GetValue<bool>() && range750 == 1)
+                                {
+                                    if (vsGraves.IsValidTarget(650) && range650 == 1)
+                                    {
+                                        R.Cast();
+                                    }
+                                }
+                                if (Config.Item("fCombat").GetValue<bool>() && Config.Item("eCombat").GetValue<bool>() && Flash.IsReady() && vsGraves.IsValidTarget(E.Range))
+                                {
+                                    foreach (
+                                var qPosition in
+                                  CondemnPosition()
+                                  .OrderBy(qPosition => qPosition.Distance(vsGraves.ServerPosition)))
+                                    {
+                                        if (qPosition.Distance(vsGraves.Position) < E.Range)
+                                            E.UpdateSourcePosition(qPosition, qPosition);
+                                        var targetPosition = E.GetPrediction(vsGraves).CastPosition;
+                                        var finalPosition = targetPosition.Extend(qPosition, -pushDistance);
+                                        if (finalPosition.IsWall())
+                                        {
+                                            Q.Cast(qPosition);
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
                 }
             }
-
         }
         private static void Game_OnGameUpdate(EventArgs args)
         {
@@ -328,7 +442,27 @@ namespace HikiCarry_Vayne_Masterrace
             {
                 BlueOrb();
             }
+            if (Config.Item("combatmode").GetValue<bool>())
+            {
+                if (Config.Item("combatGraves").GetValue<bool>())
+                {
+                    combatGraves();
+                }
+                
+            }
         }
+        private static void BlueOrb()
+        {
+            if (Config.Item("bT").GetValue<bool>())
+            {
+                if (Player.Level >= Config.Item("bluetrinketlevel").GetValue<Slider>().Value && Player.InShop() && !(Items.HasItem(3342) || Items.HasItem(3363)))
+                {
+                    Player.BuyItem(ItemId.Scrying_Orb_Trinket);
+                }
+            }
+
+        }
+ 
         private static void Harass()
         {
             switch (Config.Item("hType").GetValue<StringList>().SelectedIndex)
@@ -383,8 +517,6 @@ namespace HikiCarry_Vayne_Masterrace
                 var yx = Drawing.WorldToScreen(hero.Position);
                 Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.White, "BASIC ATTACK = KILL");
             }
-
-
             return 0;
         }
     }
