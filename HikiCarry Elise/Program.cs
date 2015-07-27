@@ -31,6 +31,10 @@ namespace HikiCarry_Elise
         public static float rangeW;
         public static float rangeE;
 
+        private static Items.Item IronSolari; 
+        private static Items.Item Zhonya;
+        private static Items.Item Randuin;
+
         private static bool humansexygirl;
         private static bool spidergirl;
 
@@ -61,6 +65,10 @@ namespace HikiCarry_Elise
             SpellList.Add(SpiderQ);
             SpellList.Add(SpiderW);
             SpellList.Add(SpiderE);
+
+            Zhonya = new Items.Item(3157, 10);
+            IronSolari = new Items.Item(3190, 590f);
+            Randuin = new Items.Item(3143, 490f);
 
             Config = new Menu("HikiCarry - Elise", "HikiCarry - Elise", true);
 
@@ -99,13 +107,28 @@ namespace HikiCarry_Elise
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active! [Human E]").SetValue(true));
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("ainterrupt2", "Auto Interrupt Active! [Spider E]").SetValue(true));
 
+            Config.AddSubMenu(new Menu("Items Settings", "Items Settings"));
+            //////////
+            Config.SubMenu("Items Settings").AddSubMenu(new Menu("Randuin Omen Settings", "Randuin Omen Settings"));
+            Config.SubMenu("Items Settings").SubMenu("Randuin Omen Settings").AddItem(new MenuItem("useRanduin", "Use Randuin").SetValue(true));
+            Config.SubMenu("Items Settings").SubMenu("Randuin Omen Settings").AddItem(new MenuItem("randuinCount", "If Enemy Count >=").SetValue(new Slider(2, 1, 5)));
+            /////////
+            Config.SubMenu("Items Settings").AddSubMenu(new Menu("Zhonya Settings", "Zhonya Settings"));
+            Config.SubMenu("Items Settings").SubMenu("Zhonya Settings").AddItem(new MenuItem("useZhonya", "Use Zhonya").SetValue(true));
+            Config.SubMenu("Items Settings").SubMenu("Zhonya Settings").AddItem(new MenuItem("zhonyaMyHp", "If My Hp >= %").SetValue(new Slider(10, 0, 100)));
+            ///////////
+            Config.SubMenu("Items Settings").AddSubMenu(new Menu("Iron Solari Settings", "Iron Solari Settings"));
+            Config.SubMenu("Items Settings").SubMenu("Iron Solari Settings").AddItem(new MenuItem("useSolari", "Use Iron Solari").SetValue(true));
+            Config.SubMenu("Items Settings").SubMenu("Iron Solari Settings").AddItem(new MenuItem("ironsolariAllyHp", "If Ally Hp >= %").SetValue(new Slider(20, 0, 100)));
 
             Config.AddSubMenu(new Menu("Draw Settings", "Draw Settings"));
-            Config.SubMenu("Draw Settings").AddItem(new MenuItem("qDraw", "Q Range [Human]").SetValue(new Circle(true, Color.White)));
-            Config.SubMenu("Draw Settings").AddItem(new MenuItem("wDraw", "W Range [Human]").SetValue(new Circle(true, Color.White)));
-            Config.SubMenu("Draw Settings").AddItem(new MenuItem("eDraw", "E Range [Human]").SetValue(new Circle(true, Color.White)));
+            Config.SubMenu("Draw Settings").AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.White)));
+            Config.SubMenu("Draw Settings").AddItem(new MenuItem("wDraw", "W Range").SetValue(new Circle(true, Color.White)));
+            Config.SubMenu("Draw Settings").AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.White)));
 
-            Config.AddItem(new MenuItem("elisebois", "                E L I S E B O I S"));
+            Config.AddItem(new MenuItem("elisebois", "             E L I S E B O I S"));
+            Config.AddItem(new MenuItem("hitE", "E HitChance").SetValue(new StringList(new[] { HitChance.Low.ToString(), HitChance.Medium.ToString(), HitChance.High.ToString(),
+                    HitChance.VeryHigh.ToString() },4)));
 
             Config.AddToMainMenu();
 
@@ -150,7 +173,6 @@ namespace HikiCarry_Elise
                 }
             }
         }
-
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
             if (humansexygirl)
@@ -186,7 +208,6 @@ namespace HikiCarry_Elise
                 } 
             }
         }
-
         private static void Game_OnGameUpdate(EventArgs args)
         {
             spiderCheck();
@@ -202,15 +223,42 @@ namespace HikiCarry_Elise
             {
                 Jungle();
             }
-
+            Items();
+        }
+        private static void Items()
+        {
+            if (Config.Item("useRanduin").GetValue<bool>())
+            {
+                if (Player.CountEnemiesInRange(400) >= Config.Item("randuinCount").GetValue<Slider>().Value)
+                {
+                    Randuin.Cast();
+                }
+            }
+            if (Config.Item("useZhonya").GetValue<bool>())
+            {
+                if (Player.HealthPercent <= Config.Item("zhonyaMyHp").GetValue<Slider>().Value)
+                {
+                    Zhonya.Cast();
+                }
+            }
+            if (Config.Item("useSolari").GetValue<bool>())
+            {
+                foreach (var ally in HeroManager.Allies)
+                {
+                    if (!ally.IsMe && !ally.IsRecalling() && ally.HealthPercent <= Config.Item("ironsolariAllyHp").GetValue<Slider>().Value)
+                    {
+                        IronSolari.Cast();
+                    }
+                }
+            }
         }
         private static void Jungle()
         {
             var mobs = MinionManager.GetMinions(Player.ServerPosition, Orbwalking.GetRealAutoAttackRange(Player) + 100, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
-            if (mobs.Count <0)
+            if (mobs == null || (mobs != null && mobs.Count == 0))
             {
                 return;
-            } 
+            }
             if (humansexygirl)
             {
                     if (Q.IsReady() && Config.Item("qjClear").GetValue<bool>())
@@ -242,6 +290,22 @@ namespace HikiCarry_Elise
                      }
             }
         }
+        private static HitChance preE(string name)
+        {
+            var qpred = Config.Item(name).GetValue<StringList>();
+            switch (qpred.SList[qpred.SelectedIndex])
+            {
+                case "Low":
+                    return HitChance.Low;
+                case "Medium":
+                    return HitChance.Medium;
+                case "High":
+                    return HitChance.High;
+                case "Very High":
+                    return HitChance.VeryHigh;
+            }
+            return HitChance.VeryHigh;
+        }
         private static void Combo()
         {
             if (humansexygirl)
@@ -250,7 +314,7 @@ namespace HikiCarry_Elise
                 {
                     foreach (var en in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range)))
                     {
-                        if (E.CanCast(en) && E.GetPrediction(en).Hitchance >= HitChance.High && !Player.IsWindingUp && !Player.IsDashing())
+                        if (E.CanCast(en) && E.GetPrediction(en).Hitchance >= preE("hitE") && !Player.IsWindingUp && !Player.IsDashing())
                         {
                             E.Cast(en);
                         }
