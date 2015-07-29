@@ -295,7 +295,7 @@ namespace HikiCarry_Elise
                 {
                     foreach (var en in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range)))
                     {
-                        if (E.CanCast(en) && E.GetPrediction(en).Hitchance >= HitChance.VeryHigh && !Player.IsWindingUp && !Player.IsDashing())
+                        if (E.CanCast(en) && E.GetPrediction(en).Hitchance >= HitChance.Medium && !Player.IsWindingUp && !Player.IsDashing())
                         {
                             E.Cast(en);
                         }
