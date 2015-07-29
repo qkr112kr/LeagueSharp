@@ -121,14 +121,15 @@ namespace HikiCarry_Elise
             Config.SubMenu("Items Settings").SubMenu("Iron Solari Settings").AddItem(new MenuItem("useSolari", "Use Iron Solari").SetValue(true));
             Config.SubMenu("Items Settings").SubMenu("Iron Solari Settings").AddItem(new MenuItem("ironsolariAllyHp", "If Ally Hp >= %").SetValue(new Slider(20, 0, 100)));
 
+            Config.AddSubMenu(new Menu("Prediction Settings", "Prediction Settings"));
+            Config.SubMenu("Prediction Settings").AddItem(new MenuItem("hitE", "E HitChance").SetValue(new StringList(new[] { HitChance.Low.ToString(), HitChance.Medium.ToString(), HitChance.High.ToString(),
+                    HitChance.VeryHigh.ToString() }, 4)));
+
+
             Config.AddSubMenu(new Menu("Draw Settings", "Draw Settings"));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.White)));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("wDraw", "W Range").SetValue(new Circle(true, Color.White)));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.White)));
-
-            Config.AddItem(new MenuItem("elisebois", "             E L I S E B O I S"));
-            Config.AddItem(new MenuItem("hitE", "E HitChance").SetValue(new StringList(new[] { HitChance.Low.ToString(), HitChance.Medium.ToString(), HitChance.High.ToString(),
-                    HitChance.VeryHigh.ToString() },4)));
 
             Config.AddToMainMenu();
 
