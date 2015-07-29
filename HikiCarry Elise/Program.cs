@@ -121,11 +121,6 @@ namespace HikiCarry_Elise
             Config.SubMenu("Items Settings").SubMenu("Iron Solari Settings").AddItem(new MenuItem("useSolari", "Use Iron Solari").SetValue(true));
             Config.SubMenu("Items Settings").SubMenu("Iron Solari Settings").AddItem(new MenuItem("ironsolariAllyHp", "If Ally Hp >= %").SetValue(new Slider(20, 0, 100)));
 
-            Config.AddSubMenu(new Menu("Prediction Settings", "Prediction Settings"));
-            Config.SubMenu("Prediction Settings").AddItem(new MenuItem("hitE", "E HitChance").SetValue(new StringList(new[] { HitChance.Low.ToString(), HitChance.Medium.ToString(), HitChance.High.ToString(),
-                    HitChance.VeryHigh.ToString() }, 4)));
-
-
             Config.AddSubMenu(new Menu("Draw Settings", "Draw Settings"));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.White)));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("wDraw", "W Range").SetValue(new Circle(true, Color.White)));
@@ -291,22 +286,7 @@ namespace HikiCarry_Elise
                      }
             }
         }
-        private static HitChance preE(string name)
-        {
-            var qpred = Config.Item(name).GetValue<StringList>();
-            switch (qpred.SList[qpred.SelectedIndex])
-            {
-                case "Low":
-                    return HitChance.Low;
-                case "Medium":
-                    return HitChance.Medium;
-                case "High":
-                    return HitChance.High;
-                case "Very High":
-                    return HitChance.VeryHigh;
-            }
-            return HitChance.VeryHigh;
-        }
+        
         private static void Combo()
         {
             if (humansexygirl)
@@ -315,7 +295,7 @@ namespace HikiCarry_Elise
                 {
                     foreach (var en in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range)))
                     {
-                        if (E.CanCast(en) && E.GetPrediction(en).Hitchance >= preE("hitE") && !Player.IsWindingUp && !Player.IsDashing())
+                        if (E.CanCast(en) && E.GetPrediction(en).Hitchance >= HitChance.VeryHigh && !Player.IsWindingUp && !Player.IsDashing())
                         {
                             E.Cast(en);
                         }
