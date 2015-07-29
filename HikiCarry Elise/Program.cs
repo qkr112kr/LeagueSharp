@@ -35,6 +35,10 @@ namespace HikiCarry_Elise
         private static Items.Item Zhonya;
         private static Items.Item Randuin;
 
+        private static readonly int[] Smites = { 3713, 3726, 3725, 3724, 3723, 3933,
+                                                   3711, 3722, 3721, 3720, 3719, 3932, 3715,  3718, 
+                                                   3717, 3716, 3714, 3931, 3706, 3710, 3709, 3708, 3707, 3930 };
+
         private static bool humansexygirl;
         private static bool spidergirl;
 
@@ -83,7 +87,7 @@ namespace HikiCarry_Elise
             Config.SubMenu("Combo Settings").AddItem(new MenuItem("qCombo", "Use Q [Human]").SetValue(true));
             Config.SubMenu("Combo Settings").AddItem(new MenuItem("wCombo", "Use W [Human]").SetValue(true));
             Config.SubMenu("Combo Settings").AddItem(new MenuItem("eCombo", "Use E [Human]").SetValue(true));
-            Config.SubMenu("Combo Settings").AddItem(new MenuItem("rCombo", "Use R [Auto Switch]").SetValue(true));
+            Config.SubMenu("Combo Settings").AddItem(new MenuItem("rCombo", "Auto Switch Form").SetValue(true));
             Config.SubMenu("Combo Settings").AddItem(new MenuItem("qCombo.Spider", "Use Q [Spider]").SetValue(true));
             Config.SubMenu("Combo Settings").AddItem(new MenuItem("wCombo.Spider", "Use W [Spider]").SetValue(true));
             Config.SubMenu("Combo Settings").AddItem(new MenuItem("eCombo.Spider", "Use E [Spider]").SetValue(true));
@@ -95,18 +99,31 @@ namespace HikiCarry_Elise
             Config.SubMenu("Harass Settings").AddItem(new MenuItem("manaHarass", "Harass Mana Percent").SetValue(new Slider(30, 1, 100)));
 
             Config.AddSubMenu(new Menu("Jungle Settings", "Jungle Settings"));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("stealset", "            Steal Settings"));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("jungsteal", "Jungle Steal").SetValue(true));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("baronsteal", "Baron Steal [Q]").SetValue(true));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("drakesteal", "Dragon Steal [Q]").SetValue(true));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("redsteal", "Red Steal [Q]").SetValue(true));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("bluesteal", "Blue Steal [Q]").SetValue(true));
+            //clear
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("clearset", "            Clear Settings"));
             Config.SubMenu("Jungle Settings").AddItem(new MenuItem("qjClear", "Use Q [Human]").SetValue(true));
             Config.SubMenu("Jungle Settings").AddItem(new MenuItem("wjClear", "Use W [Human]").SetValue(true));
             Config.SubMenu("Jungle Settings").AddItem(new MenuItem("qjClear.Spider", "Use Q [Spider]").SetValue(true));
             Config.SubMenu("Jungle Settings").AddItem(new MenuItem("wjClear.Spider", "Use W [Spider]").SetValue(true));
             Config.SubMenu("Jungle Settings").AddItem(new MenuItem("autoswitch", "Auto Switch").SetValue(true));
-
+            
             Config.AddSubMenu(new Menu("Misc Settings", "Misc Settings"));
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser [Human E]").SetValue(true));
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("agapcloser2", "Anti-Gapcloser [Spider E]").SetValue(true));
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active! [Human E]").SetValue(true));
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("ainterrupt2", "Auto Interrupt Active! [Spider E]").SetValue(true));
 
+            Config.AddSubMenu(new Menu("KillSteal Settings", "KillSteal Settings"));
+            Config.SubMenu("KillSteal Settings").AddItem(new MenuItem("humanKSQ", "Killsteal Q [Human]").SetValue(true));
+            Config.SubMenu("KillSteal Settings").AddItem(new MenuItem("spiderKSQ", "Killsteal Q [Spider]").SetValue(true));
+            Config.SubMenu("KillSteal Settings").AddItem(new MenuItem("humanKSW", "Killsteal W [Human]").SetValue(true));
+            
             Config.AddSubMenu(new Menu("Items Settings", "Items Settings"));
             //////////
             Config.SubMenu("Items Settings").AddSubMenu(new Menu("Randuin Omen Settings", "Randuin Omen Settings"));
@@ -220,6 +237,35 @@ namespace HikiCarry_Elise
                 Jungle();
             }
             Items();
+            KillSteal();
+        }
+        private static void KillSteal()
+        {
+            var spiderQKS = Config.Item("spiderKSQ").GetValue<bool>();
+            var humanQKS = Config.Item("humanKSQ").GetValue<bool>();
+            var humanWKS = Config.Item("humanKSW").GetValue<bool>();
+
+            foreach (var target in HeroManager.Enemies.OrderByDescending(x => x.Health))
+            {
+                if (spidergirl)
+                {
+                    if (SpiderQ.IsReady() && spiderQKS && SpiderQ.CanCast(target) && SpiderQ.IsKillable(target))
+                    {
+                        SpiderQ.Cast(target);
+                    }   
+                }
+                if (humansexygirl)
+                {
+                    if (Q.IsReady() && humanQKS && Q.CanCast(target) && Q.IsKillable(target))
+                    {
+                        Q.Cast(target);
+                    }
+                    if (W.IsReady() && humanWKS && Q.CanCast(target) && W.IsKillable(target))
+                    {
+                        W.Cast(target);
+                    }
+                }
+            }
         }
         private static void Items()
         {
@@ -285,8 +331,83 @@ namespace HikiCarry_Elise
                          R.Cast();
                      }
             }
+            if (Config.Item("junglesteal").GetValue<bool>()) //jung steal check
+            {
+                foreach (var minyon in mobs)
+                {
+
+                    if (minyon.CharData.BaseSkinName.Contains("SRU_Dragon") && Config.Item("drakesteal").GetValue<bool>()) // dragon steal with spider Q and human Q
+                    {
+                        if (spidergirl)
+                        {
+                            if (Q.IsReady() && Q.IsKillable(minyon))
+                            {
+                                SpiderQ.Cast(minyon);
+                            }
+                        }
+                        if (humansexygirl)
+                        {
+                            if (Q.IsReady() && Q.IsKillable(minyon))
+                            {
+                                Q.Cast(minyon);
+                            }
+                        }
+                    }
+
+                    if (minyon.CharData.BaseSkinName.Contains("SRU_Baron") && Config.Item("baronsteal").GetValue<bool>()) // baron steal with spider Q and human Q
+                    {
+                        if (spidergirl)
+                        {
+                            if (Q.IsReady() && Q.IsKillable(minyon))
+                            {
+                                SpiderQ.Cast(minyon);
+                            }
+                        }
+                        if (humansexygirl)
+                        {
+                            if (Q.IsReady() && Q.IsKillable(minyon))
+                            {
+                                Q.Cast(minyon);
+                            }
+                        }
+                    }
+                    if (minyon.CharData.BaseSkinName.Contains("SRU_Red") && Config.Item("redsteal").GetValue<bool>()) // red steal with spider Q and human Q
+                    {
+                        if (spidergirl)
+                        {
+                            if (Q.IsReady() && Q.IsKillable(minyon))
+                            {
+                                SpiderQ.Cast(minyon);
+                            }
+                        }
+                        if (humansexygirl)
+                        {
+                            if (Q.IsReady() && Q.IsKillable(minyon))
+                            {
+                                Q.Cast(minyon);
+                            }
+                        }
+                    }
+                    if (minyon.CharData.BaseSkinName.Contains("SRU_Blue") && Config.Item("bluesteal").GetValue<bool>()) // blue steal with spider Q and human Q
+                    {
+                        if (spidergirl)
+                        {
+                            if (Q.IsReady() && Q.IsKillable(minyon))
+                            {
+                                SpiderQ.Cast(minyon);
+                            }
+                        }
+                        if (humansexygirl)
+                        {
+                            if (Q.IsReady() && Q.IsKillable(minyon))
+                            {
+                                Q.Cast(minyon);
+                            }
+                        }
+                    }
+                }
+            }
         }
-        
         private static void Combo()
         {
             if (humansexygirl)
