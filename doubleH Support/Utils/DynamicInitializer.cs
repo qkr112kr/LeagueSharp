@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace HikiCarry_Support.Utils
+namespace doubleH_Support.Utils
 {
     public class DynamicInitializer
     {

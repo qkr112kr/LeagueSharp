@@ -5,20 +5,19 @@ using LeagueSharp.Common;
 using SharpDX;
 using Color = System.Drawing.Color;
 
-namespace HikiCarry_Support.Champions
+namespace doubleH_Support.Champions
 {
-    public class _Blitzcrank
+    public class Blitzcrank
     {
         internal static Spell Q;
         internal static Spell W;
         internal static Spell E;
         internal static Spell R;
-        public static Orbwalking.Orbwalker Orbwalker;
         public static Obj_AI_Hero Player;
 
-        public _Blitzcrank()
+        public Blitzcrank()
         {
-            Q = new Spell(SpellSlot.Q, 950f);
+            Q = new Spell(SpellSlot.Q, 995f);
             W = new Spell(SpellSlot.W);
             E = new Spell(SpellSlot.E, 150f);
             R = new Spell(SpellSlot.R, 550f);
@@ -31,40 +30,22 @@ namespace HikiCarry_Support.Champions
             comboMenu.AddItem(new MenuItem("eCombo", "Use E").SetValue(true));
             comboMenu.AddItem(new MenuItem("rCombo", "Use R").SetValue(true));
             comboMenu.AddItem(new MenuItem("renemyhit", "R Enemy Hit").SetValue(new Slider(2, 1, 5)));
-            SSeries.Config.AddSubMenu(comboMenu);
-
-            var harassMenu = new Menu("Harass Settings", "Harass Settings");
-            harassMenu.AddItem(new MenuItem("qHarass", "Use Q").SetValue(true));
-            harassMenu.AddItem(new MenuItem("eHarass", "Use E").SetValue(true));
-            SSeries.Config.AddSubMenu(harassMenu);
+            hLoader.Config.AddSubMenu(comboMenu);
 
             var clearMenu = new Menu("Clear Settings", "Clear Settings");
-            clearMenu.AddItem(new MenuItem("qClear", "Use Q").SetValue(true));
-            clearMenu.AddItem(new MenuItem("eClear", "Use E").SetValue(true));
             clearMenu.AddItem(new MenuItem("rClear", "Use R").SetValue(true));
             clearMenu.AddItem(new MenuItem("useRSlider", "R Minions Hit >").SetValue(new Slider(10, 1, 20)));
-            SSeries.Config.AddSubMenu(clearMenu);
+            hLoader.Config.AddSubMenu(clearMenu);
 
             var killstealMenu = new Menu("Killsteal Settings", "Killsteal Settings");
             killstealMenu.AddItem(new MenuItem("killsteal", "Killsteal").SetValue(true));
-            killstealMenu.AddItem(new MenuItem("killstealQ","Use Q").SetValue(true));
+            killstealMenu.AddItem(new MenuItem("killstealQ", "Use Q").SetValue(true));
             killstealMenu.AddItem(new MenuItem("killstealR", "Use R").SetValue(true));
-            SSeries.Config.AddSubMenu(killstealMenu);
+            hLoader.Config.AddSubMenu(killstealMenu);
 
             var miscMenu = new Menu("Misc Settings", "Misc Settings");
             miscMenu.AddItem(new MenuItem("interrupter", "Interrupt [Q]").SetValue(true));
-            SSeries.Config.AddSubMenu(miscMenu);
-
-            var drawMenu = new Menu("Draw Settings", "Draw Settings");
-            drawMenu.AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.Yellow)));
-            drawMenu.AddItem(new MenuItem("wDraw", "W Range").SetValue(new Circle(true, Color.Green)));
-            drawMenu.AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.White)));
-            drawMenu.AddItem(new MenuItem("rDraw", "R Range").SetValue(new Circle(true, Color.Brown)));
-            drawMenu.AddItem(new MenuItem("qDraw", "AA Range").SetValue(new Circle(true, Color.Blue)));
-
-            SSeries.Config.AddSubMenu(drawMenu);
-
-
+            hLoader.Config.AddSubMenu(miscMenu);
 
             Game.OnUpdate += Game_OnUpdate;
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
@@ -85,7 +66,6 @@ namespace HikiCarry_Support.Champions
             if (Q.CanCast(gapcloser.Sender))
                 Q.Cast(gapcloser.Sender);
         }
-
         private void Interrupter2_OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
         {
             if (sender.IsValidTarget(1000))
@@ -100,28 +80,35 @@ namespace HikiCarry_Support.Champions
         }
         internal static void Game_OnUpdate(EventArgs args)
         {
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+            switch (hLoader.Orbwalker.ActiveMode)
             {
-                Combo();
+                case Orbwalking.OrbwalkingMode.Mixed:
+                    Harass();
+                    break;
+                case Orbwalking.OrbwalkingMode.Combo:
+                    Combo();
+                    break;
             }
+
         }
 
+        private static void Harass()
+        {
+            /*soon tm*/
+        }
         private static void Combo()
         {
-            var useQ = SSeries.Config.Item("qCombo").GetValue<bool>();
-            var useE = SSeries.Config.Item("eCombo").GetValue<bool>();
-            var useR = SSeries.Config.Item("rCombo").GetValue<bool>();
-            var rHit = SSeries.Config.Item("renemyhit").GetValue<Slider>().Value;
+            var useQ = hLoader.Config.Item("qCombo").GetValue<bool>();
+            var useE = hLoader.Config.Item("eCombo").GetValue<bool>();
+            var useR = hLoader.Config.Item("rCombo").GetValue<bool>();
+            var rHit = hLoader.Config.Item("renemyhit").GetValue<Slider>().Value;
             var rTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Physical, true);
 
             if (useQ && Q.IsReady())
             {
                 foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
                 {
-                    if (Q.CanCast(enemy) && !Player.IsWindingUp && !Player.IsDashing() &&
-                        Q.GetPrediction(enemy).Hitchance >= HitChance.High &&
-                        Q.GetPrediction(enemy).UnitPosition.Distance(Player.Position) > 200
-                        && Player.Distance(enemy.Position) <= 1000)
+                    if (Q.GetPrediction(enemy).Hitchance >= HitChance.High)
                     {
                         Q.Cast(enemy);
                     }
@@ -144,13 +131,54 @@ namespace HikiCarry_Support.Champions
             }
 
         }
+        private static void Clear()
+        {
+
+            var rMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, R.Range, MinionTypes.All);
+            var useR = hLoader.Config.Item("rClear").GetValue<bool>();
+            var rHit = hLoader.Config.Item("useRSlider").GetValue<Slider>().Value;
+            if (R.IsReady() && useR)
+            {
+                var rFarm = R.GetCircularFarmLocation(rMinions, R.Width);
+                if (rFarm.MinionsHit >= rHit)
+                {
+                    R.Cast(rFarm.Position);
+                }
+            }
+        }
+        private static void KillSteal()
+        {
+            var ksEnabled = hLoader.Config.Item("killsteal").GetValue<bool>();
+            var useQ = hLoader.Config.Item("killstealQ").GetValue<bool>();
+            var useR = hLoader.Config.Item("killstealR").GetValue<bool>();
+            var rTarget = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical, true);
+            var qTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical, true);
+            if (ksEnabled)
+            {
+                if (Q.IsReady() && useQ && qTarget.IsValidTarget(Q.Range)
+                    && qTarget.Health < Q.GetDamage(qTarget) && Q.CanCast(qTarget))
+                {
+                    if (Q.GetPrediction(qTarget).Hitchance >= HitChance.High &&
+                        Q.GetPrediction(qTarget).UnitPosition.Distance(Player.Position) > 200 &&
+                        Player.Distance(qTarget.Position) <= 1000)
+                    {
+                        Q.Cast(qTarget);
+                    }
+                }
+                if (R.IsReady() && useR && rTarget.IsValidTarget(R.Range)
+                    && rTarget.Health < R.GetDamage(qTarget) && R.CanCast(qTarget))
+                {
+                    R.Cast(rTarget);
+                }
+            }
+
+        }
         private void Drawing_OnDraw(EventArgs args)
         {
-            var menuItem1 = SSeries.Config.Item("qDraw").GetValue<Circle>();
-            var menuItem2 = SSeries.Config.Item("wDraw").GetValue<Circle>();
-            var menuItem3 = SSeries.Config.Item("eDraw").GetValue<Circle>();
-            var menuItem4 = SSeries.Config.Item("rDraw").GetValue<Circle>();
-            var menuItem5 = SSeries.Config.Item("aaRangeDraw").GetValue<Circle>();
+            var menuItem1 = hLoader.Config.Item("qDraw").GetValue<Circle>();
+            var menuItem2 = hLoader.Config.Item("wDraw").GetValue<Circle>();
+            var menuItem3 = hLoader.Config.Item("eDraw").GetValue<Circle>();
+            var menuItem4 = hLoader.Config.Item("rDraw").GetValue<Circle>();
 
             if (menuItem1.Active && Q.IsReady())
             {
@@ -158,7 +186,7 @@ namespace HikiCarry_Support.Champions
             }
             if (menuItem2.Active && W.IsReady())
             {
-                Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, Color.Yellow);
+                Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, Color.Green);
             }
             if (menuItem3.Active && E.IsReady())
             {
@@ -166,11 +194,7 @@ namespace HikiCarry_Support.Champions
             }
             if (menuItem4.Active && R.IsReady())
             {
-                Render.Circle.DrawCircle(ObjectManager.Player.Position, R.Range, Color.White);
-            }
-            if (menuItem5.Active)
-            {
-                Render.Circle.DrawCircle(ObjectManager.Player.Position, 125, Color.White);
+                Render.Circle.DrawCircle(ObjectManager.Player.Position, R.Range, Color.Brown);
             }
         }
 

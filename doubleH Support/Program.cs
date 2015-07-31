@@ -1,7 +1,7 @@
 ﻿using System;
 using LeagueSharp.Common;
 
-namespace HikiCarry_Support
+namespace doubleH_Support
 {
     internal class Program
     {
@@ -12,7 +12,7 @@ namespace HikiCarry_Support
 
         private static void GameOnOnGameLoad(EventArgs args)
         {
-            SSeries.Load();
+            hLoader.Load();
         }
     }
 }
