@@ -104,11 +104,13 @@ namespace HikiCarry_Kayle
             Config.SubMenu("Clear Settings").AddItem(new MenuItem("manaClear", "Clear Mana Percent").SetValue(new Slider(30, 1, 100)));
 
             Config.AddSubMenu(new Menu("Jungle Settings", "Jungle Settings"));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("qJungle", "Use Q").SetValue(true));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("eJungle", "Use E").SetValue(true));
+            Config.SubMenu("Jungle Settings").AddItem(new MenuItem("manaJungle", "Jungle Mana Percent").SetValue(new Slider(30, 1, 100)));
             Config.SubMenu("Jungle Settings").AddItem(new MenuItem("JungCheck", "                 Ulti Settings"));
             Config.SubMenu("Jungle Settings").AddItem(new MenuItem("rJungle", "Use R").SetValue(true));
             Config.SubMenu("Jungle Settings").AddItem(new MenuItem("rJungleHp", "Min Percentage of HP for R").SetValue(new Slider(2, 1, 100)));
 
-            //HEAL 
             Config.AddSubMenu(new Menu("Heal and Ulti Settings", "Heal and Ulti Settings"));
             
             Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("kayleset", "                 Kayle Settings"));
@@ -124,7 +126,6 @@ namespace HikiCarry_Kayle
             Config.SubMenu("Heal and Ulti Settings").AddItem(new MenuItem("rAllyHP", "Min Percentage of HP for R").SetValue(new Slider(10, 1, 100)));
 
 
-            //INVISIBLE KICKER
             Config.AddSubMenu(new Menu("Invisible Kicker", "Invisiblez"));
             Config.SubMenu("Invisiblez").AddItem(new MenuItem("Use", "Use Vision Ward On Combo").SetValue(new KeyBind(32, KeyBindType.Press)));
 
@@ -145,10 +146,6 @@ namespace HikiCarry_Kayle
 
             }
 
-
-
-
-            //DRAWINGS
             Config.AddSubMenu(new Menu("Drawing Settings", "Drawing Settings"));
             
             Config.SubMenu("Drawing Settings").AddItem(new MenuItem("RushQRange", "Q Range").SetValue(new Circle(true, Color.SpringGreen)));
@@ -188,7 +185,6 @@ namespace HikiCarry_Kayle
             
             Drawing.OnDraw += Drawing_OnDraw;
         }
- 
         private static void Game_OnGameUpdate(EventArgs args)
         {
             Orbwalker.SetAttack(true);
@@ -199,6 +195,7 @@ namespace HikiCarry_Kayle
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
             {
                 cLear();
+                JungleClear();
             }
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
             {
@@ -259,7 +256,6 @@ namespace HikiCarry_Kayle
                 }
             }
         }
-
         private static void haraSS()
         {
             if (ObjectManager.Player.ManaPercent > Config.Item("manaHarass").GetValue<Slider>().Value)
@@ -320,6 +316,25 @@ namespace HikiCarry_Kayle
                             E.Cast();
                         }
                     }
+                }
+            }
+        }
+        private static void JungleClear()
+        {
+            if (ObjectManager.Player.ManaPercent > Config.Item("manaJungle").GetValue<Slider>().Value)
+            {
+                var mobs = MinionManager.GetMinions(Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+                if (mobs == null || (mobs != null && mobs.Count == 0))
+                {
+                    return;
+                }
+                if (Q.IsReady() && Config.Item("qJungle").GetValue<bool>())
+                {
+                    Q.Cast(mobs[0]);
+                }
+                if (E.IsReady() && Config.Item("eJungle").GetValue<bool>())
+                {
+                    E.Cast();
                 }
             }
         }
@@ -459,10 +474,6 @@ namespace HikiCarry_Kayle
             var menuItem2 = Config.Item("RushWRange").GetValue<Circle>();
             var menuItem3 = Config.Item("RushERange").GetValue<Circle>();
             var menuItem4 = Config.Item("RushRRange").GetValue<Circle>();
-
-
-
-         
 
             if (menuItem1.Active && Q.IsReady())
             {
