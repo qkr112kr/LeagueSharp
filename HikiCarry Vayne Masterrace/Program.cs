@@ -17,6 +17,9 @@ namespace HikiCarry_Vayne_Masterrace
         public static List<Spell> SpellList = new List<Spell>();
         public static Menu Config;
         private static Obj_AI_Hero Player = ObjectManager.Player;
+        private static readonly Vector2 midPos = new Vector2(6707.485f, 8802.744f);
+        private static readonly Vector2 dragPos = new Vector2(11514, 4462);
+        public static float LastMoveC;
         private static SpellSlot Flash;
 
         public struct Spells
@@ -100,13 +103,14 @@ namespace HikiCarry_Vayne_Masterrace
 
             Config.AddSubMenu(new Menu("BOTRK Settings", "BOTRK Settings"));
             Config.SubMenu("BOTRK Settings").AddSubMenu(new Menu("BOTRK Settings", "BOTRK Settings"));
-            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("useBOTRK", "USE BOTRK").SetValue(true));
-            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("myhp", "USE IF MY HP < %").SetValue(new Slider(20, 0, 100)));
-            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("theirhp", "USE IF ENEMY HP < %").SetValue(new Slider(20, 0, 100)));
+            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("useBOTRK", "Use BOTRK").SetValue(true));
+            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("myhp", "Use If My HP < %").SetValue(new Slider(20, 0, 100)));
+            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("theirhp", "Use If Enemy HP < %").SetValue(new Slider(20, 0, 100)));
             Config.SubMenu("BOTRK Settings").AddItem(new MenuItem("ghostblade", "USE GHOSTBLADE").SetValue(true));
 
 
             Config.AddItem(new MenuItem("masterracec0mb0", "                HikiCarry Masterrace Mode"));
+            Config.AddItem(new MenuItem("condemnMethod", "Condemn Method").SetValue(new StringList(new[] { "HIKIGAYA", "ASUNA" })));
             Config.AddItem(new MenuItem("cType", "Combo Type").SetValue(new StringList(new[] { "BURST", "NORMAL" })));
             Config.AddItem(new MenuItem("hType", "Harass Type").SetValue(new StringList(new[] { "2 SILVER STACK + Q", "2 SILVER STACK + E" })));
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "W Damage").SetValue(true);
@@ -154,8 +158,8 @@ namespace HikiCarry_Vayne_Masterrace
                     Items.UseItem(3142);
                 }
             }
-        }
 
+        }
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
             if (Config.Item("agapcloser").GetValue<bool>())
@@ -235,6 +239,17 @@ namespace HikiCarry_Vayne_Masterrace
             return
                 ObjectManager.Get<GameObject>().Where(spawnPoint => spawnPoint is Obj_SpawnPoint && spawnPoint.IsAlly).Any(spawnPoint => Vector2.Distance(Position.To2D(), spawnPoint.Position.To2D()) < fountainRange);
         }
+        private static void hikiCondemn(Obj_AI_Hero target) 
+        {
+            if (Vector3.Distance(Player.ServerPosition, target.ServerPosition) < E.Range)
+            {
+                if (Player.ServerPosition.Extend(target.ServerPosition, 425).IsWall())
+                {
+                    E.CastOnUnit(target);
+                    Game.PrintChat("Hiki Condemn");
+                }
+            }
+        }
         private static void Combo()
         {
             switch (Config.Item("cType").GetValue<StringList>().SelectedIndex)
@@ -254,22 +269,32 @@ namespace HikiCarry_Vayne_Masterrace
                     }
                 }
             }
-
             if (E.IsReady() && Config.Item("eCombo").GetValue<bool>())
             {
-                foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                switch (Config.Item("condemnMethod").GetValue<StringList>().SelectedIndex)
                 {
-                    var EPred = E.GetPrediction(En);
-                    int pushDist = 425;
-                    var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
+                    case 0:
+                        foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                        {
+                            hikiCondemn(enemy);
+                        }
+                        break;
+                    case 1:
+                        foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                        {
+                            var EPred = E.GetPrediction(En);
+                            int pushDist = 425;
+                            var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
 
-                    for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
-                    {
-                        Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+                            for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
+                            {
+                                Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
 
-                        if (loc3.IsWall() || isAllyFountain(FinalPosition))
-                            E.Cast(En);
-                    }
+                                if (loc3.IsWall() || isAllyFountain(FinalPosition))
+                                    E.Cast(En);
+                            }
+                        }
+                        break;
                 }
             }
             if (R.IsReady() && Config.Item("rCombo").GetValue<bool>() && Player.CountEnemiesInRange(1000) >= Config.Item("rComboxEnemy").GetValue<Slider>().Value)
@@ -462,7 +487,6 @@ namespace HikiCarry_Vayne_Masterrace
             }
 
         }
- 
         private static void Harass()
         {
             switch (Config.Item("hType").GetValue<StringList>().SelectedIndex)
