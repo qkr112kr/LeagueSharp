@@ -94,12 +94,16 @@ namespace Diana_Masterrace
             Config.AddSubMenu(new Menu("Misc Settings", "Misc Settings"));
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser [W]!").SetValue(true));
             Config.SubMenu("Misc Settings").AddItem(new MenuItem("ainterrupt", "Auto Interrupt [E]!").SetValue(true));
+            Config.SubMenu("Misc Settings").AddItem(new MenuItem("channelingBroker", "Channeling Spell Broker [E]!").SetValue(true));
+            Config.SubMenu("Misc Settings").AddItem(new MenuItem("immobileQ", "Auto Cast Immobile Target [Q]!").SetValue(true));
+            Config.SubMenu("Misc Settings").AddItem(new MenuItem("autoShield", "Auto Shield for Supported Skillshot [W]!").SetValue(true));
 
             Config.AddSubMenu(new Menu("Draw Settings", "Draw Settings"));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.SpringGreen)));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("wDraw", "W Range").SetValue(new Circle(true, Color.Crimson)));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.White)));
             Config.SubMenu("Draw Settings").AddItem(new MenuItem("rDraw", "R Range").SetValue(new Circle(true, Color.Yellow)));
+            Config.SubMenu("Draw Settings").AddItem(new MenuItem("hitChanceDraw", "Draw HitChance on Enemy").SetValue(true));
 
             Config.AddItem(new MenuItem("masterracec0mb0", "                      Important Settings"));
             Config.AddItem(new MenuItem("selectOrbwalky", "Orbwalker Type").SetValue(new StringList(new[] { "Common Orbwalker", "LXOrbwalker" })));
@@ -143,8 +147,90 @@ namespace Diana_Masterrace
             Config.AddToMainMenu();
             Interrupter2.OnInterruptableTarget += Interrupter2_OnInterruptableTarget;
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
+            Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
             Game.OnUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
+        }
+
+        private static void Obj_AI_Hero_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (Config.Item("autoShield").GetValue<bool>())
+            {
+                string[] Spells = {"AhriSeduce"
+                                          , "InfernalGuardian"
+                                          , "EnchantedCrystalArrow"
+                                          , "InfernalGuardian"
+                                          , "EnchantedCrystalArrow"
+                                          , "RocketGrab"
+                                          , "BraumQ"
+                                          , "CassiopeiaPetrifyingGaze"
+                                          , "DariusAxeGrabCone"
+                                          , "DravenDoubleShot"
+                                          , "DravenRCast"
+                                          , "EzrealTrueshotBarrage"
+                                          , "FizzMarinerDoom"
+                                          , "GnarBigW"
+                                          , "GnarR"
+                                          , "GragasR"
+                                          , "GravesChargeShot"
+                                          , "GravesClusterShot"
+                                          , "JarvanIVDemacianStandard"
+                                          , "JinxW"
+                                          , "JinxR"
+                                          , "KarmaQ"
+                                          , "KogMawLivingArtillery"
+                                          , "LeblancSlide"
+                                          , "LeblancSoulShackle"
+                                          , "LeonaSolarFlare"
+                                          , "LuxLightBinding"
+                                          , "LuxLightStrikeKugel"
+                                          , "LuxMaliceCannon"
+                                          , "UFSlash"
+                                          , "DarkBindingMissile"
+                                          , "NamiQ"
+                                          , "NamiR"
+                                          , "OrianaDetonateCommand"
+                                          , "RengarE"
+                                          , "rivenizunablade"
+                                          , "RumbleCarpetBombM"
+                                          , "SejuaniGlacialPrisonStart"
+                                          , "SionR"
+                                          , "ShenShadowDash"
+                                          , "SonaR"
+                                          , "ThreshQ"
+                                          , "ThreshEFlay"
+                                          , "VarusQMissilee"
+                                          , "VarusR"
+                                          , "VeigarBalefulStrike"
+                                          , "VelkozQ"
+                                          , "Vi-q"
+                                          , "Laser"
+                                          , "xeratharcanopulse2"
+                                          , "XerathArcaneBarrage2"
+                                          , "XerathMageSpear"
+                                          , "xerathrmissilewrapper"
+                                          , "yasuoq3w"
+                                          , "ZacQ"
+                                          , "ZedShuriken"
+                                          , "ZiggsQ"
+                                          , "ZiggsW"
+                                          , "ZiggsE"
+                                          , "ZiggsR"
+                                          , "ZileanQ"
+                                          , "ZyraQFissure"
+                                          , "ZyraGraspingRoots"
+                                      };
+                for (int i = 0; i <= 61; i++)
+                {
+                    if (args.SData.Name == Spells[i])
+                    {
+                        if (sender is Obj_AI_Hero && sender.IsEnemy && args.Target.IsMe && !args.SData.IsAutoAttack() && W.IsReady())
+                        {
+                            W.Cast();
+                        }
+                    }
+                }
+            }
         }
         private static void Game_OnGameUpdate(EventArgs args)
         {
@@ -162,6 +248,14 @@ namespace Diana_Masterrace
                 {
                     Jungle();
                     LaneClear();
+                }
+                if (Config.Item("channelingBroker").GetValue<bool>())
+                {
+                    brokeChannel();
+                }
+                if (Config.Item("immobileQ").GetValue<bool>())
+                {
+                    immobileQ();
                 }
                 Items();
                 KillSteal();
@@ -181,8 +275,63 @@ namespace Diana_Masterrace
                     Jungle();
                     LaneClear();
                 }
+                if (Config.Item("channelingBroker").GetValue<bool>())
+                {
+                    brokeChannel();
+                }
+                if (Config.Item("immobileQ").GetValue<bool>())
+                {
+                    immobileQ();
+                }
                 Items();
                 KillSteal();
+            }
+        }
+        public static bool immobileTarget(Obj_AI_Hero target)
+        {
+            if (target.HasBuffOfType(BuffType.Stun) || target.HasBuffOfType(BuffType.Snare) || target.HasBuffOfType(BuffType.Knockup) ||
+                target.HasBuffOfType(BuffType.Charm) || target.HasBuffOfType(BuffType.Fear) || target.HasBuffOfType(BuffType.Knockback) ||
+                target.HasBuffOfType(BuffType.Taunt) || target.HasBuffOfType(BuffType.Suppression) ||
+                target.IsStunned)
+            {
+                return true;
+            }
+            else
+                return false;
+        }
+        public static bool chanellingChecker(Obj_AI_Hero target)
+        {
+            if (target.HasBuff("MissFortuneBulletTime") || target.HasBuff("katarinaultibroker") || target.HasBuff("missfortunebulletsound")
+                || target.IsChannelingImportantSpell())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        private static void brokeChannel()
+        {
+            var enemy = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
+            if (E.IsReady() && chanellingChecker(enemy) && enemy.IsValidTarget(E.Range))
+            {
+                E.Cast();
+            }
+        }
+        public static void immobileQ()
+        {
+            var enemy = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Magical);
+            if (Q.IsReady() && immobileTarget(enemy) && enemy.IsValidTarget(Q.Range))
+            {
+                if (enemy.Distance(Player.Position) <= 300 && Q.GetPrediction(enemy).Hitchance >= HitChance.High)
+                {
+                    Q.Cast(enemy.Position + 150);
+                }
+                else if (enemy.Distance(Player.Position) >= 300 && Q.GetPrediction(enemy).Hitchance >= HitChance.High)
+                {
+                    Q.Cast(enemy.Position);
+                }
             }
         }
         private static void Items() 
@@ -199,6 +348,21 @@ namespace Diana_Masterrace
         {
             foreach (var target in HeroManager.Enemies.OrderByDescending(x => x.Health))
             {
+                if (Q.GetDamage(target) + R.GetDamage(target) + R.GetDamage(target) > target.Health)
+                {
+                    if (target.Distance(Player.Position) <= Q.Range && Q.GetPrediction(target).Hitchance >= HitChance.High)
+                    {
+                        Q.Cast(target);
+                        if (target.HasBuff("dianamoonlight"))
+                        {
+                            R.Cast(target);
+                        }
+                        if (target.Health < R.GetDamage(target))
+                        {
+                            R.Cast(target);
+                        }
+                    }
+                }
                 if (Q.GetDamage(target) > target.Health && Q.GetPrediction(target).Hitchance >= HitChance.High)
                 {
                     if (target.Distance(Player.Position) <= 300 && Q.GetPrediction(target).Hitchance >= HitChance.High)
@@ -484,8 +648,16 @@ namespace Diana_Masterrace
             {
                 Render.Circle.DrawCircle(Player.Position, R.Range, Color.Yellow);
             }
+            if (Config.Item("hitChanceDraw").GetValue<bool>() && Q.IsReady())
+            {
+                var enemy = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
+                if (Q.GetPrediction(enemy).Hitchance >= HitChance.High)
+                {
+                    var yx = Drawing.WorldToScreen(enemy.Position);
+                    Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "Q Hitchance >= High");
+                }
+            }
            
         }
-        
     }
 }
