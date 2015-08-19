@@ -46,6 +46,8 @@ namespace HikiCarry_Kalista
             {
                 return;
             }
+            SupportManager.drawSupport = true;
+
             Q = new Spell(SpellSlot.Q, 1150f);
             W = new Spell(SpellSlot.W, 5000f);
             E = new Spell(SpellSlot.E, 1000f);
@@ -127,6 +129,14 @@ namespace HikiCarry_Kalista
 
             var itemMenu = new Menu("Item Settings","Item Settings");
             {
+                var bilgewater = new Menu("Bilgewater Settings", "Bilgewater Settings");
+                {
+                    bilgewater.AddItem(new MenuItem("useBilge", "Use BOTRK").SetValue(true));
+                    bilgewater.AddItem(new MenuItem("myhpbilge", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
+                    bilgewater.AddItem(new MenuItem("theirhpbilge", "Use if enemy HP < %").SetValue(new Slider(20, 0, 100)));
+                    itemMenu.AddSubMenu(bilgewater);
+                }
+
                 var botrk = new Menu("BOTRK Settings", "BOTRK Settings");
                 {
                     botrk.AddItem(new MenuItem("useBOTRK", "Use BOTRK").SetValue(true));
@@ -156,12 +166,13 @@ namespace HikiCarry_Kalista
 
             var drawMenu = new Menu("Draw Settings","Draw Settings");
             {
-                
                 drawMenu.AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.White)));
                 drawMenu.AddItem(new MenuItem("wDraw", "W Range").SetValue(new Circle(true, Color.Silver)));
                 drawMenu.AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.Yellow)));
                 drawMenu.AddItem(new MenuItem("rDraw", "R Range").SetValue(new Circle(true, Color.Gold)));
                 drawMenu.AddItem(new MenuItem("ePercent", "E % On Enemy").SetValue(true));
+                drawMenu.AddItem(new MenuItem("signal", "Support Signal").SetValue(true));
+                drawMenu.AddItem(new MenuItem("circleSupport", "Draw Support on Circle").SetValue(true));
                 Config.AddSubMenu(drawMenu);
             }
 
@@ -581,7 +592,15 @@ namespace HikiCarry_Kalista
         private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             var tar = (Obj_AI_Hero)target;
+
             if (Config.Item("useBOTRK").GetValue<bool>() && ((tar.Health / tar.MaxHealth) < Config.Item("theirhp").GetValue<Slider>().Value) && ((ObjectManager.Player.Health / ObjectManager.Player.MaxHealth) < Config.Item("myhp").GetValue<Slider>().Value))
+            {
+                if (Items.CanUseItem(3144))
+                {
+                    Items.UseItem(3144, tar);
+                }
+            }
+            if (Config.Item("useBilge").GetValue<bool>() && ((tar.Health / tar.MaxHealth) < Config.Item("theirhpbilge").GetValue<Slider>().Value) && ((ObjectManager.Player.Health / ObjectManager.Player.MaxHealth) < Config.Item("myhpbilge").GetValue<Slider>().Value))
             {
                 if (Items.CanUseItem(3153))
                 {
