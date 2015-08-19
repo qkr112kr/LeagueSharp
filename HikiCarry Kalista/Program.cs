@@ -23,12 +23,17 @@ namespace HikiCarry_Kalista
         public static Spell E;
         public static Spell R;
 
+
         public static string[] Marksman = { "Kalista", "Jinx", "Lucian", "Quinn", "Draven",  "Varus", "Graves", "Vayne", 
                                             "Caitlyn","Urgot", "Ezreal", "KogMaw", "Ashe", "MissFortune", "Tristana", "Teemo", 
                                             "Sivir","Twitch", "Corki"};
 
         public static string[] tankySupport = { "Alistar", "Braum", "Leona", "Nunu", "Tahm Kench",  "Taric", "Thresh"};
 
+        private static float[] damage = new float[] { 20, 30, 40, 50, 60 };
+        private static float[] damageMulti = new float[] { 0.6f, 0.6f, 0.6f, 0.6f, 0.6f };
+        private static float[] perSpear = new float[] { 10, 14, 19, 25, 32 };
+        private static float[] spearMulti = new float[] { 0.20f, 0.225f, 0.25f, 0.275f, 0.30f };
 
         static void Main(string[] args)
         {
@@ -162,9 +167,7 @@ namespace HikiCarry_Kalista
 
             Config.AddItem(new MenuItem("saveSupport", "Save Support [R]").SetValue(true));
             Config.AddItem(new MenuItem("savePercent", "Save Support Health Percent").SetValue(new Slider(10, 0, 100)));
-
-            
-            
+            Config.AddItem(new MenuItem("calculator", "E Damage Calculator").SetValue(new StringList(new[] { "Custom Calculator", "Common Calculator" })));
             
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "E Damage").SetValue(true);
             var drawFill = new MenuItem("RushDrawEDamageFill", "E Damage Fill").SetValue(new Circle(true, Color.SeaGreen));
@@ -218,6 +221,8 @@ namespace HikiCarry_Kalista
             stealJungle();
             KillSteal();
             immobileQ();
+
+            
 
         }
         public static void immobileQ()
@@ -313,29 +318,28 @@ namespace HikiCarry_Kalista
             if (E.IsReady() && useE)
             {
                 if (stealDragon && mob[0].BaseSkinName.Contains("Dragon")
-                    && mob[0].Health+50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Dragon Q
+                    && mob[0].Health + 50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Dragon E
                 {
                     E.Cast(mob[0]);
                 }
 
                 if (stealBaron && mob[0].BaseSkinName.Contains("Baron")
-                    && mob[0].Health + 50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Baron Q
+                    && mob[0].Health + 50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Baron E
                 {
                     E.Cast();
                 }
 
                 if (stealBlue && mob[0].BaseSkinName.Contains("SRU_Blue")
-                    && mob[0].Health + 50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Blue Q
+                    && mob[0].Health + 50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Blue E
                 {
                     E.Cast();
                 }
 
                 if (stealRed && mob[0].BaseSkinName.Contains("SRU_Red")
-                    && mob[0].Health + 50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Red Q
+                    && mob[0].Health + 50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Red E
                 {
                     E.Cast();
-                }
-
+                }  
             }
 
 
@@ -362,9 +366,17 @@ namespace HikiCarry_Kalista
             }
             if (E.IsReady() && useE)
             {
-                foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
+                foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range)))
                 {
-                    if (enemy.Health + 20 < E.GetDamage(enemy) && !undyBuff(enemy))
+                    if (enemy.Level <= 6 && enemy.Health + 50 < E.GetDamage(enemy) && !undyBuff(enemy))
+                    {
+                        E.Cast();
+                    }
+                    if (enemy.Level > 6 && enemy.Level <= 11 && enemy.Health + 100 < E.GetDamage(enemy) && !undyBuff(enemy))
+                    {
+                        E.Cast();
+                    }
+                    if (enemy.Level > 11 && enemy.Level <= 18 && enemy.Health + 150 < E.GetDamage(enemy) && !undyBuff(enemy))
                     {
                         E.Cast();
                     }
@@ -422,7 +434,7 @@ namespace HikiCarry_Kalista
                 }
                 if (E.IsReady() && useE)
                 {
-                    foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
+                    foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range)))
                     {
                         int enemyStack = enemy.Buffs.FirstOrDefault(x => x.DisplayName == "KalistaExpungeMarker").Count;
                         if (enemyStack > eSpearCount)
@@ -471,10 +483,10 @@ namespace HikiCarry_Kalista
             {
                 foreach (var target in HeroManager.Enemies.OrderByDescending(x => x.Health))
                 {
-                    if (target.HasBuff("KalistaExpungeMarker") && target.Distance(Player.Position) < E.Range && E.GetDamage(target) < target.Health+50)
+                    if (target.HasBuff("KalistaExpungeMarker") && target.Distance(Player.Position) < E.Range && E.GetDamage(target) < target.Health + 50)
                     {
                         E.Cast();
-                    }
+                    } 
                 }
             }
         }
@@ -502,24 +514,22 @@ namespace HikiCarry_Kalista
                     {
                         E.Cast();
                     }
-                }
+                }    
             }
-            
-            
-
         }
         private static void SupportSaver() 
         {
             var saveSupport = Config.Item("saveSupport").GetValue<bool>();
             var supportPercent = Config.Item("savePercent").GetValue<Slider>().Value;
-            var allySaver = HeroManager.Allies.Find(h => h.Buffs.Any(b => b.Caster.IsMe && b.Name.Contains("kalistacoopstrikeally")));
            
-            if (R.IsReady() && saveSupport)
+            if (saveSupport && R.IsReady())
             {
-                if (allySaver.HealthPercent < supportPercent && allySaver.CountEnemiesInRange(500) > 0
-                    && allySaver.Distance(Player.Position) > R.Range)
+                foreach (var ally in HeroManager.Allies.Where(ally => ally.IsValidTarget(R.Range) && ally.HasBuff("kalistacoopstrikeally")))
                 {
-                    R.Cast();
+                    if (ally.HealthPercent < supportPercent)
+                    {
+                        R.Cast();
+                    }
                 }
             }
 
@@ -548,10 +558,10 @@ namespace HikiCarry_Kalista
         private static float GetComboDamage(Obj_AI_Hero hero)
         {
             float damage = 0;
-
             if (E.IsReady())
+            {
                 damage += E.GetDamage(hero);
-
+            }
 
             var stacz = E.GetDamage(hero);
             float edamagedraw = stacz * 100 / hero.Health;
@@ -559,12 +569,12 @@ namespace HikiCarry_Kalista
             if (edraw >= 100)
             {
                 var yx = Drawing.WorldToScreen(hero.Position);
-                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "STACK OVERLOAD - FUCK THEM ALL !");
+                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.Yellow, "STACK OVERLOAD - FUCK THEM ALL !");
             }
             if (edraw < 100)
             {
                 var yx = Drawing.WorldToScreen(hero.Position);
-                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "E Stack on Enemy HP %" + edraw);
+                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.Yellow, "E Stack on Enemy HP %" + edraw);
             }
             return damage;
         }
