@@ -54,6 +54,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activators\Bilgewater.cs" />
+    <Compile Include="Activators\BOTRK.cs" />
+    <Compile Include="Activators\GhostBlade.cs" />
+    <Compile Include="Activators\Potion.cs" />
+    <Compile Include="Activators\QSS.cs" />
     <Compile Include="DamageIndicator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -78,11 +78,22 @@ namespace HikiCarry_Kalista
 
         private static void Game_OnUpdate(EventArgs args)
         {
-            
+            var saveSupport = Program.Config.Item("saveSupport").GetValue<bool>();
+            var supportPercent = Program.Config.Item("savePercent").GetValue<Slider>().Value;
 
             if (kalistaSupport == null)
             {
                 kalistaSupport = ObjectManager.Get<Obj_AI_Base>().FirstOrDefault(x => x.IsAlly && x.HasBuff(allyBuffName));
+            }
+            if (kalistaSupport != null)
+            {
+                if (saveSupport && Program.R.IsReady()) // Support Save
+                {
+                    if (kalistaSupport.HealthPercent < supportPercent)
+                    {
+                        Program.R.Cast();
+                    }
+                }
             }
         }
 

@@ -30,10 +30,8 @@ namespace HikiCarry_Kalista
 
         public static string[] tankySupport = { "Alistar", "Braum", "Leona", "Nunu", "Tahm Kench",  "Taric", "Thresh"};
 
-        private static float[] damage = new float[] { 20, 30, 40, 50, 60 };
-        private static float[] damageMulti = new float[] { 0.6f, 0.6f, 0.6f, 0.6f, 0.6f };
-        private static float[] perSpear = new float[] { 10, 14, 19, 25, 32 };
-        private static float[] spearMulti = new float[] { 0.20f, 0.225f, 0.25f, 0.275f, 0.30f };
+        public static string[] nontankySupport = { "Nami","Soraka","Janna","Sona","Lulu","Kayle","Bard","Karma","Lux","Morgana",
+                                                 "Zilean","Zyra"};
 
         static void Main(string[] args)
         {
@@ -42,11 +40,18 @@ namespace HikiCarry_Kalista
 
         private static void Game_OnGameLoad(EventArgs args)
         {
-            if (Player.BaseSkinName != cName)
+            if (Player.CharData.BaseSkinName != cName)
             {
                 return;
             }
+            
             SupportManager.drawSupport = true;
+
+            Activators.QSS.hikiQSS = true;
+            Activators.Ghostblade.hikiGhostBlade = true;
+            Activators.BOTRK.hikiBOTRK = true;
+            Activators.Bilgewater.hikiBilgewater = true;
+			Activators.Potion.hikiPotion = true;
 
             Q = new Spell(SpellSlot.Q, 1150f);
             W = new Spell(SpellSlot.W, 5000f);
@@ -129,12 +134,16 @@ namespace HikiCarry_Kalista
 
             var itemMenu = new Menu("Item Settings","Item Settings");
             {
-                var bilgewater = new Menu("Bilgewater Settings", "Bilgewater Settings");
+                var qssMenu = new Menu("QSS Settings", "QSS Settings");
                 {
-                    bilgewater.AddItem(new MenuItem("useBilge", "Use BOTRK").SetValue(true));
-                    bilgewater.AddItem(new MenuItem("myhpbilge", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
-                    bilgewater.AddItem(new MenuItem("theirhpbilge", "Use if enemy HP < %").SetValue(new Slider(20, 0, 100)));
-                    itemMenu.AddSubMenu(bilgewater);
+                    qssMenu.AddItem(new MenuItem("use.qss", "Use QSS").SetValue(true));
+                    qssMenu.AddItem(new MenuItem("clear.ignite", "Clear Ignite").SetValue(true));
+                    qssMenu.AddItem(new MenuItem("clear.exhaust", "Clear Exhaust").SetValue(true));
+                    qssMenu.AddItem(new MenuItem("clear.zedult","Clear Zed R").SetValue(true));
+                    qssMenu.AddItem(new MenuItem("clear.fizzult","Clear Fizz R").SetValue(true));
+                    qssMenu.AddItem(new MenuItem("clear.malzaharult","Clear Malzahar R").SetValue(true));
+                    qssMenu.AddItem(new MenuItem("clear.vladulti","Clear Vladimir R").SetValue(true));
+                    itemMenu.AddSubMenu(qssMenu);
                 }
 
                 var botrk = new Menu("BOTRK Settings", "BOTRK Settings");
@@ -144,11 +153,33 @@ namespace HikiCarry_Kalista
                     botrk.AddItem(new MenuItem("theirhp", "Use if enemy HP < %").SetValue(new Slider(20, 0, 100)));
                     itemMenu.AddSubMenu(botrk);
                 }
+
                 var ghostBlade = new Menu("GhostBlade Settings", "GhostBlade Settings");
                 {
                     ghostBlade.AddItem(new MenuItem("gBlade", "Use GhostBlade").SetValue(true));
                     itemMenu.AddSubMenu(ghostBlade);
                 }
+
+                var bilgewater = new Menu("Bilgewater Settings", "Bilgewater Settings");
+                {
+                    bilgewater.AddItem(new MenuItem("useBilge", "Use BOTRK").SetValue(true));
+                    bilgewater.AddItem(new MenuItem("myhpbilge", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
+                    bilgewater.AddItem(new MenuItem("theirhpbilge", "Use if enemy HP < %").SetValue(new Slider(20, 0, 100)));
+                    itemMenu.AddSubMenu(bilgewater);
+                }
+                var health = new Menu("Health Potion Settings", "Health Potion Settings");
+                {
+                    health.AddItem(new MenuItem("useHealth", "Use Health Potion").SetValue(true));
+                    health.AddItem(new MenuItem("myhp", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
+                    itemMenu.AddSubMenu(health);
+                }
+                var mana = new Menu("Mana Potion Settings", "Mana Potion Settings");
+                {
+                    mana.AddItem(new MenuItem("useMana", "Use Mana Potion").SetValue(true));
+                    mana.AddItem(new MenuItem("mymana", "Use if my mana < %").SetValue(new Slider(20, 0, 100)));
+                    itemMenu.AddSubMenu(mana);
+                }
+                
                 Config.AddSubMenu(itemMenu);
             }
 
@@ -163,6 +194,31 @@ namespace HikiCarry_Kalista
                 miscMenu.AddItem(new MenuItem("qImmobile", "Auto Q to Immobile Target").SetValue(true));
                 Config.AddSubMenu(miscMenu);
             }
+            var wCombo = new Menu("Wombo Combo with R", "Wombo Combo with R"); // beta
+            {
+                var balista = new Menu("Balista","Balista");
+                {
+                    balista.AddItem(new MenuItem("use.balista", "Balista Active").SetValue(true));
+                    balista.AddItem(new MenuItem("balista.maxrange", "Balista Max Range").SetValue(new Slider(700, 100, 1500)));
+                    balista.AddItem(new MenuItem("balista.minrange", "Balista Min Range").SetValue(new Slider(700, 100, 1500)));
+                    wCombo.AddSubMenu(balista);
+                }
+                var skalista = new Menu("Skalista","Skalista");
+                {
+                    skalista.AddItem(new MenuItem("use.skalista", "SKalista Active").SetValue(true));
+                    skalista.AddItem(new MenuItem("skalista.maxrange", "SKalista Max Range").SetValue(new Slider(700, 100, 1500)));
+                    skalista.AddItem(new MenuItem("skalista.minrange", "SKalista Min Range").SetValue(new Slider(700, 100, 1500)));
+                    wCombo.AddSubMenu(skalista);
+                }
+                var tahmkalista = new Menu("Tahm Kalista","Tahm Kalista");
+                {
+                    tahmkalista.AddItem(new MenuItem("use.tahmkalista", "Tahm Kalista Active").SetValue(true));
+                    tahmkalista.AddItem(new MenuItem("tahmkalista.maxrange", "Tahm Kalista Max Range").SetValue(new Slider(700, 100, 1500)));
+                    tahmkalista.AddItem(new MenuItem("tahmkalista.minrange", "Tahm Kalista Min Range").SetValue(new Slider(700, 100, 1500)));
+                    wCombo.AddSubMenu(tahmkalista);
+                }
+            }
+            Config.AddSubMenu(wCombo);
 
             var drawMenu = new Menu("Draw Settings","Draw Settings");
             {
@@ -178,7 +234,7 @@ namespace HikiCarry_Kalista
 
             Config.AddItem(new MenuItem("saveSupport", "Save Support [R]").SetValue(true));
             Config.AddItem(new MenuItem("savePercent", "Save Support Health Percent").SetValue(new Slider(10, 0, 100)));
-            Config.AddItem(new MenuItem("calculator", "E Damage Calculator").SetValue(new StringList(new[] { "Custom Calculator", "Common Calculator" })));
+            Config.AddItem(new MenuItem("calculator", "E Damage Calculator").SetValue(new StringList(new[] { "Custom Calculator", "Common Calculator" }))); //soontm
             
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "E Damage").SetValue(true);
             var drawFill = new MenuItem("RushDrawEDamageFill", "E Damage Fill").SetValue(new Circle(true, Color.SeaGreen));
@@ -205,10 +261,8 @@ namespace HikiCarry_Kalista
             };
             Config.AddToMainMenu();
             Game.OnUpdate += Game_OnGameUpdate;
-            Orbwalking.AfterAttack += Orbwalking_AfterAttack;
             Drawing.OnDraw += Drawing_OnDraw;
         }
-
         private static void Game_OnGameUpdate(EventArgs args)
         {
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
@@ -228,7 +282,14 @@ namespace HikiCarry_Kalista
             {
                 LastHit();
             }
-            SupportSaver();
+            if (Config.Item("use.balista").GetValue<bool>())
+            {
+                Balista();
+            }
+            if (Config.Item("use.skalista").GetValue<bool>())
+            {
+                
+            }
             stealJungle();
             KillSteal();
             immobileQ();
@@ -328,7 +389,7 @@ namespace HikiCarry_Kalista
             }
             if (E.IsReady() && useE)
             {
-                if (stealDragon && mob[0].BaseSkinName.Contains("Dragon")
+                if (stealDragon && mob[0].CharData.BaseSkinName.Contains("Dragon")
                     && mob[0].Health + 50 + (mob[0].HPRegenRate / 2) <= E.GetDamage(mob[0])) // Dragon E
                 {
                     E.Cast(mob[0]);
@@ -403,13 +464,13 @@ namespace HikiCarry_Kalista
                     }
 
                     if (rAbleTarget.Distance(Player.Position) > E.Range && rAbleTarget.Distance(Player.Position) < R.Range
-                        && ally.HealthPercent > supportPercent &&  rEnemyCount <= 2) // Non-Tanky Champs
+                        && ally.HealthPercent > supportPercent &&  rEnemyCount <= 2 && nontankySupport.Contains(ally.ChampionName)) // Non-Tanky Champs
                     {
                         R.Cast();
                     }
 
                     if (rAbleTarget.Distance(Player.Position) > E.Range && rAbleTarget.Distance(Player.Position) < R.Range
-                        && rEnemyCount <= 2 && Marksman.Contains(rAbleTarget.ChampionName)
+                        && rEnemyCount <= 2 && Marksman.Contains(ally.ChampionName)
                         && ally.HealthPercent > supportPercent) // Adc Focus R
                     {
                         R.Cast();
@@ -492,12 +553,27 @@ namespace HikiCarry_Kalista
             }
             if (E.IsReady() && eKS)
             {
-                foreach (var target in HeroManager.Enemies.OrderByDescending(x => x.Health))
+                foreach (var target in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range)))
                 {
-                    if (target.HasBuff("KalistaExpungeMarker") && target.Distance(Player.Position) < E.Range && E.GetDamage(target) < target.Health + 50)
+                    if (target.Health < GetComboDamage(target))
                     {
-                        E.Cast();
-                    } 
+                        if (target.HasBuff("KalistaExpungeMarker") && target.Distance(Player.Position) < E.Range)
+                        {
+                            if (target.Level <= 6 && target.Health + 50 < E.GetDamage(target) && !undyBuff(target))
+                            {
+                                E.Cast();
+                            }
+                            if (target.Level > 6 && target.Level <= 11 && target.Health + 100 < E.GetDamage(target) && !undyBuff(target))
+                            {
+                                E.Cast();
+                            }
+                            if (target.Level > 11 && target.Level <= 18 && target.Health + 150 < E.GetDamage(target) && !undyBuff(target))
+                            {
+                                E.Cast();
+                            }
+                        }
+                    }
+                    
                 }
             }
         }
@@ -528,18 +604,61 @@ namespace HikiCarry_Kalista
                 }    
             }
         }
-        private static void SupportSaver() 
+        private static void Balista() // rdy 
         {
-            var saveSupport = Config.Item("saveSupport").GetValue<bool>();
-            var supportPercent = Config.Item("savePercent").GetValue<Slider>().Value;
-           
-            if (saveSupport && R.IsReady())
+            if (!R.IsReady())
             {
-                foreach (var ally in HeroManager.Allies.Where(ally => ally.IsValidTarget(R.Range) && ally.HasBuff("kalistacoopstrikeally")))
+                return;
+            }
+            var blitz = ObjectManager.Get<Obj_AI_Base>().FirstOrDefault(x => x.IsAlly && x.CharData.BaseSkinName == "Blitzcrank"  && x.HasBuff("kalistacoopstrikeally"));
+            var balistamaxrange = Config.Item("balista.maxrange").GetValue<Slider>().Value;
+            var balistaminrange = Config.Item("balista.minrange").GetValue<Slider>().Value;
+
+            if (blitz != null && R.IsReady())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(o => o.IsEnemy && o.IsValidTarget(2450f)))
                 {
-                    if (ally.HealthPercent < supportPercent)
+                    if (SupportManager.Support.Distance(enemy.Position) <= 950f && 
+                        SupportManager.Support.Distance(Player.Position) >= balistaminrange &&
+                        SupportManager.Support.Distance(Player.Position) <= balistamaxrange)
                     {
-                        R.Cast();
+                        if (enemy.Buffs != null && enemy.HasBuff("rocketgrab2"))
+                        {
+                            if (R.IsReady())
+                            {
+                                R.Cast();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        private static void Skalista() // rdy
+        {
+            if (!R.IsReady())
+            {
+                return;
+            }
+            var skarner = ObjectManager.Get<Obj_AI_Base>().FirstOrDefault(o => o.IsAlly && o.CharData.BaseSkinName == "Skarner" &&
+                o.HasBuff("kalistacoopstrikeally"));
+            var skarnermaxrange = Config.Item("balista.maxrange").GetValue<Slider>().Value;
+            var skarnerminrange = Config.Item("balista.maxrange").GetValue<Slider>().Value;
+
+            if (skarner != null && R.IsReady())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(o => o.IsEnemy && o.IsValidTarget(1849))) // Kalista R Range + Skarner R Range - 1
+                {
+                    if (SupportManager.Support.Distance(enemy.Position)<= 350 &&
+                        SupportManager.Support.Distance(Player.Position) >= skarnerminrange &&
+                        SupportManager.Support.Distance(Player.Position) <= skarnermaxrange)
+                    {
+                        if (enemy.Buffs != null && enemy.HasBuff("SkarnerImpale"))
+                        {
+                            if (R.IsReady())
+                            {
+                                R.Cast();
+                            }
+                        }
                     }
                 }
             }
@@ -588,32 +707,6 @@ namespace HikiCarry_Kalista
                 Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.Yellow, "E Stack on Enemy HP %" + edraw);
             }
             return damage;
-        }
-        private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
-        {
-            var tar = (Obj_AI_Hero)target;
-
-            if (Config.Item("useBOTRK").GetValue<bool>() && ((tar.Health / tar.MaxHealth) < Config.Item("theirhp").GetValue<Slider>().Value) && ((ObjectManager.Player.Health / ObjectManager.Player.MaxHealth) < Config.Item("myhp").GetValue<Slider>().Value))
-            {
-                if (Items.CanUseItem(3144))
-                {
-                    Items.UseItem(3144, tar);
-                }
-            }
-            if (Config.Item("useBilge").GetValue<bool>() && ((tar.Health / tar.MaxHealth) < Config.Item("theirhpbilge").GetValue<Slider>().Value) && ((ObjectManager.Player.Health / ObjectManager.Player.MaxHealth) < Config.Item("myhpbilge").GetValue<Slider>().Value))
-            {
-                if (Items.CanUseItem(3153))
-                {
-                    Items.UseItem(3153, tar);
-                }
-            }
-            if (Config.Item("gBlade").GetValue<bool>())
-            {
-                if (Items.CanUseItem(3142))
-                {
-                    Items.UseItem(3142);
-                }
-            }
         }
         private static void Drawing_OnDraw(EventArgs args)
         {
