@@ -19,7 +19,7 @@ namespace HikiCarry_Kalista
 
         public static Obj_AI_Base Support
         {
-            get 
+            get
             {
                 if (kalistaSupport != null && kalistaSupport.IsValid)
                 {
@@ -51,27 +51,29 @@ namespace HikiCarry_Kalista
                     var circleSupport = Program.Config.Item("circleSupport").GetValue<bool>();
                     if (signal)
                     {
-                        if (kalistaSupport.Distance(ObjectManager.Player.Position) < 500)
+                        if (kalistaSupport.Distance(ObjectManager.Player.Position) < 500 && !ObjectManager.Player.IsDead)
                         {
-                            Drawing.DrawText(heroPos.X, heroPos.Y, Color.Gold, "Support Connection Signal: Good");
+                            Drawing.DrawText(heroPos.X-100, heroPos.Y, Color.Gold, "Support Connection Signal: Good");
                         }
-                        if (kalistaSupport.Distance(ObjectManager.Player.Position) > 500 && kalistaSupport.Distance(ObjectManager.Player.Position) < 1000)
+                        if (kalistaSupport.Distance(ObjectManager.Player.Position) > 500 && kalistaSupport.Distance(ObjectManager.Player.Position) < 1000
+                            && !ObjectManager.Player.IsDead)
                         {
-                            Drawing.DrawText(heroPos.X, heroPos.Y, Color.Gold, "Support Connection Signal: Medium");
+                            Drawing.DrawText(heroPos.X-100, heroPos.Y, Color.Gold, "Support Connection Signal: Medium");
                         }
-                        if (kalistaSupport.Distance(ObjectManager.Player.Position) > 1000 && kalistaSupport.Distance(ObjectManager.Player.Position) < 1500)
+                        if (kalistaSupport.Distance(ObjectManager.Player.Position) > 1000 && kalistaSupport.Distance(ObjectManager.Player.Position) < 1500
+                            && !ObjectManager.Player.IsDead)
                         {
-                            Drawing.DrawText(heroPos.X, heroPos.Y, Color.Gold, "Support Connection Signal: Low");
+                            Drawing.DrawText(heroPos.X-100, heroPos.Y+25, Color.Gold, "Support Connection Signal: Low");
                         }
-                        if (kalistaSupport.Distance(ObjectManager.Player.Position) > 1500)
+                        if (kalistaSupport.Distance(ObjectManager.Player.Position) > 1500 && !ObjectManager.Player.IsDead)
                         {
-                            Drawing.DrawText(heroPos.X, heroPos.Y, Color.Gold, "Support Connection Signal: Missed");
+                            Drawing.DrawText(heroPos.X-100, heroPos.Y+25, Color.Gold, "Support Connection Signal: Missed");
                         }
                     }
                     if (circleSupport)
                     {
                         Render.Circle.DrawCircle(kalistaSupport.Position + new Vector3(0, 0, 15), 100, Color.Gold, 5, true);
-                    } 
+                    }
                 }
             }
         }

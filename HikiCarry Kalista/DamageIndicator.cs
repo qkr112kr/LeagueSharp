@@ -62,7 +62,6 @@ namespace HikiCarry_Kalista
                 {
                     Text.X = (int)barPos.X + XOffset;
                     Text.Y = (int)barPos.Y + YOffset - 13;
-                    Text.text = "Killable: " + (unit.Health - damage);
                     Text.OnEndScene();
                 }
 
