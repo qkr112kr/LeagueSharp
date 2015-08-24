@@ -4,15 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LeagueSharp.Common;
+using SharpDX.Direct3D9;
 using LeagueSharp;
 using SharpDX;
 using Color = System.Drawing.Color;
+using Font = SharpDX.Direct3D9.Font;
+
+
 
 namespace adcUtility
 {
     class Program
     {
         public static Menu Config;
+        public static SpellSlot Heal;
+        public static SpellSlot Barrier;
+
+        
 
         static void Main(string[] args)
         {
@@ -20,24 +28,48 @@ namespace adcUtility
         }
         private static void Game_OnGameLoad(EventArgs args)
         {
+            //start activator
             Activator.Bilgewater_Cutlass.hikiBilgewater = true;
             Activator.Blade_of_Ruined_King.hikiBOTRK = true;
             Activator.Ghostblade.hikiGhostBlade = true;
             Activator.Potion.hikiPotion = true;
             Activator.Quick_Silver_Sash.hikiQSS = true;
+            Activator.Barrier.hikiBarrier = true;
+            Activator.Heal.hikiHeal = true;
+            //start range
             Range.Ally_AA.hikiAllyAA = true;
             Range.Enemy_AA.hikiEnemyAA = true;
+            //start turret
             Turret.Ally_Turret.hikiAllyTurret = true;
             Turret.Enemy_Turret.hikiEnemyTurret = true;
+            //start dragon
+            Dragon.Buff_Drawer.hikiBuffDrawer = true;
+
+            Heal = ObjectManager.Player.GetSpellSlot("summonerheal");
+            Barrier = ObjectManager.Player.GetSpellSlot("summonerbarrier");
 
             Config = new Menu("adcUtility", "adcUtility", true);
 
             var activatorMenu = new Menu("Activator Settings", "Activator Settings");
             {
+                var summonerMenu = new Menu("Summoner Spells", "Summoner Spells");
+                {
+                    var healMenu = new Menu("Heal Settings", "Heal Settings");
+                    {
+                        healMenu.AddItem(new MenuItem("use.heal", "Use Heal").SetValue(true));
+                        healMenu.AddItem(new MenuItem("heal.myhp", "Use if my HP < %").SetValue(new Slider(10, 0, 100)));
+                        summonerMenu.AddSubMenu(healMenu);
+                    }
+                    var barrierMenu = new Menu("Barrier Settings", "Barrier Settings");
+                    {
+                        barrierMenu.AddItem(new MenuItem("use.barrier", "Use Heal").SetValue(true));
+                        barrierMenu.AddItem(new MenuItem("barrier.myhp", "Use if my HP < %").SetValue(new Slider(10, 0, 100)));
+                        summonerMenu.AddSubMenu(barrierMenu);
+                    }
+                    activatorMenu.AddSubMenu(summonerMenu);
+                }
                 var qssMenu = new Menu("QSS Settings", "QSS Settings");
                 {
-                    // soon tm lissandra R
-                    // soon tm morgana q AMK
                     qssMenu.AddItem(new MenuItem("use.qss", "Use QSS").SetValue(true));
                     qssMenu.AddItem(new MenuItem("clear.ignite", "Clear Ignite").SetValue(true));
                     qssMenu.AddItem(new MenuItem("clear.exhaust", "Clear Exhaust").SetValue(true));
@@ -102,7 +134,7 @@ namespace adcUtility
                 }
                 Config.AddSubMenu(turretMenu);
             }
-
+            
             var rangeMenu = new Menu("Range Settings","Range Settings");
             {
                 var allyRange = new Menu("Ally Range Settings", "Ally Range Settings");
@@ -121,6 +153,12 @@ namespace adcUtility
                 }
 
                 Config.AddSubMenu(rangeMenu);
+            }
+            var dragonBuff = new Menu("Dragon Settings", "Dragon Settings");
+            {
+                dragonBuff.AddItem(new MenuItem("enemy.dragon.buff.count", "Enemy Dragon Buff Count").SetValue(new Circle(true, Color.White)));
+                dragonBuff.AddItem(new MenuItem("ally.dragon.buff.count", "Ally Dragon Buff Count").SetValue(new Circle(true, Color.White)));
+                Config.AddSubMenu(dragonBuff);
             }
 
             Config.AddToMainMenu();

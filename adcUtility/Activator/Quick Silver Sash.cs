@@ -43,7 +43,7 @@ namespace adcUtility.Activator
             }
             if (adCarry != null)
             {
-                
+                //AhriSeduce = Ahri E Buff
                 var useQSS = Program.Config.Item("use.qss").GetValue<bool>();  // use qss
                 var clearIgnite = Program.Config.Item("clear.ignite").GetValue<bool>(); // clear ignite
                 var clearExhaust = Program.Config.Item("clear.exhaust").GetValue<bool>(); // clear exhaust
@@ -57,7 +57,9 @@ namespace adcUtility.Activator
                     if (adCarry.HasBuffOfType(BuffType.Charm) || adCarry.HasBuffOfType(BuffType.Flee) ||
                     adCarry.HasBuffOfType(BuffType.Polymorph) || adCarry.HasBuffOfType(BuffType.Snare) ||
                     adCarry.HasBuffOfType(BuffType.Stun) || adCarry.HasBuffOfType(BuffType.Suppression) ||
-                    adCarry.HasBuffOfType(BuffType.Taunt) && adCarry.HasBuffOfType(BuffType.SpellShield) && adCarry.HasBuffOfType(BuffType.SpellImmunity))
+                    adCarry.HasBuffOfType(BuffType.Taunt) || adCarry.HasBuff("AhriSeduce") && 
+                    !adCarry.HasBuffOfType(BuffType.SpellShield) && 
+                    !adCarry.HasBuffOfType(BuffType.SpellImmunity))
                     {
                         if (Items.HasItem(3140) && Items.CanUseItem(3140))
                         {
