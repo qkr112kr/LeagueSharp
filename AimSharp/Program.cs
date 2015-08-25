@@ -5,7 +5,6 @@ using System.Text;
 using System.Runtime.CompilerServices;
 using LeagueSharp;
 using LeagueSharp.Common;
-using ShineCommon;
 using SPrediction;
 using SharpDX;
 using Color = System.Drawing.Color;
@@ -82,7 +81,7 @@ namespace AimSharp
                 Config.AddSubMenu(drawMenu);
             }
 
-            Config.AddItem(new MenuItem("CRHITCHANCE", "Hit Chance").SetValue<StringList>(new StringList(ShineCommon.Utility.HitchanceNameArray, 2)));
+            Config.AddItem(new MenuItem("CRHITCHANCE", "Hit Chance").SetValue<StringList>(new StringList(Utility.HitchanceNameArray, 2)));
             Config.AddToMainMenu();
             Game.OnUpdate += Game_OnUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
@@ -120,33 +119,17 @@ namespace AimSharp
             {
                 comboQ();
             }
-        }
-        private static void CastSkillshot(Obj_AI_Hero t, Spell s, HitChance hc = HitChance.High)
-        {
-            if (!s.IsSkillshot)
-                return;
-
-            PredictionOutput p = s.GetPrediction(t);
-            if (s.Collision)
+            if (Config.Item("wCombo").GetValue<KeyBind>().Active)
             {
-                for (int i = 0; i < p.CollisionObjects.Count; i++)
-                    if (!p.CollisionObjects[i].IsDead && (p.CollisionObjects[i].IsEnemy || p.CollisionObjects[i].IsMinion))
-                        return;
+                comboW();
             }
-
-            if ((t.HasBuffOfType(BuffType.Slow) && p.Hitchance >= HitChance.Medium) || p.Hitchance == HitChance.Immobile)
-                s.Cast(p.CastPosition);
-            else if (t.IsRecalling())
-                s.Cast(t.ServerPosition);
-            else
+            if (Config.Item("eCombo").GetValue<KeyBind>().Active)
             {
-                if (s.Type != SkillshotType.SkillshotCone)
-                {
-                    if (s.IsReady())
-                        s.SPredictionCast(t, hc);
-                }
-                else
-                    s.Cast(p.CastPosition);
+                comboE();
+            }
+            if (Config.Item("rCombo").GetValue<KeyBind>().Active)
+            {
+                comboR();
             }
         }
         private static void comboQ()
@@ -154,8 +137,9 @@ namespace AimSharp
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && x.IsValidTarget(Q.Range)))
             {
-                HitChance hCance = ShineCommon.Utility.HitchanceArray[Config.Item("CRHITCHANCE").GetValue<StringList>().SelectedIndex];
-                CastSkillshot(enemy, Q, hCance);
+
+                HitChance hCance = Utility.HitchanceArray[Config.Item("CRHITCHANCE").GetValue<StringList>().SelectedIndex];
+                Q.SPredictionCast(enemy,hCance);
             }
         }
         private static void comboW()
@@ -163,8 +147,8 @@ namespace AimSharp
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && x.IsValidTarget(W.Range)))
             {
-                HitChance hCance = ShineCommon.Utility.HitchanceArray[Config.Item("CRHITCHANCE").GetValue<StringList>().SelectedIndex];
-                CastSkillshot(enemy, W, hCance);
+                HitChance hCance = Utility.HitchanceArray[Config.Item("CRHITCHANCE").GetValue<StringList>().SelectedIndex];
+                W.SPredictionCast(enemy, hCance);
             }
         }
         private static void comboE()
@@ -172,8 +156,8 @@ namespace AimSharp
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && x.IsValidTarget(E.Range)))
             {
-                HitChance hCance = ShineCommon.Utility.HitchanceArray[Config.Item("CRHITCHANCE").GetValue<StringList>().SelectedIndex];
-                CastSkillshot(enemy, E, hCance);
+                HitChance hCance = Utility.HitchanceArray[Config.Item("CRHITCHANCE").GetValue<StringList>().SelectedIndex];
+                E.SPredictionCast(enemy, hCance);
             }
         }
         private static void comboR()
@@ -181,8 +165,8 @@ namespace AimSharp
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && x.IsValidTarget(R.Range)))
             {
-                HitChance hCance = ShineCommon.Utility.HitchanceArray[Config.Item("CRHITCHANCE").GetValue<StringList>().SelectedIndex];
-                CastSkillshot(enemy, R, hCance);
+                HitChance hCance = Utility.HitchanceArray[Config.Item("CRHITCHANCE").GetValue<StringList>().SelectedIndex];
+                R.SPredictionCast(enemy, hCance);
             }
         }
     }
