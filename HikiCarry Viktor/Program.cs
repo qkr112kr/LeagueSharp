@@ -47,10 +47,10 @@ namespace HikiCarry_Viktor
 
             Q = new Spell(SpellSlot.Q, 600);
             W = new Spell(SpellSlot.W, 700);
-            E = new Spell(SpellSlot.E, 550);
+            E = new Spell(SpellSlot.E, 550 + eRange / 4f); 
             R = new Spell(SpellSlot.R, 700);
 
-            Q.SetTargetted(0.25f,2000);
+            Q.SetTargetted(0.25f, 2000);
             W.SetSkillshot(0.25f, 300, float.MaxValue, false, SkillshotType.SkillshotCircle);
             E.SetSkillshot(0.0f, 90, 1200, false, SkillshotType.SkillshotLine);
             R.SetSkillshot(0.25f, 250, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -69,7 +69,7 @@ namespace HikiCarry_Viktor
                 comboMenu.AddItem(new MenuItem("minHitR", "Minimum Hit R").SetValue(new Slider(2, 1, 5)));
                 Config.AddSubMenu(comboMenu);
             }
-            var harassMenu = new Menu("Harass Settings","Harass Settings");
+            var harassMenu = new Menu("Harass Settings", "Harass Settings");
             {
                 harassMenu.AddItem(new MenuItem("qHarass", "Use Q").SetValue(true));
                 harassMenu.AddItem(new MenuItem("eHarass", "Use E").SetValue(true));
@@ -144,6 +144,31 @@ namespace HikiCarry_Viktor
             }
             Config.AddItem(new MenuItem("useIgnite", "Smart Ignite").SetValue(true));
             Config.AddItem(new MenuItem("hChance", "Hit Chance").SetValue<StringList>(new StringList(HitchanceNameArray, 2)));
+            var drawDamageMenu = new MenuItem("RushDrawEDamage", "E Damage").SetValue(true);
+            var drawFill = new MenuItem("RushDrawEDamageFill", "E Damage Fill").SetValue(new Circle(true, Color.Gold));
+
+            drawMenu.SubMenu("Damage Draws").AddItem(drawDamageMenu);
+            drawMenu.SubMenu("Damage Draws").AddItem(drawFill);
+
+
+            DamageIndicator.DamageToUnit = cDamage;
+            DamageIndicator.Enabled = drawDamageMenu.GetValue<bool>();
+            DamageIndicator.Fill = drawFill.GetValue<Circle>().Active;
+            DamageIndicator.FillColor = drawFill.GetValue<Circle>().Color;
+
+            drawDamageMenu.ValueChanged +=
+            delegate(object sender, OnValueChangeEventArgs eventArgs)
+            {
+                DamageIndicator.Enabled = eventArgs.GetNewValue<bool>();
+            };
+
+            drawFill.ValueChanged +=
+            delegate(object sender, OnValueChangeEventArgs eventArgs)
+            {
+                DamageIndicator.Fill = eventArgs.GetNewValue<Circle>().Active;
+                DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
+            };
+
             SPrediction.Prediction.Initialize(Config);
             Config.AddToMainMenu();
             Drawing.OnDraw += Drawing_OnDraw;
@@ -205,19 +230,14 @@ namespace HikiCarry_Viktor
             eToggle();
             eKS();
             immobileE();
-            
+
         }
         public static bool CanMove(Obj_AI_Hero target)
         {
-            if (target.HasBuffOfType(BuffType.Stun) || target.HasBuffOfType(BuffType.Snare) || target.HasBuffOfType(BuffType.Knockup) ||
+            return !(target.HasBuffOfType(BuffType.Stun) || target.HasBuffOfType(BuffType.Snare) || target.HasBuffOfType(BuffType.Knockup) ||
                 target.HasBuffOfType(BuffType.Charm) || target.HasBuffOfType(BuffType.Fear) || target.HasBuffOfType(BuffType.Knockback) ||
                 target.HasBuffOfType(BuffType.Taunt) || target.HasBuffOfType(BuffType.Suppression) ||
-                target.IsStunned || target.IsChannelingImportantSpell())
-            {
-                return false;
-            }
-            else
-                return true;
+                target.IsStunned || target.IsChannelingImportantSpell());
         }
         private static void Combo()
         {
@@ -244,7 +264,7 @@ namespace HikiCarry_Viktor
             {
                 foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsDead && !x.IsZombie && x.IsValidTarget(W.Range)))
                 {
-                    W.SPredictionCast(enemy,hCance);
+                    W.SPredictionCast(enemy, hCance);
                 }
             }
 
@@ -252,7 +272,11 @@ namespace HikiCarry_Viktor
             {
                 foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsDead && !x.IsZombie && x.IsValidTarget(E.Range)))
                 {
-                    E.SPredictionCast(enemy,hCance);
+                    
+                    if (Player.Distance(enemy.Position) < 550)
+                    {
+                        E.SPredictionCast(enemy, hCance);
+                    }
                 }
             }
 
@@ -272,12 +296,12 @@ namespace HikiCarry_Viktor
             }
             if (Ignite.IsReady() && useIgnite)
             {
-                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsDead && !x.IsZombie 
+                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsDead && !x.IsZombie
                     && x.IsValidTarget(550)))
                 {
-                    if (Player.GetSpellDamage(enemy,Ignite) + cDamage(enemy) > enemy.Health)
+                    if (Player.GetSpellDamage(enemy, Ignite) + cDamage(enemy) > enemy.Health)
                     {
-                        Player.Spellbook.CastSpell(Ignite,enemy);
+                        Player.Spellbook.CastSpell(Ignite, enemy);
                     }
                 }
             }
@@ -305,20 +329,20 @@ namespace HikiCarry_Viktor
             {
                 if (Player.HasBuff("viktoreaug") || Player.HasBuff("viktorqeaug") || Player.HasBuff("viktorqweaug"))
                 {
-                    damage += E.GetDamage(enemy,1);
+                    damage += E.GetDamage(enemy, 1);
                 }
                 else
                 {
-                    damage += E.GetDamage(enemy,0);
+                    damage += E.GetDamage(enemy, 0);
                 }
             }
             if (R.IsReady() && useR)
             {
                 damage += R.GetDamage(enemy);
-                damage += R.GetDamage(enemy,2);
+                damage += R.GetDamage(enemy, 2);
             }
 
-                return (float)damage;
+            return (float)damage;
         }
         private static void Harass()
         {
@@ -381,14 +405,14 @@ namespace HikiCarry_Viktor
                         E.Cast(eFarmPos.Position);
                 }
             }
-            
+
         }
         private static void eKS()
         {
             var useE = Config.Item("eKS").GetValue<bool>();
             if (E.IsReady() && useE)
             {
-                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsDead && !x.IsZombie 
+                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsDead && !x.IsZombie
                     && x.IsValidTarget(E.Range) && E.GetDamage(x) > x.Health))
                 {
                     HitChance hCance = HitchanceArray[Config.Item("hChance").GetValue<StringList>().SelectedIndex];
@@ -398,8 +422,8 @@ namespace HikiCarry_Viktor
         }
         private static void JungleClear()
         {
-            var mob = MinionManager.GetMinions(Player.ServerPosition, Orbwalking.GetRealAutoAttackRange(Player) + 100, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
-            
+            var mob = MinionManager.GetMinions(Player.ServerPosition, Orbwalking.GetRealAutoAttackRange(Player) + 100, MinionTypes.All, MinionTeam.Neutral,MinionOrderTypes.MaxHealth);
+
             if (mob == null || (mob != null && mob.Count == 0))
             {
                 return;
@@ -437,12 +461,12 @@ namespace HikiCarry_Viktor
                     E.SPredictionCast(enemy, hCance);
                 }
             }
-           
+
         }
         private static void LastHit()
         {
             var lMana = Config.Item("lMana").GetValue<Slider>().Value;
-            var useQ  = Config.Item("qLast").GetValue<bool>();
+            var useQ = Config.Item("qLast").GetValue<bool>();
             var qMinion = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.Enemy);
             if (ObjectManager.Player.ManaPercent > lMana)
             {
@@ -467,6 +491,7 @@ namespace HikiCarry_Viktor
             var menuItem2 = Config.Item("wDraw").GetValue<Circle>();
             var menuItem3 = Config.Item("eDraw").GetValue<Circle>();
             var menuItem4 = Config.Item("rDraw").GetValue<Circle>();
+            var killableDraws = Config.Item("killableDrew").GetValue<bool>();
 
             if (menuItem1.Active && Q.IsReady())
             {
@@ -478,12 +503,13 @@ namespace HikiCarry_Viktor
             }
             if (menuItem3.Active && E.IsReady())
             {
-                Render.Circle.DrawCircle(new Vector3(Player.Position.X, Player.Position.Y, Player.Position.Z), E.Range + eRange, menuItem3.Color, 5);
+                Render.Circle.DrawCircle(new Vector3(Player.Position.X, Player.Position.Y, Player.Position.Z), E.Range + eRange - eRange / 4f, menuItem3.Color, 5);
             }
             if (menuItem4.Active && R.IsReady())
             {
                 Render.Circle.DrawCircle(new Vector3(Player.Position.X, Player.Position.Y, Player.Position.Z), R.Range, menuItem4.Color, 5);
             }
+            
         }
     }
 }
