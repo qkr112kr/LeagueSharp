@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,7 +47,7 @@ namespace HikiCarry_Viktor
 
             Q = new Spell(SpellSlot.Q, 600);
             W = new Spell(SpellSlot.W, 700);
-            E = new Spell(SpellSlot.E, 550);
+            E = new Spell(SpellSlot.E, 550 + eRange / 4f); //try / 2f if still not well
             R = new Spell(SpellSlot.R, 700);
 
             Q.SetTargetted(0.25f,2000);
@@ -209,15 +209,10 @@ namespace HikiCarry_Viktor
         }
         public static bool CanMove(Obj_AI_Hero target)
         {
-            if (target.HasBuffOfType(BuffType.Stun) || target.HasBuffOfType(BuffType.Snare) || target.HasBuffOfType(BuffType.Knockup) ||
+            return !(target.HasBuffOfType(BuffType.Stun) || target.HasBuffOfType(BuffType.Snare) || target.HasBuffOfType(BuffType.Knockup) ||
                 target.HasBuffOfType(BuffType.Charm) || target.HasBuffOfType(BuffType.Fear) || target.HasBuffOfType(BuffType.Knockback) ||
                 target.HasBuffOfType(BuffType.Taunt) || target.HasBuffOfType(BuffType.Suppression) ||
                 target.IsStunned || target.IsChannelingImportantSpell())
-            {
-                return false;
-            }
-            else
-                return true;
         }
         private static void Combo()
         {
@@ -398,7 +393,9 @@ namespace HikiCarry_Viktor
         }
         private static void JungleClear()
         {
-            var mob = MinionManager.GetMinions(Player.ServerPosition, Orbwalking.GetRealAutoAttackRange(Player) + 100, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+            var mob = MinionManager.GetMinions(Player.ServerPosition, Orbwalking.GetRealAutoAttackRange(Player) + 100, MinionTypes.All, MinionTeam.Neutral, 
+
+MinionOrderTypes.MaxHealth);
             
             if (mob == null || (mob != null && mob.Count == 0))
             {
@@ -478,7 +475,7 @@ namespace HikiCarry_Viktor
             }
             if (menuItem3.Active && E.IsReady())
             {
-                Render.Circle.DrawCircle(new Vector3(Player.Position.X, Player.Position.Y, Player.Position.Z), E.Range + eRange, menuItem3.Color, 5);
+                Render.Circle.DrawCircle(new Vector3(Player.Position.X, Player.Position.Y, Player.Position.Z), E.Range + eRange - eRange / 4f, menuItem3.Color, 5);
             }
             if (menuItem4.Active && R.IsReady())
             {
