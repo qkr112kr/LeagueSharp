@@ -44,6 +44,8 @@ namespace adcUtility
             Turret.Enemy_Turret.hikiEnemyTurret = true;
             //start dragon
             Dragon.Buff_Drawer.hikiBuffDrawer = true;
+            //start plugins
+            Plugins.Anti_Rengar.hikiAntiRengar = true;
 
             Heal = ObjectManager.Player.GetSpellSlot("summonerheal");
             Barrier = ObjectManager.Player.GetSpellSlot("summonerbarrier");
@@ -159,6 +161,21 @@ namespace adcUtility
                 dragonBuff.AddItem(new MenuItem("enemy.dragon.buff.count", "Enemy Dragon Buff Count").SetValue(new Circle(true, Color.White)));
                 dragonBuff.AddItem(new MenuItem("ally.dragon.buff.count", "Ally Dragon Buff Count").SetValue(new Circle(true, Color.White)));
                 Config.AddSubMenu(dragonBuff);
+            }
+            var antiRengar = new Menu("Anti-Rengar Settings", "Anti-Rengar Settings");
+            {
+                antiRengar.AddItem(new MenuItem("anti.rengar", "Use Anti-Rengar").SetValue(true));
+                var antirengarSub = new Menu("Supported Champion & Spells", "Supported Champion & Spells");
+                {
+                    antirengarSub.AddItem(new MenuItem("vayne.E", "Vayne[E]"));
+                    antirengarSub.AddItem(new MenuItem("tristana.R", "Tristana [R]"));
+                    antirengarSub.AddItem(new MenuItem("draven.E", "Draven [E]"));
+                    antirengarSub.AddItem(new MenuItem("ashe.R", "Ashe [R]"));
+                    antirengarSub.AddItem(new MenuItem("jinx.E", "Jinx [E]"));
+                    antirengarSub.AddItem(new MenuItem("urgot.R", "Urgot [R]"));
+                    antiRengar.AddSubMenu(antirengarSub);
+                }
+                Config.AddSubMenu(antiRengar);
             }
 
             Config.AddToMainMenu();

@@ -66,6 +66,7 @@
     <Compile Include="Activator\Quick Silver Sash.cs" />
     <Compile Include="Activator\Youmuu Ghostblade.cs" />
     <Compile Include="Dragon\Buff Drawer.cs" />
+    <Compile Include="Plugins\Anti-Rengar.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Range\Ally AA.cs" />
