@@ -73,7 +73,7 @@ namespace HikiCarry_Viktor
             {
                 harassMenu.AddItem(new MenuItem("qHarass", "Use Q").SetValue(true));
                 harassMenu.AddItem(new MenuItem("eHarass", "Use E").SetValue(true));
-                harassMenu.AddItem(new MenuItem("eToggle", "Use E").SetValue(true));
+                harassMenu.AddItem(new MenuItem("eToggle", "Use E [Toggle]").SetValue(true));
                 harassMenu.AddItem(new MenuItem("tChance", "E Toggle Chance").SetValue<StringList>(new StringList(HitchanceNameArray, 3)));
                 harassMenu.AddItem(new MenuItem("hMana", "Mana Manager").SetValue(new Slider(50, 0, 100)));
                 Config.AddSubMenu(harassMenu);
