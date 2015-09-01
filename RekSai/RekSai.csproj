@@ -54,6 +54,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activator\Hydra.cs" />
+    <Compile Include="Activator\Potion.cs" />
     <Compile Include="Activator\Randuin.cs" />
     <Compile Include="Activator\Solari.cs" />
     <Compile Include="Program.cs" />

@@ -31,15 +31,19 @@ namespace RekSai
         private static bool burrowed;
         private static bool unburrowed;
 
-       
-
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
         }
-
         private static void Game_OnGameLoad(EventArgs args)
         {
+            //Activator Start
+            Activator.Hydra.hikiHydra = true;
+            Activator.Potion.hikiPotion = true;
+            Activator.Randuin.hikiRanduin = true;
+            Activator.Solari.hikiSolari = true;
+            //Activator Finish
+
             Q = new Spell(SpellSlot.Q);
             W = new Spell(SpellSlot.W);
             E = new Spell(SpellSlot.E, 250);
@@ -93,6 +97,40 @@ namespace RekSai
                 furyMenu.AddItem(new MenuItem("protect.reksai.fury", "If Reksai Fury >= ").SetValue(new Slider(60, 0, 100)));
                 Config.AddSubMenu(furyMenu);
             }
+            var hikiActivator = new Menu("Hiki Activator", "Hiki Activator");
+            {
+                var randuinMenu = new Menu("Randuin Settings", "Randuin Settings");
+                {
+                    randuinMenu.AddItem(new MenuItem("use.randuin", "Use Randuin").SetValue(true));
+                    randuinMenu.AddItem(new MenuItem("randuin.count", "If Enemy Count >=").SetValue(new Slider(2, 1, 5)));
+                    hikiActivator.AddSubMenu(randuinMenu);
+                }
+                var hydraMenu = new Menu("Hydra - Tiamat Settings", "Hydra - Tiamat Settings");
+                {
+                    hydraMenu.AddItem(new MenuItem("use.hydra", "Use Hydra").SetValue(true));
+                    hydraMenu.AddItem(new MenuItem("use.tiamat", "Use Tiamat").SetValue(true));
+                    hikiActivator.AddSubMenu(hydraMenu);
+                }
+                var solariMenu = new Menu("Iron Solari Settings", "Iron Solari Settings");
+                {
+                    solariMenu.AddItem(new MenuItem("use.solari", "Use Iron Solari").SetValue(true));
+                    solariMenu.AddItem(new MenuItem("solari.ally.hp", "If Ally Hp <= %").SetValue(new Slider(20, 0, 100)));
+                    hikiActivator.AddSubMenu(solariMenu);
+                }
+                var healthMenu = new Menu("Health Potion Settings", "Health Potion Settings");
+                {
+                    healthMenu.AddItem(new MenuItem("useHealth", "Use Health Potion").SetValue(true));
+                    healthMenu.AddItem(new MenuItem("myhp", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
+                    hikiActivator.AddSubMenu(healthMenu);
+                }
+                var manaMenu = new Menu("Mana Potion Settings", "Mana Potion Settings");
+                {
+                    manaMenu.AddItem(new MenuItem("useMana", "Use Mana Potion").SetValue(true));
+                    manaMenu.AddItem(new MenuItem("mymana", "Use if my mana < %").SetValue(new Slider(20, 0, 100)));
+                    hikiActivator.AddSubMenu(manaMenu);
+                }
+                Config.AddSubMenu(hikiActivator);
+            }
             var drawMenu = new Menu("Draw Settings", "Draw Settings");
             {
                 drawMenu.AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.White)));
@@ -105,7 +143,6 @@ namespace RekSai
             Game.OnUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
         }
-
         private static void burrowCheck()
         {
             if (Player.Spellbook.GetSpell(SpellSlot.W).Name == "reksaiwburrowed" ||
