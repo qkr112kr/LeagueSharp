@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SharpDX;
+using SharpDX.Direct3D9;
 using LeagueSharp;
 using LeagueSharp.Common;
+using Font = SharpDX.Direct3D9.Font;
+using Rectangle = SharpDX.Rectangle;
 using Color = System.Drawing.Color;
+using SharpColor = SharpDX.Color;
 
 namespace HikiCarry_Vayne_Masterrace
 {
@@ -19,15 +23,17 @@ namespace HikiCarry_Vayne_Masterrace
         private static Obj_AI_Hero Player = ObjectManager.Player;
         private static readonly Vector2 midPos = new Vector2(6707.485f, 8802.744f);
         private static readonly Vector2 dragPos = new Vector2(11514, 4462);
-        public static float LastMoveC;
         private static SpellSlot Flash;
+        private static int pushDistance = 0;
 
-        public struct Spells
-        {
-            public string ChampionName;
-            public string SpellName;
-            public SpellSlot slot;
-        }
+        private static Font hikiFont;
+
+        public static string[] Marksman = { "Kalista", "Jinx", "Lucian", "Quinn", "Draven",  "Varus", "Graves", "Vayne", 
+                                            "Caitlyn","Urgot", "Ezreal", "KogMaw", "Ashe", "MissFortune", "Tristana", "Teemo", 
+                                            "Sivir","Twitch", "Corki"};
+        public static string[] qssBuff = { "Charm", "Flee", "Snare", "Polymorph", "Stun", "Suppression", "Taunt"};
+
+
 
         public static Spell Q;
         public static Spell W;
@@ -41,8 +47,12 @@ namespace HikiCarry_Vayne_Masterrace
 
         private static void Game_OnGameLoad(EventArgs args)
         {
-            if (Player.BaseSkinName != ChampionName) return;
-
+            if (Player.CharData.BaseSkinName != ChampionName)
+            {
+                return;
+            }
+            hikiFont = new Font(Drawing.Direct3DDevice, new FontDescription { FaceName = "Tahoma", Height = 15, Weight = FontWeight.Bold, Quality = FontQuality.Antialiased });
+            
             Q = new Spell(SpellSlot.Q, 300f);
             W = new Spell(SpellSlot.W);
             E = new Spell(SpellSlot.E, 550f);
@@ -63,60 +73,109 @@ namespace HikiCarry_Vayne_Masterrace
             Config.AddSubMenu(new Menu("Orbwalker Settings", "Orbwalker Settings"));
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
 
-            Config.AddSubMenu(new Menu("Combo Settings", "Combo Settings"));
-            Config.SubMenu("Combo Settings").AddItem(new MenuItem("qCombo", "Use Q").SetValue(true));
-            Config.SubMenu("Combo Settings").AddItem(new MenuItem("eCombo", "Use E").SetValue(true));
-            Config.SubMenu("Combo Settings").AddItem(new MenuItem("rCombo", "Use R").SetValue(true));
-            Config.SubMenu("Combo Settings").AddItem(new MenuItem("rComboxEnemy", "R on x Enemy").SetValue(new Slider(3, 1, 5)));
+            var comboMenu = new Menu("Combo Settings", "Combo Settings");
+            {
+                comboMenu.AddItem(new MenuItem("qCombo", "Use Q").SetValue(true));
+                comboMenu.AddItem(new MenuItem("eCombo", "Use E").SetValue(true));
+                comboMenu.AddItem(new MenuItem("rCombo", "Use R").SetValue(true));
+                comboMenu.AddItem(new MenuItem("rComboxEnemy", "R on x Enemy").SetValue(new Slider(3, 0, 10)));
+                Config.AddSubMenu(comboMenu);
+            }
+            var harassMenu = new Menu("Harass Settings", "Harass Settings");
+            {
+                harassMenu.AddItem(new MenuItem("qHarass", "Use Q").SetValue(true));
+                harassMenu.AddItem(new MenuItem("eHarass", "Use E").SetValue(true));
+                harassMenu.AddItem(new MenuItem("manaHarass", "Harass Mana Percent").SetValue(new Slider(30, 1, 100)));
+                Config.AddSubMenu(harassMenu);
+            }
+            var miscMenu = new Menu("Misc Settings", "Misc Settings");
+            {
+                var scryingMenu = new Menu("Scrying Orb Settings", "Scrying Orb Settings");
+                {
+                    scryingMenu.AddItem(new MenuItem("bT", "Auto Scrying Orb Buy!").SetValue(true));
+                    scryingMenu.AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
+                    scryingMenu.AddSubMenu(miscMenu);
+                }
+                var ultiBroker = new Menu("Ulti Broker", "Ulti Broker");
+                {
+                    ultiBroker.AddItem(new MenuItem("broke.ulti", "Broke Ulti").SetValue(true));
+                    ultiBroker.AddItem(new MenuItem("katarina.ulti", "Katarina R").SetValue(true));
+                    ultiBroker.AddItem(new MenuItem("missfortune.ulti", "Miss Fortune R").SetValue(true));
+                    ultiBroker.AddSubMenu(miscMenu);
+                }
+                miscMenu.AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!").SetValue(true));
+                miscMenu.AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!").SetValue(true));
+                Config.AddSubMenu(miscMenu);
+            }
+            var combatMenu = new Menu("Combat Settings", "Combat Settings");
+            {
+                var gravesMenu = new Menu("Graves Settings", "Graves Settings");
+                {
+                    gravesMenu.AddItem(new MenuItem("combatGraves", "Combat Graves").SetValue(true));
+                    gravesMenu.AddItem(new MenuItem("positioning", "Wall Condemn Method").SetValue(new StringList(new[] { "Repositioning with Flash", "Repositioning with Q" })));
+                    gravesMenu.AddItem(new MenuItem("qCombat", "Use Q").SetValue(true));
+                    gravesMenu.AddItem(new MenuItem("eCombat", "Use E").SetValue(true));
+                    gravesMenu.AddItem(new MenuItem("fCombat", "Use Flash").SetValue(true));
+                    combatMenu.AddSubMenu(gravesMenu);
+                }
+                combatMenu.AddItem(new MenuItem("combatmode", "Combat Mode").SetValue(true));
+                Config.AddSubMenu(combatMenu);
+            }
+            var itemMenu = new Menu("Item Settings", "Item Settings");
+            {
+                var botrk = new Menu("BOTRK Settings", "BOTRK Settings");
+                {
+                    botrk.AddItem(new MenuItem("useBOTRK", "Use BOTRK").SetValue(true));
+                    botrk.AddItem(new MenuItem("myhp", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
+                    botrk.AddItem(new MenuItem("theirhp", "Use if enemy HP < %").SetValue(new Slider(20, 0, 100)));
+                    itemMenu.AddSubMenu(botrk);
+                }
+                var qssMenu = new Menu("QSS Settings", "QSS Settings");
+                {
+                    botrk.AddItem(new MenuItem("use.qss", "Use QSS").SetValue(true));
+                    for (int i = 0; i < 7; i++)
+                    {
+                        qssMenu.AddItem(new MenuItem(qssBuff[i], qssBuff[i]).SetValue(true));
+                    }
+                    itemMenu.AddSubMenu(qssMenu);
+                }
 
-            Config.AddSubMenu(new Menu("Harass Settings", "Harass Settings"));
-            Config.SubMenu("Harass Settings").AddItem(new MenuItem("qHarass", "Use Q").SetValue(true));
-            Config.SubMenu("Harass Settings").AddItem(new MenuItem("eHarass", "Use E").SetValue(true));
-            Config.SubMenu("Harass Settings").AddItem(new MenuItem("manaHarass", "Harass Mana Percent").SetValue(new Slider(30, 1, 100)));
+                var ghostBlade = new Menu("GhostBlade Settings", "GhostBlade Settings");
+                {
+                    ghostBlade.AddItem(new MenuItem("ghostblade", "Use GhostBlade").SetValue(true));
+                    itemMenu.AddSubMenu(ghostBlade);
+                }
+                Config.AddSubMenu(itemMenu);
+            }
+            var drawMenu = new Menu("Draw Settings", "Draw Settings");
+            {
+                drawMenu.AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.White)));
+                drawMenu.AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.Yellow)));
+                drawMenu.AddItem(new MenuItem("aaRangeDraw", "AA Range").SetValue(new Circle(true, Color.Gold)));
+                drawMenu.AddItem(new MenuItem("eCrash", "E Crash Prediction").SetValue(true));
+                drawMenu.AddItem(new MenuItem("enemyadc.waypoint", "Enemy ADC Waypoint").SetValue(true));
+                Config.AddSubMenu(drawMenu);
+            }
 
-            Config.AddSubMenu(new Menu("Misc Settings", "Misc Settings"));
-            Config.SubMenu("Misc Settings").AddSubMenu(new Menu("Scrying Orb Settings", "Scrying Orb Settings"));
-            Config.SubMenu("Misc Settings").SubMenu("Scrying Orb Settings").AddItem(new MenuItem("bT", "Auto Scrying Orb Buy!").SetValue(true));
-            Config.SubMenu("Misc Settings").SubMenu("Scrying Orb Settings").AddItem(new MenuItem("bluetrinketlevel", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
-            Config.SubMenu("Misc Settings").AddItem(new MenuItem("agapcloser", "Anti-Gapcloser Active!").SetValue(true));
-            Config.SubMenu("Misc Settings").AddItem(new MenuItem("ainterrupt", "Auto Interrupt Active!").SetValue(true));
-
-            Config.AddSubMenu(new Menu("Combat Settings", "Combat Settings"));
-            Config.SubMenu("Combat Settings").AddSubMenu(new Menu("Graves Settings", "Graves Settings"));
-            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("combatGraves", "Combat Graves").SetValue(true));
-            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("positioning", "Wall Condemn Method").SetValue(new StringList(new[] { "Repositioning with Flash", "Repositioning with Q" })));
-            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("qCombat", "Use Q").SetValue(true));
-            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("eCombat", "Use E").SetValue(true));
-            Config.SubMenu("Combat Settings").SubMenu("Graves Settings").AddItem(new MenuItem("fCombat", "Use Flash").SetValue(true));
-            Config.SubMenu("Combat Settings").AddItem(new MenuItem("combatmode", "Combat Mode").SetValue(true));
-           
-            
-
-            Config.AddSubMenu(new Menu("Draw Settings", "Draw Settings"));
-            Config.SubMenu("Draw Settings").AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, Color.SpringGreen)));
-            Config.SubMenu("Draw Settings").AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.Crimson)));
-            Config.SubMenu("Draw Settings").AddItem(new MenuItem("aaRangeDraw", "AA Range").SetValue(new Circle(true, Color.White)));
-            Config.SubMenu("Draw Settings").AddItem(new MenuItem("eCrash", "E Crash Prediction").SetValue(new Circle(true, Color.Yellow)));
-            
-
-            
-
-            Config.AddSubMenu(new Menu("BOTRK Settings", "BOTRK Settings"));
-            Config.SubMenu("BOTRK Settings").AddSubMenu(new Menu("BOTRK Settings", "BOTRK Settings"));
-            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("useBOTRK", "Use BOTRK").SetValue(true));
-            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("myhp", "Use If My HP < %").SetValue(new Slider(20, 0, 100)));
-            Config.SubMenu("BOTRK Settings").SubMenu("BOTRK Settings").AddItem(new MenuItem("theirhp", "Use If Enemy HP < %").SetValue(new Slider(20, 0, 100)));
-            Config.SubMenu("BOTRK Settings").AddItem(new MenuItem("ghostblade", "USE GHOSTBLADE").SetValue(true));
-
-
-            Config.AddItem(new MenuItem("masterracec0mb0", "                HikiCarry Masterrace Mode"));
+            Config.AddItem(new MenuItem("masterracec0mb0", "                      HikiCarry Masterrace Mode"));
             Config.AddItem(new MenuItem("condemnMethod", "Condemn Method").SetValue(new StringList(new[] { "HIKIGAYA", "ASUNA" })));
             Config.AddItem(new MenuItem("cType", "Combo Type").SetValue(new StringList(new[] { "BURST", "NORMAL" })));
             Config.AddItem(new MenuItem("hType", "Harass Type").SetValue(new StringList(new[] { "2 SILVER STACK + Q", "2 SILVER STACK + E" })));
+            Config.AddItem(new MenuItem("whitelistcondemn", "                          Condemn Whitelist"));
+            
+            foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
+            {
+                Config.AddItem(new MenuItem("condemnset." + enemy.CharData.BaseSkinName, string.Format("Condemn: {0}", enemy.CharData.BaseSkinName)).SetValue(true));
+            
+            }
+            Config.AddItem(new MenuItem("condemnDis", "                           Condemn Distance"));
+            Config.AddItem(new MenuItem("condemn.distance", "Condemn Push Distance").SetValue(new Slider(425,1,425)));
+
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "W Damage").SetValue(true);
             var drawFill = new MenuItem("RushDrawEDamageFill", "W Damage Fill").SetValue(new Circle(true, Color.Yellow));
-            Config.SubMenu("Draw Settings").AddItem(drawDamageMenu);
-            Config.SubMenu("Draw Settings").AddItem(drawFill);
+            
+            drawMenu.SubMenu("Damage Draws").AddItem(drawDamageMenu);
+            drawMenu.SubMenu("Damage Draws").AddItem(drawFill);
             DamageIndicator.DamageToUnit = GetComboDamage;
             DamageIndicator.Enabled = drawDamageMenu.GetValue<bool>();
             DamageIndicator.Fill = drawFill.GetValue<Circle>().Active;
@@ -139,8 +198,8 @@ namespace HikiCarry_Vayne_Masterrace
             Game.OnUpdate += Game_OnGameUpdate;
             Orbwalking.AfterAttack += Orbwalking_AfterAttack;
             Drawing.OnDraw += Drawing_OnDraw;
+            pushDistance = Config.Item("condemn.distance").GetValue<Slider>().Value;
         }
-
         private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             var tar = (Obj_AI_Hero)target;
@@ -194,24 +253,25 @@ namespace HikiCarry_Vayne_Masterrace
         }
         private static void Drawing_OnDraw(EventArgs args)
         {
-            var menuItem1 = Config.Item("qDraw").GetValue<Circle>();
-            var menuItem2 = Config.Item("eDraw").GetValue<Circle>();
-            var menuItem3 = Config.Item("aaRangeDraw").GetValue<Circle>();
-            var menuItem4 = Config.Item("eCrash").GetValue<Circle>();
+            var qDraw = Config.Item("qDraw").GetValue<Circle>();
+            var eDraw = Config.Item("eDraw").GetValue<Circle>();
+            var eCrash = Config.Item("eCrash").GetValue<bool>();
+            var wpDraw = Config.Item("enemyadc.waypoint").GetValue<bool>();
+            var aaDraw = Config.Item("aaRangeDraw").GetValue<Circle>();
 
-            if (menuItem1.Active && Q.IsReady())
+            if (qDraw.Active && Q.IsReady())
             {
-                Render.Circle.DrawCircle(Player.Position, Q.Range, Color.SpringGreen);
+                Render.Circle.DrawCircle(Player.Position, Q.Range, qDraw.Color);
             }
-            if (menuItem2.Active && E.IsReady())
+            if (eDraw.Active && E.IsReady())
             {
-                Render.Circle.DrawCircle(Player.Position, E.Range, Color.Crimson);
+                Render.Circle.DrawCircle(Player.Position, E.Range, eDraw.Color);
             }
-            if (menuItem3.Active)
+            if (aaDraw.Active)
             {
-                Render.Circle.DrawCircle(Player.Position, 550, Color.White);
+                Render.Circle.DrawCircle(Player.Position, 550, aaDraw.Color);
             }
-            if (menuItem3.Active && E.IsReady())
+            if (eCrash)
             {
                 foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(1100)))
                 {
@@ -222,11 +282,17 @@ namespace HikiCarry_Vayne_Masterrace
                         Vector3 loc3 = EPred.UnitPosition.To2D().Extend(Player.Position.To2D(), -i).To3D();
                         if (loc3.IsWall())
                         {
-                             Render.Circle.DrawCircle(loc3, En.BoundingRadius, Color.Yellow);
+                            Render.Circle.DrawCircle(loc3, En.BoundingRadius, Color.Yellow);
                         }
                     }
                 }
             }
+            if (wpDraw)
+            {
+                wayPoint();
+            }
+            
+            
         }
         static bool isAllyFountain(Vector3 Position)
         {
@@ -243,15 +309,16 @@ namespace HikiCarry_Vayne_Masterrace
         {
             if (Vector3.Distance(Player.ServerPosition, target.ServerPosition) < E.Range)
             {
-                if (Player.ServerPosition.Extend(target.ServerPosition, 425).IsWall())
+               
+                if (Player.ServerPosition.Extend(target.ServerPosition, pushDistance).IsWall())
                 {
                     E.CastOnUnit(target);
-                    Game.PrintChat("Hiki Condemn");
                 }
             }
         }
         private static void Combo()
         {
+            var condemnDistance = Config.Item("condemn.distance").GetValue<Slider>().Value;
             switch (Config.Item("cType").GetValue<StringList>().SelectedIndex)
             {
                case 0:
@@ -274,16 +341,18 @@ namespace HikiCarry_Vayne_Masterrace
                 switch (Config.Item("condemnMethod").GetValue<StringList>().SelectedIndex)
                 {
                     case 0:
-                        foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                        foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)
+                            && Config.Item("condemnset." + hero.CharData.BaseSkinName).GetValue<bool>()))
                         {
                             hikiCondemn(enemy);
                         }
                         break;
                     case 1:
-                        foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
+                        foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(E.Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)
+                             && Config.Item("condemnset." + hero.CharData.BaseSkinName).GetValue<bool>()))
                         {
                             var EPred = E.GetPrediction(En);
-                            int pushDist = 425;
+                            int pushDist = pushDistance;
                             var FinalPosition = EPred.UnitPosition.To2D().Extend(Player.ServerPosition.To2D(), -pushDist).To3D();
 
                             for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
@@ -336,6 +405,44 @@ namespace HikiCarry_Vayne_Masterrace
 
             break;
             }
+        }
+        public static void DrawText(Font font, String text, int posX, int posY, Color color)
+        {
+            Rectangle rec = font.MeasureText(null, text, FontDrawFlags.Center);
+            font.DrawText(null, text, posX + 1 + rec.X, posY + 1, SharpColor.White);
+        }
+        private static void wayPoint() // SOON TM
+        {
+            foreach (Obj_AI_Hero enemy in
+               ObjectManager.Get<Obj_AI_Hero>()
+                   .Where(enemy => enemy.IsEnemy && enemy.IsVisible && Player.Distance(enemy.Position) < 1000 && !enemy.IsDead && enemy.IsValid && enemy.IsMoving && Marksman.Contains(enemy.CharData.BaseSkinName.ToString())))
+                    {
+                        List<Vector2> wpoints = enemy.GetWaypoints();
+                        int nPoint = wpoints.Count - 1;
+                        int lPoint = wpoints.Count - 2;
+                        float timer = 0;
+                        for (int i = 0; i < nPoint; i++)
+                        {
+                            Vector3 bPoint = wpoints[i].To3D();
+                            Vector3 ePoint = wpoints[i + 1].To3D();
+                            timer += bPoint.Distance(ePoint) / ObjectManager.Player.MoveSpeed;
+                            Vector2 p1 = Drawing.WorldToScreen(bPoint);
+                            Vector2 p2 = Drawing.WorldToScreen(ePoint);
+                            if (i != lPoint)
+                            {
+                                Drawing.DrawLine(p1[0], p1[1], p2[0], p2[1], 2, Color.White);
+                            }
+                            else
+                            {
+                                float r = 25 / p2.Distance(p1);
+                                var enp = new Vector2(r * p1.X + (1 - r) * p2.X, r * p1.Y + (1 - r) * p2.Y);
+                                Drawing.DrawLine(p1[0], p1[1], enp[0], enp[1], 2, Color.White);
+                                Render.Circle.DrawCircle(ePoint, 50, Color.Black);
+                                Render.Circle.DrawCircle(ePoint, 50, Color.FromArgb(50, Color.Gold), -2);
+                                DrawText(hikiFont, timer.ToString("F"), (int)p2[0], (int)p2[1] - 10, Color.White);
+                            }
+                        }
+                    }
         }
         private static IEnumerable<Vector3> CondemnPosition()
         {
@@ -473,7 +580,10 @@ namespace HikiCarry_Vayne_Masterrace
                 {
                     combatGraves();
                 }
-                
+            }
+            if (Config.Item("use.qss").GetValue<bool>())
+            {
+                qssSupport();
             }
         }
         private static void BlueOrb()
@@ -485,7 +595,6 @@ namespace HikiCarry_Vayne_Masterrace
                     Player.BuyItem(ItemId.Scrying_Orb_Trinket);
                 }
             }
-
         }
         private static void Harass()
         {
@@ -542,6 +651,42 @@ namespace HikiCarry_Vayne_Masterrace
                 Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.White, "BASIC ATTACK = KILL");
             }
             return 0;
+        }
+        private static void channelBroke()
+        {
+            var brokeUlti = Config.Item("broke.ulti").GetValue<bool>();
+            if (brokeUlti)
+            {
+                var eTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Physical, true);
+                var kataUlti = Config.Item("katarina.ulti").GetValue<bool>();
+                var missUlti = Config.Item("missfortune.ulti").GetValue<bool>();
+
+                if (eTarget.HasBuff("KatarinaR") || eTarget.HasBuff("katarinarsound") && Player.Distance(eTarget.Position) <= E.Range)
+                {
+                    E.Cast(eTarget);
+                }
+                if (eTarget.HasBuff("missfortunebulletsound") || eTarget.HasBuff("MissFortuneBulletTime") && Player.Distance(eTarget.Position) <= E.Range)
+                {
+                    E.Cast(eTarget);
+                }
+            }
+        }
+        private static void qssSupport()
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                if (Player.HasBuff("BuffType." + qssBuff[i]) && Config.Item("BuffType." + qssBuff[i]).GetValue<bool>())
+                {
+                    if (Items.CanUseItem(3140) && Items.HasItem(3140))
+                    {
+                        Items.UseItem(3140);
+                    }
+                    if (Items.CanUseItem(3139) && Items.HasItem(3137))
+                    {
+                        Items.UseItem(3139);
+                    }
+                }
+            }
         }
     }
 }
