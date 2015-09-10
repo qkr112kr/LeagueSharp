@@ -14,6 +14,7 @@ namespace adcUtility.Activator
     public static class Potion
     {
         private static Obj_AI_Base adCarry = null;
+        private static Obj_AI_Minion jungleMobs;
         public static bool hikiPotion { get; set; }
 
         public static Obj_AI_Base adcPotion
@@ -31,6 +32,11 @@ namespace adcUtility.Activator
         {
             Game.OnUpdate += Game_OnGameUpdate;
             adCarry = ObjectManager.Get<Obj_AI_Base>().FirstOrDefault(x => x.IsMe);
+            jungleMobs = ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(x => x.IsValidTarget(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player) + 100)
+                && x.CharData.BaseSkinName.Contains("Dragon")
+                || x.CharData.BaseSkinName.Contains("Baron")
+                || x.CharData.BaseSkinName.Contains("SRU_Blue")
+                || x.CharData.BaseSkinName.Contains("SRU_Red") && x.IsVisible && !x.IsDead);
             if (adCarry != null)
             {
                 Console.Write(adCarry.CharData.BaseSkinName);
@@ -47,7 +53,7 @@ namespace adcUtility.Activator
 
             if (useHP && Items.HasItem(2041) || Items.HasItem(2003) || Items.HasItem(2010))
             {
-                if (ObjectManager.Player.HealthPercent <= myhpforhppot)
+                if (ObjectManager.Player.HealthPercent <= myhpforhppot && ObjectManager.Player.Distance(jungleMobs.Position) >= 300)
                 {
                     if (Items.CanUseItem(2041))
                     {

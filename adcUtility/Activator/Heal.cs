@@ -14,6 +14,7 @@ namespace adcUtility.Activator
     public static class Heal
     {
         private static Obj_AI_Base adCarry = null;
+        private static Obj_AI_Minion jungleMobs;
         public static bool hikiHeal { get; set; }
 
         public static Obj_AI_Base adcHeal
@@ -31,6 +32,11 @@ namespace adcUtility.Activator
         {
             Game.OnUpdate += Game_OnGameUpdate;
             adCarry = ObjectManager.Get<Obj_AI_Base>().FirstOrDefault(x => x.IsMe);
+            jungleMobs = ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(x => x.IsValidTarget(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player) + 100) 
+                && x.CharData.BaseSkinName.Contains("Dragon")
+                || x.CharData.BaseSkinName.Contains("Baron")
+                || x.CharData.BaseSkinName.Contains("SRU_Blue")
+                || x.CharData.BaseSkinName.Contains("SRU_Red") && x.IsVisible && !x.IsDead);
             if (adCarry != null)
             {
                 Console.Write(adCarry.CharData.BaseSkinName);
@@ -42,7 +48,7 @@ namespace adcUtility.Activator
             var useHeal = Program.Config.Item("use.heal").GetValue<bool>();
             var healMyhp = Program.Config.Item("heal.myhp").GetValue<Slider>().Value;
 
-            if (useHeal && Program.Heal.IsReady())
+            if (useHeal && Program.Heal.IsReady() && ObjectManager.Player.Distance(jungleMobs.Position) >= 300)
             {
                 if (ObjectManager.Player.HealthPercent < healMyhp)
                 {
