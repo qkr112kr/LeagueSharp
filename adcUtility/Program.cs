@@ -21,7 +21,7 @@ namespace adcUtility
         public static SpellSlot Barrier;
 
         
-
+		//test
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
