@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HikiCarry_Viktor</RootNamespace>
     <AssemblyName>HikiCarry Viktor</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PreBuildEvent />
     <PostBuildEvent />
@@ -36,19 +36,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="clipper_library">
-      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\clipper_library.dll</HintPath>
+      <HintPath>..\..\..\..\Desktop\LeagueSharpx\LeagueSharpx\System\clipper_library.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp">
-      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\LeagueSharp.dll</HintPath>
+      <HintPath>..\..\..\..\Desktop\LeagueSharpx\LeagueSharpx\System\LeagueSharp.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp.Common">
-      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\LeagueSharp.Common.dll</HintPath>
+      <HintPath>..\..\..\..\Desktop\LeagueSharpx\LeagueSharpx\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
-      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\SharpDX.dll</HintPath>
+      <HintPath>..\..\..\..\Desktop\LeagueSharpx\LeagueSharpx\System\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Direct3D9">
-      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\SharpDX.Direct3D9.dll</HintPath>
+      <HintPath>..\..\..\..\Desktop\LeagueSharpx\LeagueSharpx\System\SharpDX.Direct3D9.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -60,8 +60,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Activator\Potion.cs" />
-    <Compile Include="Activator\Zhonya.cs" />
     <Compile Include="DamageIndicator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
