@@ -42,8 +42,6 @@ namespace HikiCarry_Viktor
             {
                 return;
             }
-            Activator.Potion.hikiPotion = true;
-            Activator.Zhonya.hikiZhonya = true;
 
             Q = new Spell(SpellSlot.Q, 600);
             W = new Spell(SpellSlot.W, 700);
@@ -101,29 +99,6 @@ namespace HikiCarry_Viktor
                 lastMenu.AddItem(new MenuItem("qLast", "Use Q [Siege Minions]").SetValue(true));
                 lastMenu.AddItem(new MenuItem("lMana", "Mana Manager").SetValue(new Slider(50, 0, 100)));
                 Config.AddSubMenu(lastMenu);
-            }
-
-            var itemMenu = new Menu("Item Settings", "Item Settings");
-            {
-                var zhonyaMenu = new Menu("Zhonya Settings", "Zhonya Settings");
-                {
-                    zhonyaMenu.AddItem(new MenuItem("useZhonya", "Use Zhonya").SetValue(true));
-                    zhonyaMenu.AddItem(new MenuItem("zhonyaHP", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
-                    itemMenu.AddSubMenu(zhonyaMenu);
-                }
-                var health = new Menu("Health Potion Settings", "Health Potion Settings");
-                {
-                    health.AddItem(new MenuItem("useHealth", "Use Health Potion").SetValue(true));
-                    health.AddItem(new MenuItem("myhp", "Use if my HP < %").SetValue(new Slider(20, 0, 100)));
-                    itemMenu.AddSubMenu(health);
-                }
-                var mana = new Menu("Mana Potion Settings", "Mana Potion Settings");
-                {
-                    mana.AddItem(new MenuItem("useMana", "Use Mana Potion").SetValue(true));
-                    mana.AddItem(new MenuItem("mymana", "Use if my mana < %").SetValue(new Slider(20, 0, 100)));
-                    itemMenu.AddSubMenu(mana);
-                }
-                Config.AddSubMenu(itemMenu);
             }
 
             var miscMenu = new Menu("Misc Settings", "Misc Settings");
@@ -186,9 +161,9 @@ namespace HikiCarry_Viktor
                     Render.Circle.DrawCircle(gapcloser.Sender.Position, gapcloser.Sender.BoundingRadius, Color.Gold, 5);
                     var targetpos = Drawing.WorldToScreen(gapcloser.Sender.Position);
                 }
-                if (E.CanCast(gapcloser.Sender))
+                if (W.CanCast(gapcloser.Sender))
                 {
-                    E.Cast(gapcloser.Sender);
+                    W.Cast(gapcloser.Sender);
                 }
             }
         }
@@ -202,9 +177,9 @@ namespace HikiCarry_Viktor
                     var targetpos = Drawing.WorldToScreen(sender.Position);
                     Drawing.DrawText(targetpos[0] - 40, targetpos[1] + 20, Color.Gold, "Interrupt");
                 }
-                if (E.CanCast(sender))
+                if (W.CanCast(sender))
                 {
-                    E.Cast(sender);
+                    W.Cast(sender);
                 }
             }
         }
