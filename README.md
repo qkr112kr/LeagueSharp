@@ -1,5 +1,5 @@
-<center><h1>Hikigaya Marksman Assemblies</h1></center>
-<hr>
+### Hikigaya Marksman Assemblies
+-----------------------
 *   Vayne
 *   Kalista
 *   Graves
@@ -8,14 +8,14 @@
 *   Jinx
 *   Sivir
 *   Twitch
-<center><h1>Hikigaya Midlane Assemblies</h1></center>
-<hr>
+### Hikigaya Midlane Assemblies
+-----------------------
 *   Viktor
 *   Diana
-<center><h1>Hikigaya Utility Assemblies</h1></center>
-<hr>
+### Hikigaya Utility Assemblies
+-----------------------
 *   adcUtility
 *   VisionSharp
-<center><h1>Hikigaya Other Assemblies</h1></center>
-<hr>
+### Hikigaya Other Assemblies
+-----------------------
 *   Aim#
