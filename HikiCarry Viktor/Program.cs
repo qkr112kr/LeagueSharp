@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LeagueSharp.Common;
 using LeagueSharp;
-using HikiCarry_Viktor.SPrediction;
+using SPrediction;
 using SharpDX;
 using SharpDX.Direct3D9;
 using Color = System.Drawing.Color;
@@ -144,8 +144,8 @@ namespace HikiCarry_Viktor
             }
             Config.AddItem(new MenuItem("useIgnite", "Smart Ignite").SetValue(true));
             Config.AddItem(new MenuItem("hChance", "Hit Chance").SetValue<StringList>(new StringList(HitchanceNameArray, 2)));
-            var drawDamageMenu = new MenuItem("RushDrawEDamage", "E Damage").SetValue(true);
-            var drawFill = new MenuItem("RushDrawEDamageFill", "E Damage Fill").SetValue(new Circle(true, Color.Gold));
+            var drawDamageMenu = new MenuItem("RushDrawEDamage", "Combo Damage").SetValue(true);
+            var drawFill = new MenuItem("RushDrawEDamageFill", "Combo Damage Fill").SetValue(new Circle(true, Color.Gold));
 
             drawMenu.SubMenu("Damage Draws").AddItem(drawDamageMenu);
             drawMenu.SubMenu("Damage Draws").AddItem(drawFill);
@@ -275,7 +275,7 @@ namespace HikiCarry_Viktor
                     
                     if (Player.Distance(enemy.Position) < 550)
                     {
-                        E.SPredictionCast(enemy, hCance);
+                        E.SPredictionCastVector(enemy, 550, hCance);
                     }
                 }
             }
@@ -367,7 +367,7 @@ namespace HikiCarry_Viktor
                 {
                     foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsDead && !x.IsZombie && x.IsValidTarget(E.Range)))
                     {
-                        E.SPredictionCast(enemy, hCance);
+                        E.SPredictionCastVector(enemy, 550, hCance);
                     }
                 }
             }
@@ -384,7 +384,7 @@ namespace HikiCarry_Viktor
                 {
                     foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && !x.IsDead && !x.IsZombie && x.IsValidTarget(E.Range)))
                     {
-                        E.SPredictionCast(enemy, tChance);
+                        E.SPredictionCastVector(enemy, 550, tChance);
                     }
                 }
             }
@@ -416,7 +416,7 @@ namespace HikiCarry_Viktor
                     && x.IsValidTarget(E.Range) && E.GetDamage(x) > x.Health))
                 {
                     HitChance hCance = HitchanceArray[Config.Item("hChance").GetValue<StringList>().SelectedIndex];
-                    E.SPredictionCast(enemy, hCance);
+                    E.SPredictionCastVector(enemy, 550, hCance);
                 }
             }
         }
@@ -458,7 +458,7 @@ namespace HikiCarry_Viktor
                    && x.IsValidTarget(E.Range) && CanMove(x)))
                 {
                     HitChance hCance = HitchanceArray[Config.Item("hChance").GetValue<StringList>().SelectedIndex];
-                    E.SPredictionCast(enemy, hCance);
+                    E.SPredictionCastVector(enemy, 550, hCance);
                 }
             }
 
@@ -491,7 +491,7 @@ namespace HikiCarry_Viktor
             var menuItem2 = Config.Item("wDraw").GetValue<Circle>();
             var menuItem3 = Config.Item("eDraw").GetValue<Circle>();
             var menuItem4 = Config.Item("rDraw").GetValue<Circle>();
-            var killableDraws = Config.Item("killableDrew").GetValue<bool>();
+            
 
             if (menuItem1.Active && Q.IsReady())
             {
