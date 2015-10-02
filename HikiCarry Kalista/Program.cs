@@ -72,7 +72,11 @@ namespace HikiCarry_Kalista
 
             Config = new Menu("HikiCarry - Kalista", "HikiCarry - Kalista", true);
             TargetSelector.AddToMenu(Config.SubMenu("Target Selector Settings"));
+
+
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
+            
+            //Orbwalker = new ModifiedOrbwalker.Orbwalker(Config.SubMenu("Orbwalker Settings"));
 
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
