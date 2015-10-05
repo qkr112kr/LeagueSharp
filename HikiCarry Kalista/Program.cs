@@ -228,7 +228,8 @@ namespace HikiCarry_Kalista
                 drawMenu.AddItem(new MenuItem("wDraw", "W Range").SetValue(new Circle(true, Color.Silver)));
                 drawMenu.AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, Color.Yellow)));
                 drawMenu.AddItem(new MenuItem("rDraw", "R Range").SetValue(new Circle(true, Color.Gold)));
-                drawMenu.AddItem(new MenuItem("ePercent", "E % On Enemy").SetValue(true));
+                drawMenu.AddItem(new MenuItem("ePercent", "E % On Enemy").SetValue(new Circle(true, Color.Gold)));
+                drawMenu.AddItem(new MenuItem("e.percent.jungle.mobs", "E % On Jungle Mobs").SetValue(new Circle(true, Color.Chartreuse)));
                 drawMenu.AddItem(new MenuItem("signal", "Support Signal").SetValue(true));
                 drawMenu.AddItem(new MenuItem("circleSupport", "Draw Support on Circle").SetValue(true));
                 Config.AddSubMenu(drawMenu);
@@ -261,6 +262,7 @@ namespace HikiCarry_Kalista
                 DamageIndicator.Fill = eventArgs.GetNewValue<Circle>().Active;
                 DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
             };
+
             Config.AddToMainMenu();
             Game.OnUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
@@ -295,8 +297,7 @@ namespace HikiCarry_Kalista
             stealJungle();
             KillSteal();
             immobileQ();
-
-
+            
 
         }
         public static void immobileQ()
@@ -680,6 +681,21 @@ namespace HikiCarry_Kalista
 
             return 0;
         }
+        public static float JungleCalculator(Obj_AI_Minion minion, int customStacks = -1)
+        {
+            int buff = minion.GetBuffCount("KalistaExpungeMarker");
+
+            if (buff > 0 || customStacks > -1)
+            {
+                var tDamage = (RRD[E.Level - 1] + RRDM[E.Level - 1] * Player.TotalAttackDamage) +
+                       ((customStacks < 0 ? buff : customStacks) - 1) *
+                       (RRPS[E.Level - 1] + RRPSM[E.Level - 1] * Player.TotalAttackDamage);
+
+                return (float)ObjectManager.Player.CalcDamage(minion, Damage.DamageType.Physical, tDamage);
+            }
+
+            return 0;
+        }
         public static float GetTotalDamage(Obj_AI_Hero target)
         {
             var damage = 0f;
@@ -697,19 +713,6 @@ namespace HikiCarry_Kalista
                 }
 
             }
-            var stacz = CustomCalculator(target);
-            float edamagedraw = stacz * 100 / target.Health;
-            int edraw = (int)Math.Ceiling(edamagedraw);
-            if (edraw >= 100)
-            {
-                var yx = Drawing.WorldToScreen(target.Position);
-                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.Yellow, "STACK OVERLOAD - FUCK THEM ALL !");
-            }
-            if (edraw < 100)
-            {
-                var yx = Drawing.WorldToScreen(target.Position);
-                Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.Yellow, "E Stack on Enemy HP %" + edraw);
-            }
             return (float)damage;
         }
         private static void Drawing_OnDraw(EventArgs args)
@@ -718,6 +721,8 @@ namespace HikiCarry_Kalista
             var menuItem2 = Config.Item("wDraw").GetValue<Circle>();
             var menuItem3 = Config.Item("eDraw").GetValue<Circle>();
             var menuItem4 = Config.Item("rDraw").GetValue<Circle>();
+            var menuItem5 = Config.Item("ePercent").GetValue<Circle>();
+            var menuItem6 = Config.Item("e.percent.jungle.mobs").GetValue<Circle>();
 
             if (menuItem1.Active && Q.IsReady())
             {
@@ -734,6 +739,46 @@ namespace HikiCarry_Kalista
             if (menuItem4.Active && R.IsReady())
             {
                 Render.Circle.DrawCircle(new Vector3(Player.Position.X, Player.Position.Y, Player.Position.Z), R.Range, menuItem4.Color,5);
+            }
+            if (menuItem5.Active && E.IsReady())
+            {
+                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o=> o.IsHPBarRendered && o.IsEnemy && o.IsValidTarget(1000)))
+                {
+                    float getTotalDamage = GetTotalDamage(enemy);
+                    float tDamage = getTotalDamage*100/enemy.Health;
+                    int totalDamage = (int)Math.Ceiling(tDamage);
+
+                    if (totalDamage > 0)
+                    {
+                        Drawing.DrawText(enemy.HPBarPosition.X, enemy.HPBarPosition.Y, Color.Yellow, string.Format("{0}%", totalDamage));
+                    }
+                }
+            }
+            if (menuItem6.Active && E.IsReady())
+            {
+                foreach (var jungleMobs in ObjectManager.Get<Obj_AI_Minion>().Where(o => o.CharData.BaseSkinName == "SRU_Red" || o.CharData.BaseSkinName == "SRU_Blue" ||
+            o.CharData.BaseSkinName == "SRU_Dragon" || o.CharData.BaseSkinName == "SRU_Baron" && 
+            o.IsValidTarget(E.Range) && o.IsVisible && !o.IsDead))
+                {
+                    var damage = 0f;
+                    switch (Config.Item("calculator").GetValue<StringList>().SelectedIndex)
+                    {
+                        case 0:
+                            damage += JungleCalculator(jungleMobs);
+                            break;
+                        case 1:
+                            damage += (float)ObjectManager.Player.CalcDamage(jungleMobs, Damage.DamageType.Physical, E.GetDamage(jungleMobs));
+                            break;
+                    }
+
+                    float tDamage = damage * 100 / jungleMobs.Health;
+                    int totalDamage = (int)Math.Ceiling(tDamage);
+
+                    if (totalDamage >= 0)
+                    {
+                        Drawing.DrawText(jungleMobs.HPBarPosition.X, jungleMobs.HPBarPosition.Y, Color.Yellow, string.Format("{0}%", totalDamage));
+                    }
+                }
             }
         }
     }

@@ -53,12 +53,12 @@ namespace HikiCarry_Kalista
                     {
                         if (kalistaSupport.Distance(ObjectManager.Player.Position) < 500 && !ObjectManager.Player.IsDead)
                         {
-                            Drawing.DrawText(heroPos.X-100, heroPos.Y, Color.Gold, "Support Connection Signal: Good");
+                            Drawing.DrawText(heroPos.X-100, heroPos.Y+25, Color.Gold, "Support Connection Signal: Good");
                         }
                         if (kalistaSupport.Distance(ObjectManager.Player.Position) > 500 && kalistaSupport.Distance(ObjectManager.Player.Position) < 1000
                             && !ObjectManager.Player.IsDead)
                         {
-                            Drawing.DrawText(heroPos.X-100, heroPos.Y, Color.Gold, "Support Connection Signal: Medium");
+                            Drawing.DrawText(heroPos.X-100, heroPos.Y+25, Color.Gold, "Support Connection Signal: Medium");
                         }
                         if (kalistaSupport.Distance(ObjectManager.Player.Position) > 1000 && kalistaSupport.Distance(ObjectManager.Player.Position) < 1500
                             && !ObjectManager.Player.IsDead)
