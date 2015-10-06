@@ -640,6 +640,11 @@ namespace HikiCarry_Kalista
                 _orbwalkingPoint = point;
             }
 
+            private static double TrueAa (Obj_AI_Minion minion)
+            {
+                var xaxa = ObjectManager.Player.CalcDamage(minion, Damage.DamageType.Physical, ObjectManager.Player.TotalAttackDamage);
+                return xaxa-10;
+            }
             private bool ShouldWait()
             {
                 return
@@ -650,7 +655,7 @@ namespace HikiCarry_Kalista
                                 InAutoAttackRange(minion) && MinionManager.IsMinion(minion, false) &&
                                 HealthPrediction.LaneClearHealthPrediction(
                                     minion, (int)((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
-                                Player.GetAutoAttackDamage(minion));
+                                TrueAa(minion));
             }
 
             public virtual AttackableUnit GetTarget()
@@ -694,7 +699,7 @@ namespace HikiCarry_Kalista
                                 FireOnNonKillableMinion(minion);
                             }
 
-                            if (predHealth > 0 && predHealth <= Player.GetAutoAttackDamage(minion, true))
+                            if (predHealth > 0 && predHealth <= TrueAa(minion))
                             {
                                 return minion;
                             }
@@ -770,7 +775,7 @@ namespace HikiCarry_Kalista
                         {
                             var predHealth = HealthPrediction.LaneClearHealthPrediction(
                                 _prevMinion, (int)((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
-                            if (predHealth >= 2 * Player.GetAutoAttackDamage(_prevMinion) ||
+                            if (predHealth >= 2 * TrueAa(_prevMinion) ||
                                 Math.Abs(predHealth - _prevMinion.Health) < float.Epsilon || _prevMinion.HasBuff("kalistacoopstrikemarkself"))
                             {
                                 return _prevMinion;
@@ -789,7 +794,7 @@ namespace HikiCarry_Kalista
                                       HealthPrediction.LaneClearHealthPrediction(
                                           minion, (int)((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay)
                                   where
-                                      predHealth >= 2 * Player.GetAutoAttackDamage(minion) || minion.HasBuff("kalistacoopstrikemarkself") ||
+                                      predHealth >= 2 * TrueAa(minion) || minion.HasBuff("kalistacoopstrikemarkself") ||
                                       Math.Abs(predHealth - minion.Health) < float.Epsilon
                                   select minion).MaxOrDefault(m => !MinionManager.IsMinion(m, true) ? float.MaxValue : m.Health);
 
