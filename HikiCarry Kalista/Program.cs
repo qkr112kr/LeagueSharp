@@ -194,6 +194,13 @@ namespace HikiCarry_Kalista
 
             var miscMenu = new Menu("Miscellaneous", "Miscellaneous");
             {
+                var lastJoke = new Menu("Last Joke Settings", "Last Joke Settings");
+                {
+                    lastJoke.AddItem(new MenuItem("last.joke", "Last Joke").SetValue(true));
+                    lastJoke.AddItem(new MenuItem("last.joke.hp", "Kalista HP Percent").SetValue(new Slider(2, 1, 99)));
+                    miscMenu.AddSubMenu(lastJoke);
+                }
+
                 var orbSet = new Menu("Scrying Orb Settings", "Scrying Orb Settings");
                 {
                     orbSet.AddItem(new MenuItem("bT", "Auto Scrying Orb Buy!").SetValue(true));
@@ -297,7 +304,7 @@ namespace HikiCarry_Kalista
             stealJungle();
             KillSteal();
             immobileQ();
-            
+            Bitterlogic();
 
         }
         public static void immobileQ()
@@ -307,7 +314,7 @@ namespace HikiCarry_Kalista
             {
                 foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
                 {
-                    if (immobileTarget(enemy) && Q.GetPrediction(enemy).Hitchance >= HitChance.High)
+                    if (immobileTarget(enemy) && Q.GetPrediction(enemy).Hitchance >= HitChance.High && Q.GetPrediction(enemy).CollisionObjects.Count == 0)
                     {
                         Q.Cast(enemy);
                     }
@@ -433,7 +440,8 @@ namespace HikiCarry_Kalista
             {
                 foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
                 {
-                    if (Q.GetPrediction(enemy).Hitchance >= HitChance.VeryHigh)
+                    if (Q.GetPrediction(enemy).Hitchance >= HitChance.VeryHigh && 
+                        Q.GetPrediction(enemy).CollisionObjects.Count == 0)
                     {
                         Q.Cast(enemy);
                     }
@@ -481,6 +489,27 @@ namespace HikiCarry_Kalista
                 }
             }
         }
+        private static void Bitterlogic()
+        {
+            foreach (var enemy in HeroManager.Enemies.Where(o=> o.IsValidTarget(E.Range) && !o.IsDead && !o.IsZombie))
+            {
+                float spearDamage = GetTotalDamage(enemy);
+                float killableSpearCount = enemy.Health/spearDamage;
+                int totalSpear = (int)Math.Ceiling(killableSpearCount);
+                if (ObjectManager.Player.Health < Config.Item("last.joke.hp").GetValue<Slider>().Value && KillableSpearCount(enemy) - 1 < totalSpear)
+                {
+                    E.Cast();
+                }
+            }
+        }
+        public static int KillableSpearCount(Obj_AI_Hero enemy)
+        {
+            float spearDamage = GetTotalDamage(enemy);
+            float killableSpearCount = enemy.Health / spearDamage;
+            int totalSpear = (int)Math.Ceiling(killableSpearCount) - 1;
+
+            return totalSpear;
+        }
         private static void Harass()
         {
             var manaSlider = Config.Item("manaHarass").GetValue<Slider>().Value;
@@ -494,7 +523,7 @@ namespace HikiCarry_Kalista
                 {
                     foreach (var enemy in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Q.Range)))
                     {
-                        if (Q.GetPrediction(enemy).Hitchance >= HitChance.VeryHigh)
+                        if (Q.GetPrediction(enemy).Hitchance >= HitChance.VeryHigh && Q.GetPrediction(enemy).CollisionObjects.Count == 0)
                         {
                             Q.Cast(enemy);
                         }
@@ -756,9 +785,7 @@ namespace HikiCarry_Kalista
             }
             if (menuItem6.Active && E.IsReady())
             {
-                foreach (var jungleMobs in ObjectManager.Get<Obj_AI_Minion>().Where(o => o.CharData.BaseSkinName == "SRU_Red" || o.CharData.BaseSkinName == "SRU_Blue" ||
-            o.CharData.BaseSkinName == "SRU_Dragon" || o.CharData.BaseSkinName == "SRU_Baron" && 
-            o.IsValidTarget(E.Range) && o.IsVisible && !o.IsDead))
+                foreach (var jungleMobs in ObjectManager.Get<Obj_AI_Minion>().Where(o => o.IsValidTarget(E.Range) && o.Team == GameObjectTeam.Neutral && o.IsVisible && !o.IsDead))
                 {
                     var damage = 0f;
                     switch (Config.Item("calculator").GetValue<StringList>().SelectedIndex)
@@ -773,10 +800,47 @@ namespace HikiCarry_Kalista
 
                     float tDamage = damage * 100 / jungleMobs.Health;
                     int totalDamage = (int)Math.Ceiling(tDamage);
-
                     if (totalDamage >= 0)
                     {
-                        Drawing.DrawText(jungleMobs.HPBarPosition.X, jungleMobs.HPBarPosition.Y, Color.Yellow, string.Format("{0}%", totalDamage));
+                        switch (jungleMobs.CharData.BaseSkinName)
+                        {
+                            case "SRU_Razorbeak":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X+50, jungleMobs.HPBarPosition.Y, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                            case "SRU_Red":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X, jungleMobs.HPBarPosition.Y-3, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                            case "SRU_Blue":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X, jungleMobs.HPBarPosition.Y, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                            case "SRU_Dragon":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X, jungleMobs.HPBarPosition.Y, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                            case "SRU_Baron":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X, jungleMobs.HPBarPosition.Y, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                            case "SRU_Gromp":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X, jungleMobs.HPBarPosition.Y, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                            case "SRU_Krug":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X+53, jungleMobs.HPBarPosition.Y, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                            case "SRU_Murkwolf":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X+50, jungleMobs.HPBarPosition.Y, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                            case "Sru_Crab":
+                                Drawing.DrawText(jungleMobs.HPBarPosition.X+50, jungleMobs.HPBarPosition.Y+20, menuItem6.Color,
+                                    string.Format("{0}%", totalDamage));
+                                break;
+                        }
                     }
                 }
             }
