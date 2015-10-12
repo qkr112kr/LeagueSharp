@@ -537,6 +537,9 @@ namespace HikiCarry_Kalista
                 _config.AddItem(
                     new MenuItem("MovementDelay", "Movement delay").SetShared().SetValue(new Slider(30, 0, 250)))
                     .ValueChanged += (sender, args) => SetMovementDelay(args.GetNewValue<Slider>().Value);
+                _config.AddItem(
+                    new MenuItem("extra.hp", "Extra Buffer for Minions").SetValue(new Slider(30, 1, 99)));
+                   
 
                 /*Load the menu*/
                 _config.AddItem(
@@ -642,8 +645,10 @@ namespace HikiCarry_Kalista
 
             private static double TrueAa (Obj_AI_Minion minion)
             {
-                var xaxa = ObjectManager.Player.CalcDamage(minion, Damage.DamageType.Physical, ObjectManager.Player.TotalAttackDamage);
-                return xaxa-10;
+                var xaxa = ObjectManager.Player.CalcDamage(minion, Damage.DamageType.Physical, ObjectManager.Player.GetAutoAttackDamage(minion));
+                int hppercent = _config.Item("extra.hp").GetValue<Slider>().Value;
+                return xaxa - hppercent;
+                
             }
             private bool ShouldWait()
             {

@@ -71,8 +71,7 @@ namespace HikiCarry_Kalista
             SpellList.Add(R);
 
             Config = new Menu("HikiCarry - Kalista", "HikiCarry - Kalista", true);
-            TargetSelector.AddToMenu(Config.SubMenu("Target Selector Settings"));
-
+            CustomTargetSelector.AddToMenu(Config.SubMenu("Target Selector Settings"));
 
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
             
