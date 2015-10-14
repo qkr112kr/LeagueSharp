@@ -209,7 +209,7 @@ namespace Kindred___YinYang
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(W.Range) && !o.IsDead && !o.IsZombie))
                 {
-                    W.Cast(enemy);
+                    W.Cast();
                 } 
             }
             if (useE && E.IsReady())
