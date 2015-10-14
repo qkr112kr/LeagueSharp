@@ -51,6 +51,7 @@ namespace Kindred___YinYang
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
+                comboMenu.AddItem(new MenuItem("q.combo.style", "Q Style").SetValue(new StringList(new[] { "Kite", "100% Hit [BETA]" })));
                 comboMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
                 comboMenu.AddItem(new MenuItem("w.combo", "Use W").SetValue(true));
                 comboMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
@@ -124,6 +125,27 @@ namespace Kindred___YinYang
                 RLogic();
             }
         }
+
+        private static void CollisionObjectCheckCast(Spell spell, Obj_AI_Hero unit, int count)
+        {
+            if (spell.GetPrediction(unit).CollisionObjects.Count <= count)
+            {
+                spell.Cast(Game.CursorPos);
+            }        
+        }
+
+        private static void QStyleCast(Spell spell, Obj_AI_Hero unit, int count)
+        {
+            switch (Config.Item("q.combo.style").GetValue<StringList>().SelectedIndex)
+            {
+                case 0:
+                    spell.Cast(Game.CursorPos);
+                    break;
+                case 1:
+                    CollisionObjectCheckCast(spell,unit,2);
+                    break;
+            }
+        }
         private static void Combo()
         {
             var useQ = Config.Item("q.combo").GetValue<bool>();
@@ -134,7 +156,7 @@ namespace Kindred___YinYang
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o=> o.IsValidTarget(ObjectManager.Player.AttackRange) && !o.IsDead && !o.IsZombie))
                 {
-                    Q.Cast(Game.CursorPos);
+                    QStyleCast(Q,enemy,2);
                 }
             }
             if (useW && W.IsReady())
@@ -192,7 +214,6 @@ namespace Kindred___YinYang
             {
                 if (Config.Item("respite."+ally.CharData.BaseSkinName).GetValue<bool>())
                 {
-                    Game.PrintChat("R WX");
                     R.Cast(ally);
                 }
             }
