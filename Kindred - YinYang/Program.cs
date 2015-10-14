@@ -48,7 +48,8 @@ namespace Kindred___YinYang
             R.SetSkillshot(1f, 160f, 2000f, false, SkillshotType.SkillshotCircle);
 
             Config = new Menu("Kindred - Yin Yang", "Kindred - Yin Yang", true);
-
+            TargetSelector.AddToMenu(Config.SubMenu("Target Selector Settings"));
+            Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
                 comboMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
