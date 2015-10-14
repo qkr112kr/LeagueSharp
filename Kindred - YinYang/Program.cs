@@ -90,9 +90,20 @@ namespace Kindred___YinYang
                 jungleClear.AddItem(new MenuItem("jungle.mana", "Mana Manager").SetValue(new Slider(20, 1, 99)));
                 Config.AddSubMenu(jungleClear);
             }
+            var ksMenu = new Menu("KillSteal Settings", "KillSteal Settings");
+            {
+                ksMenu.AddItem(new MenuItem("q.ks", "Use Q").SetValue(true));
+                ksMenu.AddItem(new MenuItem("q.ks.count", "Basic Attack Count").SetValue(new Slider(2, 1, 5)));
+                Config.AddSubMenu(ksMenu);
+            }
+            var miscMenu = new Menu("Miscellaneous", "Miscellaneous");
+            {
+                miscMenu.AddItem(new MenuItem("q.antigapcloser", "Anti-Gapcloser Q!").SetValue(true));
+                Config.AddSubMenu(miscMenu);
+            }
             var drawMenu = new Menu("Draw Settings", "Draw Settings");
             {
-                drawMenu.AddItem(new MenuItem("q.draw", "Q Range").SetValue(new Circle(true, Color.White)));
+                drawMenu.AddItem(new MenuItem("q.drawx", "Q Range").SetValue(new Circle(true, Color.White)));
                 drawMenu.AddItem(new MenuItem("w.draw", "W Range").SetValue(new Circle(true, Color.Gold)));
                 drawMenu.AddItem(new MenuItem("e.draw", "E Range").SetValue(new Circle(true, Color.DodgerBlue)));
                 drawMenu.AddItem(new MenuItem("r.draw", "R Range").SetValue(new Circle(true, Color.GreenYellow)));
@@ -110,8 +121,17 @@ namespace Kindred___YinYang
             Config.AddToMainMenu();
             Game.PrintChat("<font color='#ff3232'>Kindred - Yin Yang: </font> <font color='#d4d4d4'>If you like this assembly feel free to upvote on Assembly DB</font>");
             Orbwalking.AfterAttack += Orbwalking_AfterAttack;
+            AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
+        }
+
+        private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
+        {
+            if (gapcloser.End.Distance(ObjectManager.Player.ServerPosition) <= 300)
+            {
+                Q.Cast(gapcloser.End.Extend(ObjectManager.Player.ServerPosition, ObjectManager.Player.Distance(gapcloser.End) + Q.Range));
+            }
         }
 
         private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
@@ -120,7 +140,7 @@ namespace Kindred___YinYang
                         Kindred.Distance(target.Position) < Kindred.AttackRange)
             {
                 Q.Cast(Game.CursorPos);
-                Utility.DelayAction.Add(300, Orbwalking.ResetAutoAttackTimer);
+                Utility.DelayAction.Add(400, Orbwalking.ResetAutoAttackTimer);
             }      
         }
 
@@ -145,6 +165,11 @@ namespace Kindred___YinYang
             {
                 RLogic();
             }
+            if (Config.Item("q.ks").GetValue<bool>() && Q.IsReady())
+            {
+                KillSteal(Config.Item("q.ks.count").GetValue<Slider>().Value);
+            }
+
         }
 
         private static void CollisionObjectCheckCast(Spell spell, Obj_AI_Hero unit, int count)
@@ -184,7 +209,7 @@ namespace Kindred___YinYang
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(W.Range) && !o.IsDead && !o.IsZombie))
                 {
-                    W.Cast();
+                    
                 } 
             }
             if (useE && E.IsReady())
@@ -259,6 +284,16 @@ namespace Kindred___YinYang
                 }
             }
         }
+        private static void KillSteal(int aacount)
+        {
+            foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range)))
+            {
+                if (enemy.Health < ObjectManager.Player.CalcDamage(enemy, Damage.DamageType.Physical, Kindred.BaseAttackDamage) * aacount)
+                {
+                    Q.Cast(Game.CursorPos);
+                }
+            }
+        }
         private static void Jungle()
         {
             var useQ = Config.Item("q.jungle").GetValue<bool>();
@@ -267,7 +302,7 @@ namespace Kindred___YinYang
             var manaSlider = Config.Item("jungle.mana").GetValue<Slider>().Value;
             var mob = MinionManager.GetMinions(Kindred.ServerPosition, Orbwalking.GetRealAutoAttackRange(Kindred) + 100, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
 
-            if (mob == null || (mob != null && mob.Count == 0))
+            if (mob == null ||  mob.Count == 0)
             {
                 return;
             }
@@ -290,7 +325,7 @@ namespace Kindred___YinYang
         }
         private static void Drawing_OnDraw(EventArgs args)
         {
-            var menuItem1 = Config.Item("q.draw").GetValue<Circle>();
+            var menuItem1 = Config.Item("q.drawx").GetValue<Circle>();
             var menuItem2 = Config.Item("w.draw").GetValue<Circle>();
             var menuItem3 = Config.Item("e.draw").GetValue<Circle>();
             var menuItem4 = Config.Item("r.draw").GetValue<Circle>();
