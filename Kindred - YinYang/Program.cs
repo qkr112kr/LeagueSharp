@@ -26,7 +26,7 @@ namespace Kindred___YinYang
                 "Ezreal", "Graves", "Jinx", "Kalista", "Karma", "Karthus", "Katarina", "Kennen", "KogMaw", "Leblanc",
                 "Lucian", "Lux", "Malzahar", "MasterYi", "MissFortune", "Orianna", "Quinn", "Sivir", "Syndra", "Talon",
                 "Teemo", "Tristana", "TwistedFate", "Twitch", "Varus", "Vayne", "Veigar", "VelKoz", "Viktor", "Xerath",
-                "Zed", "Ziggs"
+                "Zed", "Ziggs","Kindred"
             };
 
         static void Main(string[] args)
@@ -45,7 +45,6 @@ namespace Kindred___YinYang
             W = new Spell(SpellSlot.W, 593);
             E = new Spell(SpellSlot.E, 640);
             R = new Spell(SpellSlot.R, 1100);
-            R.SetSkillshot(1f, 160f, 2000f, false, SkillshotType.SkillshotCircle);
 
             Config = new Menu("Kindred - Yin Yang", "Kindred - Yin Yang", true);
             TargetSelector.AddToMenu(Config.SubMenu("Target Selector Settings"));
@@ -187,12 +186,13 @@ namespace Kindred___YinYang
         private static void RLogic()
         {
             var minHP = Config.Item("min.hp.for.r").GetValue<Slider>().Value;
-            foreach (var ally in HeroManager.Allies.Where(o=> o.Health < minHP && !o.IsRecalling() && !o.IsDead && !o.IsZombie
+            foreach (var ally in HeroManager.Allies.Where(o=> o.HealthPercent < minHP && !o.IsRecalling() && !o.IsDead && !o.IsZombie
                 && Kindred.Distance(o.Position) < R.Range))
             {
                 if (Config.Item("respite."+ally.CharData.BaseSkinName).GetValue<bool>())
                 {
-                    R.Cast(ally.Position);
+                    Game.PrintChat("R WX");
+                    R.Cast(ally);
                 }
             }
         }
