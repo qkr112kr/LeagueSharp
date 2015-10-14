@@ -51,7 +51,7 @@ namespace Kindred___YinYang
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
-                comboMenu.AddItem(new MenuItem("q.combo.style", "Q Style").SetValue(new StringList(new[] { "Kite", "100% Hit [BETA]" })));
+                comboMenu.AddItem(new MenuItem("q.combo.style", "Q Style").SetValue(new StringList(new[] {"Kite", "100% Hit [BETA]" })));
                 comboMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
                 comboMenu.AddItem(new MenuItem("w.combo", "Use W").SetValue(true));
                 comboMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
@@ -99,8 +99,19 @@ namespace Kindred___YinYang
             Config.AddItem(new MenuItem("min.hp.for.r", "Min. HP Percent for R").SetValue(new Slider(20, 1, 99)));
             Config.AddToMainMenu();
             Game.PrintChat("<font color='#ff3232'>Kindred - Yin Yang: </font> <font color='#d4d4d4'>If you like this assembly feel free to upvote on Assembly DB</font>");
+            Orbwalking.AfterAttack += Orbwalking_AfterAttack;
             Game.OnUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
+        }
+
+        private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            if (Config.Item("q.combo").GetValue<bool>() && unit is Obj_AI_Hero && target is Obj_AI_Hero &&
+                        Kindred.Distance(target.Position) < Kindred.AttackRange)
+            {
+                Q.Cast(Game.CursorPos);
+                Utility.DelayAction.Add(200, Orbwalking.ResetAutoAttackTimer);
+            }      
         }
 
         private static void Game_OnGameUpdate(EventArgs args)
@@ -142,7 +153,7 @@ namespace Kindred___YinYang
                     spell.Cast(Game.CursorPos);
                     break;
                 case 1:
-                    CollisionObjectCheckCast(spell,unit,2);
+                    CollisionObjectCheckCast(spell,unit,count);
                     break;
             }
         }
