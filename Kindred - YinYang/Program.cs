@@ -57,6 +57,16 @@ namespace Kindred___YinYang
                 comboMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
                 Config.AddSubMenu(comboMenu);
             }
+            var eMenu = new Menu("E Settings", "E Settings");
+            {
+                eMenu.AddItem(new MenuItem("e.whte", "                     E Whitelist"));
+                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
+                {
+                    eMenu.AddItem(new MenuItem("enemy." + enemy.CharData.BaseSkinName, string.Format("E: {0}", enemy.CharData.BaseSkinName)).SetValue(highChamps.Contains(enemy.CharData.BaseSkinName)));
+
+                }
+                Config.AddSubMenu(eMenu);
+            }
             var harassMenu = new Menu("Harass Settings", "Harass Settings");
             {
                 harassMenu.AddItem(new MenuItem("q.harass", "Use Q").SetValue(true));
@@ -110,7 +120,7 @@ namespace Kindred___YinYang
                         Kindred.Distance(target.Position) < Kindred.AttackRange)
             {
                 Q.Cast(Game.CursorPos);
-                Utility.DelayAction.Add(200, Orbwalking.ResetAutoAttackTimer);
+                Utility.DelayAction.Add(300, Orbwalking.ResetAutoAttackTimer);
             }      
         }
 
@@ -181,7 +191,10 @@ namespace Kindred___YinYang
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(E.Range) && !o.IsDead && !o.IsZombie))
                 {
-                    E.Cast(enemy);
+                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>())
+                    {
+                        E.Cast(enemy);
+                    }
                 } 
             }
         }
@@ -212,7 +225,10 @@ namespace Kindred___YinYang
                 {
                     foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(E.Range) && !o.IsDead && !o.IsZombie))
                     {
-                        E.Cast(enemy);
+                        if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>())
+                        {
+                            E.Cast(enemy);
+                        }
                     }
                 }
             }
