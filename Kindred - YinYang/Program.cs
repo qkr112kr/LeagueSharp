@@ -18,6 +18,8 @@ namespace Kindred___YinYang
         public static Spell R;
         private static Obj_AI_Hero Kindred = ObjectManager.Player;
         public static Menu Config;
+        public static Vector3 OrderSpawnPosition = new Vector3(394, 461, 171);
+        public static Vector3 ChaosSpawnPosition = new Vector3(14340, 14391, 179);
         public static Orbwalking.Orbwalker Orbwalker;
 
         public static string[] highChamps =
@@ -28,7 +30,6 @@ namespace Kindred___YinYang
                 "Teemo", "Tristana", "TwistedFate", "Twitch", "Varus", "Vayne", "Veigar", "VelKoz", "Viktor", "Xerath",
                 "Zed", "Ziggs","Kindred"
             };
-
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
@@ -51,7 +52,7 @@ namespace Kindred___YinYang
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
-                comboMenu.AddItem(new MenuItem("q.combo.style", "Q Style").SetValue(new StringList(new[] {"Kite", "100% Hit [BETA]" })));
+                comboMenu.AddItem(new MenuItem("q.combo.style", "Q Style").SetValue(new StringList(new[] {"Kite", "100% Hit","Safe Position"})));
                 comboMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
                 comboMenu.AddItem(new MenuItem("w.combo", "Use W").SetValue(true));
                 comboMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
@@ -125,7 +126,6 @@ namespace Kindred___YinYang
             Config.AddItem(new MenuItem("min.hp.for.r", "Min. HP Percent for R").SetValue(new Slider(20, 1, 99)));
             Config.AddToMainMenu();
             Game.PrintChat("<font color='#ff3232'>Kindred - Yin Yang: </font> <font color='#d4d4d4'>If you like this assembly feel free to upvote on Assembly DB</font>");
-            Orbwalking.AfterAttack += Orbwalking_AfterAttack;
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
@@ -138,17 +138,6 @@ namespace Kindred___YinYang
                 Q.Cast(gapcloser.End.Extend(ObjectManager.Player.ServerPosition, ObjectManager.Player.Distance(gapcloser.End) + Q.Range));
             }
         }
-
-        private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
-        {
-            if (Config.Item("q.combo").GetValue<bool>() && unit is Obj_AI_Hero && target is Obj_AI_Hero &&
-                        Kindred.Distance(target.Position) < Kindred.AttackRange)
-            {
-                Q.Cast(Game.CursorPos);
-                Utility.DelayAction.Add(400, Orbwalking.ResetAutoAttackTimer);
-            }      
-        }
-
         private static int AaIndicator(Obj_AI_Hero enemy)
         {
              double aCalculator = ObjectManager.Player.CalcDamage(enemy, Damage.DamageType.Physical, Kindred.TotalAttackDamage());
@@ -156,7 +145,6 @@ namespace Kindred___YinYang
              int totalAa = (int)Math.Ceiling(killableAaCount);
              return totalAa;
         }
-
         private static void Game_OnGameUpdate(EventArgs args)
         {
             switch (Orbwalker.ActiveMode)
@@ -182,9 +170,8 @@ namespace Kindred___YinYang
             {
                 KillSteal(Config.Item("q.ks.count").GetValue<Slider>().Value);
             }
-
+            
         }
-
         private static void CollisionObjectCheckCast(Spell spell, Obj_AI_Hero unit, int count)
         {
             if (spell.GetPrediction(unit).CollisionObjects.Count <= count)
@@ -192,7 +179,20 @@ namespace Kindred___YinYang
                 spell.Cast(Game.CursorPos);
             }        
         }
-
+        private static void CastSafePosition(Spell spell, Obj_AI_Hero hero)
+        {
+            if (Geometry.CircleCircleIntersection(ObjectManager.Player.ServerPosition.To2D(), Prediction.GetPrediction(hero, 0f, hero.AttackRange).UnitPosition.To2D(), spell.Range, Orbwalking.GetRealAutoAttackRange(hero)).Count() > 0)
+            {
+                spell.Cast(
+                    Geometry.CircleCircleIntersection(ObjectManager.Player.ServerPosition.To2D(),
+                        Prediction.GetPrediction(hero, 0f, hero.AttackRange).UnitPosition.To2D(), spell.Range,
+                        Orbwalking.GetRealAutoAttackRange(hero)).MinOrDefault(i => i.Distance(Game.CursorPos)));
+            }
+            else
+            {
+                spell.Cast(ObjectManager.Player.ServerPosition.Extend(hero.ServerPosition, -E.Range));
+            }
+        }
         private static void QStyleCast(Spell spell, Obj_AI_Hero unit, int count)
         {
             switch (Config.Item("q.combo.style").GetValue<StringList>().SelectedIndex)
@@ -202,6 +202,9 @@ namespace Kindred___YinYang
                     break;
                 case 1:
                     CollisionObjectCheckCast(spell,unit,count);
+                    break;
+                case 2:
+                    CastSafePosition(spell,unit);
                     break;
             }
         }
@@ -275,7 +278,7 @@ namespace Kindred___YinYang
         {
             var minHP = Config.Item("min.hp.for.r").GetValue<Slider>().Value;
             foreach (var ally in HeroManager.Allies.Where(o=> o.HealthPercent < minHP && !o.IsRecalling() && !o.IsDead && !o.IsZombie
-                && Kindred.Distance(o.Position) < R.Range))
+                && Kindred.Distance(o.Position) < R.Range && !o.InFountain()))
             {
                 if (Config.Item("respite."+ally.CharData.BaseSkinName).GetValue<bool>())
                 {
@@ -368,7 +371,6 @@ namespace Kindred___YinYang
                                         string.Format("{0} Basic Attack = Kill", AaIndicator(enemy)));
                 }
             }
-            
         }
     }
 }
