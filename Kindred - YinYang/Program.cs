@@ -103,6 +103,11 @@ namespace Kindred___YinYang
             }
             var drawMenu = new Menu("Draw Settings", "Draw Settings");
             {
+                var damageDraw = new Menu("Damage Draw", "Damage Draw");
+                {
+                    damageDraw.AddItem(new MenuItem("aa.indicator", "AA Indicator").SetValue(new Circle(true, Color.Gold)));
+                    drawMenu.AddSubMenu(damageDraw);
+                }
                 drawMenu.AddItem(new MenuItem("q.drawx", "Q Range").SetValue(new Circle(true, Color.White)));
                 drawMenu.AddItem(new MenuItem("w.draw", "W Range").SetValue(new Circle(true, Color.Gold)));
                 drawMenu.AddItem(new MenuItem("e.draw", "E Range").SetValue(new Circle(true, Color.DodgerBlue)));
@@ -142,6 +147,14 @@ namespace Kindred___YinYang
                 Q.Cast(Game.CursorPos);
                 Utility.DelayAction.Add(400, Orbwalking.ResetAutoAttackTimer);
             }      
+        }
+
+        private static int AaIndicator(Obj_AI_Hero enemy)
+        {
+             double aCalculator = ObjectManager.Player.CalcDamage(enemy, Damage.DamageType.Physical, Kindred.TotalAttackDamage());
+             double killableAaCount = enemy.Health / aCalculator;
+             int totalAa = (int)Math.Ceiling(killableAaCount);
+             return totalAa;
         }
 
         private static void Game_OnGameUpdate(EventArgs args)
@@ -288,7 +301,7 @@ namespace Kindred___YinYang
         {
             foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range)))
             {
-                if (enemy.Health < ObjectManager.Player.CalcDamage(enemy, Damage.DamageType.Physical, Kindred.BaseAttackDamage) * aacount)
+                if (enemy.Health < ObjectManager.Player.CalcDamage(enemy, Damage.DamageType.Physical, Kindred.TotalAttackDamage()) * aacount)
                 {
                     Q.Cast(Game.CursorPos);
                 }
@@ -329,6 +342,7 @@ namespace Kindred___YinYang
             var menuItem2 = Config.Item("w.draw").GetValue<Circle>();
             var menuItem3 = Config.Item("e.draw").GetValue<Circle>();
             var menuItem4 = Config.Item("r.draw").GetValue<Circle>();
+            var menuItem5 = Config.Item("aa.indicator").GetValue<Circle>();
 
             if (menuItem1.Active && Q.IsReady())
             {
@@ -346,6 +360,15 @@ namespace Kindred___YinYang
             {
                 Render.Circle.DrawCircle(new Vector3(Kindred.Position.X, Kindred.Position.Y, Kindred.Position.Z), R.Range, menuItem4.Color, 5);
             }
+            if (menuItem4.Active)
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(1500)  && x.IsValid && x.IsVisible && !x.IsDead && !x.IsZombie))
+                {
+                    Drawing.DrawText(enemy.HPBarPosition.X, enemy.HPBarPosition.Y, menuItem5.Color,
+                                        string.Format("{0} Basic Attack = Kill", AaIndicator(enemy)));
+                }
+            }
+            
         }
     }
 }
