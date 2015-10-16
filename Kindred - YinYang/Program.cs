@@ -106,7 +106,7 @@ namespace Kindred___YinYang
                     antiRengar.AddItem(new MenuItem("hp.percent.for.rengar", "Min. HP Percent").SetValue(new Slider(30, 1, 99)));
                     miscMenu.AddSubMenu(antiRengar);
                 }
-                var spellMenu = new Menu("Spell Broker", "Spell Broker");
+                var spellMenu = new Menu("Spell Breaker", "Spell Breaker");
                 {
                     spellMenu.AddItem(new MenuItem("spell.broker", "Spell Broker!").SetValue(true));
                     spellMenu.AddItem(new MenuItem("katarina.r", "Katarina (R)").SetValue(true));
