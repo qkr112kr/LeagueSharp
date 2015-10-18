@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kindred___YinYang.Spell_Database;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
@@ -16,13 +17,13 @@ namespace Kindred___YinYang
         public static Spell E;
         public static Spell W;
         public static Spell R;
-        private static Obj_AI_Hero Kindred = ObjectManager.Player;
+        private static readonly Obj_AI_Hero Kindred = ObjectManager.Player;
         public static Menu Config;
         public static Vector3 OrderSpawnPosition = new Vector3(394, 461, 171);
         public static Vector3 ChaosSpawnPosition = new Vector3(14340, 14391, 179);
         public static Orbwalking.Orbwalker Orbwalker;
 
-        public static string[] highChamps =
+        public static string[] HighChamps =
             {
                 "Ahri", "Anivia", "Annie", "Ashe", "Azir", "Brand", "Caitlyn", "Cassiopeia", "Corki", "Draven",
                 "Ezreal", "Graves", "Jinx", "Kalista", "Karma", "Karthus", "Katarina", "Kennen", "KogMaw", "Leblanc",
@@ -34,7 +35,6 @@ namespace Kindred___YinYang
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
         }
-
         private static void Game_OnGameLoad(EventArgs args)
         {
             if (Kindred.ChampionName != "Kindred")
@@ -43,16 +43,16 @@ namespace Kindred___YinYang
             }
 
             Q = new Spell(SpellSlot.Q, 340);
-            W = new Spell(SpellSlot.W, 593);
-            E = new Spell(SpellSlot.E, 640);
-            R = new Spell(SpellSlot.R, 1100);
+            W = new Spell(SpellSlot.W, 800);
+            E = new Spell(SpellSlot.E, 500);
+            R = new Spell(SpellSlot.R, 550);
 
             Config = new Menu("Kindred - Yin Yang", "Kindred - Yin Yang", true);
             TargetSelector.AddToMenu(Config.SubMenu("Target Selector Settings"));
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
-                comboMenu.AddItem(new MenuItem("q.combo.style", "Q Style").SetValue(new StringList(new[] {"Kite", "100% Hit","Kurisu Safe Position"})));
+                comboMenu.AddItem(new MenuItem("q.combo.style", "Q Style").SetValue(new StringList(new[] {"Kite", "100% Hit","Safe Position"})));
                 comboMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
                 comboMenu.AddItem(new MenuItem("w.combo", "Use W").SetValue(true));
                 comboMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
@@ -63,7 +63,7 @@ namespace Kindred___YinYang
                 eMenu.AddItem(new MenuItem("e.whte", "                     E Whitelist"));
                 foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
                 {
-                    eMenu.AddItem(new MenuItem("enemy." + enemy.CharData.BaseSkinName, string.Format("E: {0}", enemy.CharData.BaseSkinName)).SetValue(highChamps.Contains(enemy.CharData.BaseSkinName)));
+                    eMenu.AddItem(new MenuItem("enemy." + enemy.CharData.BaseSkinName, string.Format("E: {0}", enemy.CharData.BaseSkinName)).SetValue(HighChamps.Contains(enemy.CharData.BaseSkinName)));
 
                 }
                 Config.AddSubMenu(eMenu);
@@ -108,12 +108,24 @@ namespace Kindred___YinYang
                 }
                 var spellMenu = new Menu("Spell Breaker", "Spell Breaker");
                 {
-                    spellMenu.AddItem(new MenuItem("spell.broker", "Spell Broker!").SetValue(true));
+                    spellMenu.AddItem(new MenuItem("spell.broker", "Spell Breaker!").SetValue(true));
                     spellMenu.AddItem(new MenuItem("katarina.r", "Katarina (R)").SetValue(true));
                     spellMenu.AddItem(new MenuItem("missfortune.r", "Miss Fortune (R)").SetValue(true));
                     spellMenu.AddItem(new MenuItem("lucian.r", "Lucian (R)").SetValue(true));
                     spellMenu.AddItem(new MenuItem("hp.percent.for.broke", "Min. HP Percent").SetValue(new Slider(20, 1, 99)));
                     miscMenu.AddSubMenu(spellMenu);
+                }
+                var rProtector = new Menu("(R) Protector", "(R) Protector");
+                {
+                    rProtector.AddItem(new MenuItem("protector","Disable Protector?").SetValue(true));
+                    foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
+                    {
+                        foreach (var skillshot in SpellDatabase.Spells.Where(x => x.charName == enemy.ChampionName)) // 2.5F Protector
+                        {
+                            rProtector.AddItem(new MenuItem("hero." + skillshot.spellName, ""+skillshot.charName +"("+skillshot.spellKey+")").SetValue(true));
+                        }
+                    }
+                    miscMenu.AddSubMenu(rProtector);
                 }
                 Config.AddSubMenu(miscMenu);
             }
@@ -135,21 +147,53 @@ namespace Kindred___YinYang
             Config.AddItem(new MenuItem("r.whte", "                          R Whitelist"));
             foreach (var ally in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsAlly))
             {
-                Config.AddItem(new MenuItem("respite." + ally.CharData.BaseSkinName, string.Format("Respite: {0}", ally.CharData.BaseSkinName)).SetValue(highChamps.Contains(ally.CharData.BaseSkinName)));
+                Config.AddItem(new MenuItem("respite." + ally.CharData.BaseSkinName, string.Format("Respite: {0}", ally.CharData.BaseSkinName)).SetValue(HighChamps.Contains(ally.CharData.BaseSkinName)));
 
             }
             Config.AddItem(new MenuItem("min.hp.for.r", "Min. HP Percent for R").SetValue(new Slider(20, 1, 99)));
             Config.AddToMainMenu();
             Game.PrintChat("<font color='#ff3232'>Kindred - Yin Yang: </font> <font color='#d4d4d4'>If you like this assembly feel free to upvote on Assembly DB</font>");
+            Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnUpdate += Game_OnGameUpdate;
             GameObject.OnCreate += GameObject_OnCreate;
             Drawing.OnDraw += Drawing_OnDraw;
         }
 
+       
+        private static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs spell)
+        {
+            if (!R.IsReady() && Kindred.IsDead && Kindred.IsZombie && sender.IsAlly && !sender.IsMe && !Config.Item("protector").GetValue<bool>())
+            {
+                return;
+            }
+            if (sender is Obj_AI_Hero && R.IsReady() && sender.IsEnemy && !spell.SData.IsAutoAttack()
+                && !sender.IsDead && !sender.IsZombie && sender.IsValidTarget(1000))
+            {
+                foreach (var protector in SpellDatabase.Spells.Where(x => x.spellName == spell.SData.Name 
+                    && Config.Item("hero." + x.spellName).GetValue<bool>()))
+                {
+                    if (protector.spellType == SpellType.Circular && Kindred.Distance(spell.End) <= 200 &&
+                        sender.GetSpellDamage(Kindred,protector.spellName) > Kindred.Health)
+                    {
+                        R.Cast(Kindred);
+                    }
+                    if (protector.spellType == SpellType.Cone && Kindred.Distance(spell.End) <= 200 &&
+                        sender.GetSpellDamage(Kindred, protector.spellName) > Kindred.Health)
+                    {
+                        R.Cast(Kindred);
+                    }
+                    if (protector.spellType == SpellType.Line && Kindred.Distance(spell.End) <= 200
+                        && sender.GetSpellDamage(Kindred,protector.spellName) > Kindred.Health)
+                    {
+                        Game.PrintChat("Killable");
+                        R.Cast(Kindred);
+                    }
+                }
+            }
+        }
         private static void GameObject_OnCreate(GameObject sender, EventArgs args)
         {
-
             if (Config.Item("anti.rengar").GetValue<bool>() && R.IsReady() && sender.IsEnemy && !sender.IsAlly && !sender.IsDead
                 && sender.Name == "Rengar_LeapSound.troy" && Kindred.HealthPercent < Config.Item("hp.percent.for.rengar").GetValue<Slider>().Value)
             {
@@ -159,7 +203,6 @@ namespace Kindred___YinYang
                 }
             }
         }
-
         private static void SpellBroker()
         {
             if (Config.Item("katarina.r").GetValue<bool>() && R.IsReady() && Kindred.HealthPercent < Config.Item("hp.percent.for.broke").GetValue<Slider>().Value)
@@ -337,8 +380,8 @@ namespace Kindred___YinYang
             foreach (var ally in HeroManager.Allies.Where(o=> o.HealthPercent < minHP && !o.IsRecalling() && !o.IsDead && !o.IsZombie
                 && Kindred.Distance(o.Position) < R.Range && !o.InFountain()))
             {
-                if (Config.Item("respite."+ally.CharData.BaseSkinName).GetValue<bool>() && Kindred.CountEnemiesInRange(1500) > 1 
-                    && ally.CountEnemiesInRange(1500) > 1)
+                if (Config.Item("respite."+ally.CharData.BaseSkinName).GetValue<bool>() && Kindred.CountEnemiesInRange(1500) >= 1 
+                    && ally.CountEnemiesInRange(1500) >= 1)
                 {
                     R.Cast(ally);
                 }
