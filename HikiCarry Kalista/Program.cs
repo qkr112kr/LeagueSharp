@@ -203,6 +203,7 @@ namespace HikiCarry_Kalista
             };
 
             Config.AddToMainMenu();
+            Game.PrintChat("<font color='#ff3232'>HikiCarry Kalista 1.3.3.7: </font> <font color='#d4d4d4'>If you like this assembly feel free to upvote on Assembly DB</font>");
             Orbwalking.AfterAttack += AfterAttack;
             Game.OnUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
