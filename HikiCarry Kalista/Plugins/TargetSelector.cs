@@ -33,7 +33,7 @@ using LeagueSharp.Common;
 
 #endregion
 
-namespace HikiCarry_Kalista
+namespace HikiCarry_Kalista.Plugins
 {
 
     public class CustomTargetSelector
@@ -246,7 +246,7 @@ namespace HikiCarry_Kalista
                 new MenuItem("TargetingMode", "Target Mode").SetShared()
                     .SetValue(new StringList(Enum.GetNames(typeof(TargetingMode)))));
             config.AddItem(
-               new MenuItem("kalista.stack.focus", "Stack Focus [Only Works Kalista Target Mode]").SetValue(new Slider(5,1,20)));
+               new MenuItem("kalista.stack.focus", "Stack Focus [Only Works Kalista Target Mode]").SetValue(new Slider(5, 1, 20)));
 
             config.AddItem(
                new MenuItem("kalista.stack.enemy.hp.percent", "Enemy HP Percent < ... [Only Works Kalista Target Mode]").SetValue(new Slider(50, 1, 99)));
