@@ -64,13 +64,6 @@ namespace HikiCarry_Kalista
                 Config.AddSubMenu(laneMenu);
             }
 
-            var lastMenu = new Menu("LastHit Settings", "LastHit Settings");
-            {
-                lastMenu.AddItem(new MenuItem("eLast", "Use E").SetValue(true));
-                lastMenu.AddItem(new MenuItem("manaLast", "Clear Mana Manager").SetValue(new Slider(20, 0, 100)));
-                Config.AddSubMenu(lastMenu);
-            }
-
             var jungMenu = new Menu("JungleClear Settings", "JungleClear Settings");
             {
                 jungMenu.AddItem(new MenuItem("qJungle", "Use Q").SetValue(true));
@@ -244,9 +237,6 @@ namespace HikiCarry_Kalista
                     Clear();
                     Jungle();
                     break;
-                case DeathWalker.Mode.Lasthit:
-                    LastHit();
-                    break;
             }
             if (Config.Item("use.balista").GetValue<bool>()) 
             {
@@ -331,18 +321,6 @@ namespace HikiCarry_Kalista
             if (E.IsReady() && Config.Item("eJungle").GetValue<bool>())
             {
                 Helper.RendJungleClear();
-            }
-        }
-
-        private static void LastHit()
-        {
-            if (Kalista.ManaPercent < Config.Item("manaLast").GetValue<Slider>().Value)
-            {
-                return;
-            }
-            if (E.IsReady() && Config.Item("eLast").GetValue<bool>())
-            {
-                Helper.RendSiegeMinions();
             }
         }
 
