@@ -61,7 +61,7 @@ namespace HikiCarry_Vayne_Masterrace
 
             
             
-            Notifications.AddNotification(String.Format("Shine# - {0} Loaded !", ObjectManager.Player.ChampionName), 3000);
+            Notifications.AddNotification(String.Format("HikiCarry Vayne Masterrace - {0} Loaded !", ObjectManager.Player.ChampionName), 3000);
         }
     }
 }
