@@ -20,12 +20,19 @@ namespace HybridCommon
         public Menu Config, combo, ult, harass, laneclear, jungle, customizableinterrupter, misc, drawing, evade, activator, qss, botrk, youmuu, qssMenu;
         public Orbwalking.Orbwalker Orbwalker;
         public Spell[] Spells = new Spell[4];
+        public static long LastCheck;
+        public static List<Vector2> Points = new List<Vector2>();
         public Evader m_evader;
         public Font Text;
 
         public delegate void dVoidDelegate();
         public dVoidDelegate BeforeOrbWalking, BeforeDrawing;
         public dVoidDelegate[] OrbwalkingFunctions = new dVoidDelegate[4];
+        public static Vector3 BlueTurretBot1 = new Vector3(10504, 1029, 41); // 100 Range
+        public static Vector3 BlueTurretBot2 = new Vector3(6919, 1483, 43); // 100 Range
+        public static Vector3 BlueTurretBot3 = new Vector3(4281, 1253, 86); // 100 Range
+        public static Vector3 BlueTurretBotInhibitor = new Vector3(3459, 1236, 89); // 200 Range
+        public static Vector3 BlueTurretRock1 = new Vector3(4000, 2370, 120); // 180 Range
 
         public BaseChamp(string szChampName)
         {
@@ -97,7 +104,6 @@ namespace HybridCommon
         {
             
         }
-
 
         public bool ComboReady()
         {

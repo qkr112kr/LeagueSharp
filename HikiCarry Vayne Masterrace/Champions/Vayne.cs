@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -85,7 +86,8 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             qss.AddSubMenu(qssMenu);
             Config.AddSubMenu(activator);
             Config.AddItem(new MenuItem("masterracec0mb0", "                      HikiCarry Masterrace Mode"));
-            Config.AddItem(new MenuItem("condemn.style", "Condemn Method").SetValue(new StringList(new[] { "Shine", "Asuna" })));
+            Config.AddItem(new MenuItem("condemn.style", "Condemn Method").SetValue(new StringList(new[] { "Shine", "Asuna", "360" })));
+            Config.AddItem(new MenuItem("condemn.x1", "Condemn Style").SetValue(new StringList(new[] { "Only Combo"})));
             Config.AddItem(new MenuItem("q.type", "Q Type").SetValue(new StringList(new[] {"Cursor Position" })));
             Config.AddItem(new MenuItem("combo.type", "Combo Type").SetValue(new StringList(new[] { "Burst", "Normal" })));
             Config.AddItem(new MenuItem("harass.type", "Harass Type").SetValue(new StringList(new[] { "2 Silver Stack + Q", "2 Silver Stack + E" })));
@@ -97,13 +99,14 @@ namespace HikiCarry_Vayne_Masterrace.Champions
 
             }
             Config.AddItem(new MenuItem("condemnDis", "                           Condemn Distance"));
-            Config.AddItem(new MenuItem("condemn.distance", "Condemn Push Distance").SetValue(new Slider(425, 1, 425)));
+            Config.AddItem(new MenuItem("condemn.distance", "Condemn Push Distance").SetValue(new Slider(410, 350, 420)));
             Config.AddToMainMenu();
             
             var drawing = new Menu("Draw Settings", "Draw Settings");
             {
                 drawing.AddItem(new MenuItem("qDraw", "Q Range").SetValue(new Circle(true, System.Drawing.Color.Chartreuse)));
                 drawing.AddItem(new MenuItem("eDraw", "E Range").SetValue(new Circle(true, System.Drawing.Color.Yellow)));
+                drawing.AddItem(new MenuItem("aa.indicator", "AA Indicator").SetValue(true));
                 Config.AddSubMenu(drawing);
             }
 
@@ -140,6 +143,11 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             {
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, Spells[E].Range, Config.Item("eDraw").GetValue<Circle>().Color);
             }
+            if (Config.Item("aa.indicator").GetValue<bool>())
+            {
+                HowManyAa();
+            }
+            Render.Circle.DrawCircle(BlueTurretRock1, 180, Color.White);
         }
         private void Game_OnGameUpdate(EventArgs args)
         {
@@ -163,6 +171,10 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             {
                 QssUsage();
             }
+            if (Config.Item("combo.e").GetValue<bool>() && Spells[E].IsReady())
+            {
+                SelectedCondemn();
+            }
         }
         public override void SetSpells()
         {
@@ -181,7 +193,7 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                 Spells[E].Cast(gapcloser.End.Extend(ObjectManager.Player.ServerPosition, ObjectManager.Player.Distance(gapcloser.End) + Spells[E].Range));
             }
         }
-        public bool AsunasAllyFountain(Vector3 Position)
+        public bool AsunasAllyFountain(Vector3 position)
         {
             float fountainRange = 750;
             var map = LeagueSharp.Common.Utility.Map.GetMap();
@@ -190,7 +202,7 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                 fountainRange = 1050;
             }
             return
-                ObjectManager.Get<GameObject>().Where(spawnPoint => spawnPoint is Obj_SpawnPoint && spawnPoint.IsAlly).Any(spawnPoint => Vector2.Distance(Position.To2D(), spawnPoint.Position.To2D()) < fountainRange);
+                ObjectManager.Get<GameObject>().Where(spawnPoint => spawnPoint is Obj_SpawnPoint && spawnPoint.IsAlly).Any(spawnPoint => Vector2.Distance(position.To2D(), spawnPoint.Position.To2D()) < fountainRange);
         }
         public void SelectedCondemn()
         {
@@ -199,34 +211,51 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                 case 0:
                     foreach (var target in HeroManager.Enemies.Where(h => h.IsValidTarget(Spells[E].Range)))
                     {
-                        var pushDistance = Config.Item("condemn.distance").GetValue<Slider>().Value;
-                        var targetPosition = Spells[E].GetPrediction(target).UnitPosition;
-                        var pushDirection = (targetPosition - ObjectManager.Player.ServerPosition).Normalized();
-                        float checkDistance = pushDistance / 40f;
-                        for (int i = 0; i < 40; i++)
+                        if (Config.Item("condemnset."+target.CharData.BaseSkinName).GetValue<bool>())
                         {
-                            Vector3 finalPosition = targetPosition + (pushDirection * checkDistance * i);
-                            var collFlags = NavMesh.GetCollisionFlags(finalPosition);
-                            if (collFlags.HasFlag(CollisionFlags.Wall) || collFlags.HasFlag(CollisionFlags.Building)) //not sure about building, I think its turrets, nexus etc
+                            var pushDistance = Config.Item("condemn.distance").GetValue<Slider>().Value;
+                            var targetPosition = Spells[E].GetPrediction(target).UnitPosition;
+                            var pushDirection = (targetPosition - ObjectManager.Player.ServerPosition).Normalized();
+                            float checkDistance = pushDistance / 40f;
+                            for (int i = 0; i < 40; i++)
                             {
-                                Spells[E].Cast(target);
+                                Vector3 finalPosition = targetPosition + (pushDirection * checkDistance * i);
+                                var collFlags = NavMesh.GetCollisionFlags(finalPosition);
+                                if (collFlags.HasFlag(CollisionFlags.Wall) || collFlags.HasFlag(CollisionFlags.Building)) //not sure about building, I think its turrets, nexus etc
+                                {
+                                    Spells[E].Cast(target);
+                                }
                             }
                         }
+                        
                     }
                     break;
                 case 1:
                     foreach (var En in HeroManager.Enemies.Where(hero => hero.IsValidTarget(Spells[E].Range) && !hero.HasBuffOfType(BuffType.SpellShield) && !hero.HasBuffOfType(BuffType.SpellImmunity)))
                     {
-                        var EPred = Spells[E].GetPrediction(En);
-                        int pushDist = Config.Item("condemn.distance").GetValue<Slider>().Value;
-                        var FinalPosition = EPred.UnitPosition.To2D().Extend(ObjectManager.Player.ServerPosition.To2D(), -pushDist).To3D();
-
-                        for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
+                        if (Config.Item("condemnset." + En.CharData.BaseSkinName).GetValue<bool>())
                         {
-                            Vector3 loc3 = EPred.UnitPosition.To2D().Extend(ObjectManager.Player.ServerPosition.To2D(), -i).To3D();
+                            var EPred = Spells[E].GetPrediction(En);
+                            int pushDist = Config.Item("condemn.distance").GetValue<Slider>().Value;
+                            var FinalPosition = EPred.UnitPosition.To2D().Extend(ObjectManager.Player.ServerPosition.To2D(), -pushDist).To3D();
 
-                            if (loc3.IsWall() || AsunasAllyFountain(FinalPosition))
-                                Spells[E].Cast(En);
+                            for (int i = 1; i < pushDist; i += (int)En.BoundingRadius)
+                            {
+                                Vector3 loc3 = EPred.UnitPosition.To2D().Extend(ObjectManager.Player.ServerPosition.To2D(), -i).To3D();
+
+                                if (loc3.IsWall() || AsunasAllyFountain(FinalPosition))
+                                    Spells[E].Cast(En);
+                            }
+                        }
+                    }
+                    break;
+                case 2:
+                    foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Spells[E].Range) && !x.HasBuffOfType(BuffType.SpellShield) && !x.HasBuffOfType(BuffType.SpellImmunity) &&
+                        IsCondemable(x)))
+                    {
+                        if (Config.Item("condemnset." + enemy.CharData.BaseSkinName).GetValue<bool>())
+                        {
+                            Spells[E].Cast(enemy);
                         }
                     }
                     break;
@@ -390,6 +419,23 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                 }
             }
         }
+        public static IEnumerable<Vector3> CondemnPosition()
+        {
+            var pointList = new List<Vector3>();
+            var j = 300;
+            var offset = (int)(2 * Math.PI * j / 100);
+            for (var i = 0; i <= offset; i++)
+            {
+                var angle = i * Math.PI * 2 / offset;
+                var point = new Vector3((float)(ObjectManager.Player.Position.X + j * Math.Cos(angle)),
+                    (float)(ObjectManager.Player.Position.Y - j * Math.Sin(angle)),
+                    ObjectManager.Player.Position.Z);
+
+                if (!NavMesh.GetCollisionFlags(point).HasFlag(CollisionFlags.Wall))
+                    pointList.Add(point);
+            }
+            return pointList;
+        }
         public void Combo()
         {
             if (Config.Item("combo.q").GetValue<bool>() && Spells[Q].IsReady())
@@ -480,6 +526,55 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                 {
                     Spells[E].Cast(enemy);
                 }
+            }
+        }
+        public bool IsCondemable(Obj_AI_Hero unit, Vector2 pos = new Vector2())
+        {
+            if (unit.HasBuffOfType(BuffType.SpellImmunity) || unit.HasBuffOfType(BuffType.SpellShield) || LastCheck + 50 > Environment.TickCount || ObjectManager.Player.IsDashing()) return false;
+            var prediction = Spells[E].GetPrediction(unit);
+            var predictionsList = pos.IsValid() ? new List<Vector3>() { pos.To3D() } : new List<Vector3>
+                        {
+                            unit.ServerPosition,
+                            unit.Position,
+                            prediction.CastPosition,
+                            prediction.UnitPosition
+                        };
+
+            var wallsFound = 0;
+            Points = new List<Vector2>();
+            foreach (var position in predictionsList)
+            {
+                for (var i = 0; i < Config.Item("condemn.distance").GetValue<Slider>().Value; i += (int)unit.BoundingRadius) // 420 = push distance
+                {
+                    var cPos = ObjectManager.Player.Position.Extend(position, ObjectManager.Player.Distance(position) + i).To2D();
+                    Points.Add(cPos);
+                    if (NavMesh.GetCollisionFlags(cPos.To3D()).HasFlag(CollisionFlags.Wall) || NavMesh.GetCollisionFlags(cPos.To3D()).HasFlag(CollisionFlags.Building))
+                    {
+                        wallsFound++;
+                        break;
+                    }
+                }
+            }
+            if ((wallsFound / predictionsList.Count) >= 33 / 100f)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        public void HowManyAa()
+        {
+            foreach (var enemy in HeroManager.Enemies.Where(o=> o.IsValidTarget(1000) && o.IsVisible && !o.IsDead && !o.IsZombie))
+            {
+                var basicDamage = ObjectManager.Player.GetAutoAttackDamage(enemy);
+                var hikiX1 = new float[] { 0, 20, 30, 40, 50, 60 };
+                var hikiX2 = new double[] { 0, .04, .05, .06, .07, .08 };
+
+                var hikiAa = (enemy.Health)/
+                              (basicDamage + (hikiX1[ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level] + (enemy.MaxHealth*hikiX2[ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level]))/3);
+                int totalAa = (int)Math.Ceiling(hikiAa);
+                Drawing.DrawText(enemy.HPBarPosition.X, enemy.HPBarPosition.Y, Color.Gold,
+                                    string.Format("Rest of Auto Attacks: {0} ", totalAa));
             }
         }
     }

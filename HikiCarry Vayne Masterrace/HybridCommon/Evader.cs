@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using HikiCarry_Vayne_Masterrace;
 using LeagueSharp;
 using LeagueSharp.Common;
 using HybridCommon;
@@ -70,8 +71,9 @@ namespace HybridCommon
             m_evade_thread.Start();
             Game.OnUpdate += Game_OnUpdate;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
-            
-            Game.PrintChat("<font color='#ff3232'>HikiCarry Vayne Masterrace: </font><font color='#d4d4d4'>Evader loaded! You can rekt everyone with this assembly 1.337 ms</font>", ObjectManager.Player.ChampionName);
+
+            Game.PrintChat("<font color='#ff3232'>HikiCarry Vayne Masterrace: </font><font color='#d4d4d4'>Evader loaded! You can rekt everyone with this assembly 1.337 ms.</font>", ObjectManager.Player.ChampionName);
+            Game.PrintChat(string.Format("<font color='#ff3232'>HikiCarry Vayne Masterrace - </font><font color='#d4d4d4'>Assembly Version: </font><font color='#ff3232'><b>{0}</b></font> ", typeof(Program).Assembly.GetName().Version));
         }
 
         public void SetEvadeSpell(Spell spl)
