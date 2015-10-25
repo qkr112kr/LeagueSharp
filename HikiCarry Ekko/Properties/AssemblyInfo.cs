@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("HikiCarry - Ekko")]
+[assembly: AssemblyTitle("HikiCarry Ekko")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("HikiCarry - Ekko")]
+[assembly: AssemblyProduct("HikiCarry Ekko")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("bab9c934-36ce-445b-83c6-d902506bc838")]
+[assembly: Guid("45eef183-038b-4086-81bd-55524d2a68ce")]
 
 // Version information for an assembly consists of the following four values:
 //
