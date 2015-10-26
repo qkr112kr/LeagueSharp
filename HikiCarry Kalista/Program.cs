@@ -16,6 +16,7 @@ namespace HikiCarry_Kalista
         public static Menu Config;
         public static Spell Q, W, E, R;
         private static Obj_AI_Hero Kalista = ObjectManager.Player;
+        public static Orbwalking.Orbwalker Orbwalker;
         
 
         static void Main(string[] args)
@@ -38,7 +39,8 @@ namespace HikiCarry_Kalista
             Q.SetSkillshot(0.25f, 40f, 1200f, true, SkillshotType.SkillshotLine);
 
             Config = new Menu("HikiCarry - Kalista", "HikiCarry - Kalista", true);
-            DeathWalker.AddToMenu(Config.SubMenu("Deathwalker Orbwalker Settings"));
+            Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
+
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
                 comboMenu.AddItem(new MenuItem("qCombo", "Use Q").SetValue(true));
