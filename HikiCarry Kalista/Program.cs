@@ -227,15 +227,15 @@ namespace HikiCarry_Kalista
 
         private static void Game_OnGameUpdate(EventArgs args)
         {
-            switch (DeathWalker.CurrentMode)
+            switch (Orbwalker.ActiveMode)
             {
-                case DeathWalker.Mode.Combo:
+                case Orbwalking.OrbwalkingMode.Combo:
                     Combo();
                     break;
-                case DeathWalker.Mode.Harass:
+                case Orbwalking.OrbwalkingMode.Mixed:
                     Harass();
                     break;
-                case DeathWalker.Mode.LaneClear:
+                case Orbwalking.OrbwalkingMode.LaneClear:
                     Clear();
                     Jungle();
                     break;

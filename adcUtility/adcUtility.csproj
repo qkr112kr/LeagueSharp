@@ -36,17 +36,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LeagueSharp">
-      <HintPath>D:\X\System\LeagueSharp.dll</HintPath>
+      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\LeagueSharp.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp.Common">
-      <HintPath>D:\X\System\LeagueSharp.Common.dll</HintPath>
+      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
-      <HintPath>D:\X\System\SharpDX.dll</HintPath>
+      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Direct3D9, Version=2.6.3.0, Culture=neutral, PublicKeyToken=345b829e6e492981, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\X\System\SharpDX.Direct3D9.dll</HintPath>
+      <HintPath>C:\Users\Hiki\Desktop\LeagueSharpx\LeagueSharpx\System\SharpDX.Direct3D9.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
