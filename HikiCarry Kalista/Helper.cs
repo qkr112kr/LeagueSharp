@@ -127,7 +127,6 @@ namespace HikiCarry_Kalista
         {
             
         }
-
         public static void BlueOrb(int level)
         {
             if (ObjectManager.Player.Level >= level && ObjectManager.Player.InShop() && !(Items.HasItem(3342) || Items.HasItem(3363)))
@@ -243,6 +242,14 @@ namespace HikiCarry_Kalista
                         }
                     }
                 }
+            }
+        }
+        public static void SupportProtector(Spell spell)
+        {
+            foreach (var ally in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsAlly && !x.IsMe && x.HasBuff("kalistacoopstrikeally") && x.Distance(ObjectManager.Player.Position) < Program.R.Range &&
+                x.HealthPercent <= Program.Config.Item("savePercent").GetValue<Slider>().Value))
+            {
+                spell.Cast();
             }
         }
 

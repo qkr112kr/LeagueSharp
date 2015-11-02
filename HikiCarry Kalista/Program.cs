@@ -170,7 +170,7 @@ namespace HikiCarry_Kalista
             }
 
             Config.AddItem(new MenuItem("saveSupport", "Save Support [R]").SetValue(true));
-            Config.AddItem(new MenuItem("savePercent", "Save Support Health Percent").SetValue(new Slider(10, 0, 100)));
+            Config.AddItem(new MenuItem("savePercent", "Save Support Health Percent").SetValue(new Slider(10, 1, 99)));
             Config.AddItem(new MenuItem("calculator", "E Damage Calculator").SetValue(new StringList(new[] { "Custom Calculator", "Common Calculator" }))); 
 
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "E Damage").SetValue(true);
@@ -267,6 +267,10 @@ namespace HikiCarry_Kalista
             if (Config.Item("use.qss").GetValue<bool>())
             {
                 Activator.QuickSilver("clear.ignite", "clear.exhaust", "clear.zedult", "clear.fizzult", "clear.malzaharult", "clear.vladulti");
+            }
+            if (Config.Item("saveSupport").GetValue<bool>())
+            {
+                Helper.SupportProtector(R);
             }
         }
 
