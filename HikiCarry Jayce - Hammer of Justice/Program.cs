@@ -143,8 +143,49 @@ namespace HikiCarry_Jayce___Hammer_of_Justice
 
             Config.AddToMainMenu();
             Game.PrintChat("<font color='#ff3232'>HikiCarry Jayce - Hammer of Justice: </font> <font color='#d4d4d4'>If you like this assembly feel free to upvote on Assembly DB</font>");
+            Interrupter2.OnInterruptableTarget += Interrupter2_OnInterruptableTarget;
+            AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnUpdate += OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
+        }
+
+        private static void Interrupter2_OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
+        {
+            if (Hammer)
+            {
+                if (Config.Item("ainterrupt").GetValue<bool>())
+                {
+                    if (sender.IsValidTarget(1000))
+                    {
+                        Render.Circle.DrawCircle(sender.Position, sender.BoundingRadius, Color.Gold, 5);
+                        var targetpos = Drawing.WorldToScreen(sender.Position);
+                        Drawing.DrawText(targetpos[0] - 40, targetpos[1] + 20, Color.Gold, "Interrupt");
+                    }
+                    if (HammerE.CanCast(sender))
+                    {
+                        HammerE.Cast(sender);
+                    }
+                }
+            }
+        }
+        private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
+        {
+            if (Hammer)
+            {
+                if (Config.Item("agapcloser").GetValue<bool>())
+                {
+                    if (gapcloser.Sender.IsValidTarget(1000))
+                    {
+                        Render.Circle.DrawCircle(gapcloser.Sender.Position, gapcloser.Sender.BoundingRadius, Color.Gold, 5);
+                        var targetpos = Drawing.WorldToScreen(gapcloser.Sender.Position);
+                        Drawing.DrawText(targetpos[0] - 40, targetpos[1] + 20, Color.Gold, "Gapcloser");
+                    }
+                    if (HammerE.CanCast(gapcloser.Sender))
+                    {
+                        HammerE.Cast(gapcloser.Sender);
+                    }
+                }
+            }
         }
         private static void OnGameUpdate(EventArgs args)
         {
