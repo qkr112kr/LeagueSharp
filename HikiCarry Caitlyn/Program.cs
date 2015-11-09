@@ -36,8 +36,8 @@ namespace HikiCarry_Caitlyn
 
             Q.SetSkillshot(0.25f, 60f, 2000f, false, SkillshotType.SkillshotLine);
             E.SetSkillshot(0.25f, 80f, 1600f, true, SkillshotType.SkillshotLine);
-            Config = new Menu("HikiCarry - Kalista", "HikiCarry - Kalista", true);
-            Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
+            Config = new Menu("HikiCarry - Caitlyn", "HikiCarry - Caitlyn", true);
+            Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("• Orbwalker Settings"));
 
             var comboMenu = new Menu("• Combo Settings", "Combo Settings");
             {
@@ -56,7 +56,7 @@ namespace HikiCarry_Caitlyn
             }
             var laneMenu = new Menu("• Clear Settings", "Clear Settings");
             {
-                laneMenu.AddItem(new MenuItem("q.clear", "Use E").SetValue(true));
+                laneMenu.AddItem(new MenuItem("q.clear", "Use Q").SetValue(true));
                 laneMenu.AddItem(new MenuItem("q.minion.hit", "Min. Minion Hit").SetValue(new Slider(3, 1, 5)));
                 laneMenu.AddItem(new MenuItem("clear.mana", "Clear Mana Manager").SetValue(new Slider(20, 0, 100)));
                 Config.AddSubMenu(laneMenu);
@@ -69,6 +69,8 @@ namespace HikiCarry_Caitlyn
             }
             var miscMenu = new Menu("• Miscellaneous", "Miscellaneous");
             {
+                miscMenu.AddItem(new MenuItem("immobile.q", "Auto Q Immobile").SetValue(true));
+                miscMenu.AddItem(new MenuItem("immobile.w", "Auto W Immobile").SetValue(true));
                 var orbSet = new Menu("• Scrying Orb Settings", "Scrying Orb Settings");
                 {
                     orbSet.AddItem(new MenuItem("bT", "Auto Scrying Orb Buy!").SetValue(true));
@@ -84,12 +86,58 @@ namespace HikiCarry_Caitlyn
                 drawMenu.AddItem(new MenuItem("r.draw", "R Range").SetValue(new Circle(true, Color.Gold)));
                 Config.AddSubMenu(drawMenu);
             }
-            Config.AddItem(new MenuItem("eq.fast", "E+Q!", true).SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
             Config.AddItem(new MenuItem("hikiChance", "Skillshot Hit Chance").SetValue<StringList>(new StringList(Helper.HitchanceNameArray, 2)));
+            
+            var drawDamageMenu = new MenuItem("RushDrawEDamage", "Combo Damage").SetValue(true);
+            var drawFill = new MenuItem("RushDrawEDamageFill", "Combo Damage Fill").SetValue(new Circle(true, Color.Gold));
+
+            drawMenu.SubMenu("Damage Draws").AddItem(drawDamageMenu);
+            drawMenu.SubMenu("Damage Draws").AddItem(drawFill);
+
+            DamageIndicator.DamageToUnit = ComboDamage;
+            DamageIndicator.Enabled = drawDamageMenu.GetValue<bool>();
+            DamageIndicator.Fill = drawFill.GetValue<Circle>().Active;
+            DamageIndicator.FillColor = drawFill.GetValue<Circle>().Color;
+
+            drawDamageMenu.ValueChanged +=
+            delegate(object sender, OnValueChangeEventArgs eventArgs)
+            {
+                DamageIndicator.Enabled = eventArgs.GetNewValue<bool>();
+            };
+
+            drawFill.ValueChanged +=
+            delegate(object sender, OnValueChangeEventArgs eventArgs)
+            {
+                DamageIndicator.Fill = eventArgs.GetNewValue<Circle>().Active;
+                DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
+            };
             Config.AddToMainMenu();
             Game.PrintChat("<font color='#ff3232'>HikiCarry Caitlyn: </font> <font color='#d4d4d4'>If you like this assembly feel free to upvote on Assembly DB</font>");
             Game.OnUpdate += OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
+        }
+
+        private static float ComboDamage(Obj_AI_Hero hero)
+        {
+            float damage = 0;
+
+            if (Q.IsReady())
+            {
+                damage += Q.GetDamage(hero); 
+            }
+            if (W.IsReady())
+            {
+                damage += W.GetDamage(hero); 
+            }
+            if (E.IsReady())
+            {
+                damage += E.GetDamage(hero);
+            }
+            if (R.IsReady())
+            {
+                damage += R.GetDamage(hero);
+            }
+            return damage;
         }
 
         private static void OnGameUpdate(EventArgs args)
@@ -112,20 +160,57 @@ namespace HikiCarry_Caitlyn
             {
                 Helper.BlueOrb(Config.Item("bluetrinketlevel").GetValue<Slider>().Value);
             }
-            if (Config.Item("eq.fast").GetValue<KeyBind>().Active)
+            KillSteal();
+            Immobile();
+        }
+        private static void KillSteal()
+        {
+            if (Helper.MenuCheck("ks.q") && Q.IsReady())
             {
-                EqFast();
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Q.Range) && !x.IsDead && !x.IsZombie && Q.GetDamage(x) > x.Health))
+                {
+                    if (Q.GetPrediction(enemy).Hitchance >= Helper.HikiChance("hikiChance"))
+                    {
+                        Q.Cast(enemy);
+                    }
+                }
+            }
+            if (Helper.MenuCheck("ks.r") && R.IsReady())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(R.Range) && !x.IsDead && !x.IsZombie))
+                {
+                    if (!Caitlyn.UnderTurret(true) && R.GetDamage(enemy) > enemy.Health)
+                    {
+                        R.Cast(enemy);
+                    }
+                }
+            }
+
+        }
+        private static void Immobile()
+        {
+            if (Helper.MenuCheck("immobile.q") && Q.IsReady())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Q.Range) && !x.IsDead && !x.IsZombie
+                    && Helper.Immobile(x)))
+                {
+                    if (Q.GetPrediction(enemy).Hitchance >= Helper.HikiChance("hikiChance"))
+                    {
+                        Q.Cast(enemy);
+                    }
+                }
+            }
+            if (Helper.MenuCheck("immobile.w") && W.IsReady())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(W.Range) && !x.IsDead && !x.IsZombie && Helper.Immobile(x)))
+                {
+                    W.Cast(enemy.Position);
+                }
             }
         }
-
         private static void EqFast()
         {
             Caitlyn.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-            if (!Q.IsReady() || !E.IsReady())
-            {
-                return;
-            }
-
             if (Q.IsReady() && E.IsReady() && Helper.MenuCheck("q.combo") && Helper.MenuCheck("e.combo"))
             {
                 foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(E.Range) && !x.IsZombie && !x.IsDead))
