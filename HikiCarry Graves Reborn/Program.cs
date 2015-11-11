@@ -41,10 +41,6 @@ namespace HikiCarry_Graves_Reborn
             W.SetSkillshot(0.35f, 150f, 1650f, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(0.25f, 100f, 2100f, false, SkillshotType.SkillshotLine);
 
-            SpellList.Add(Q);
-            SpellList.Add(W);
-            SpellList.Add(E);
-            SpellList.Add(R);
 
             Config = new Menu("HikiCarry - Graves", "HikiCarry - Graves", true);
 
