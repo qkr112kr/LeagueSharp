@@ -12,18 +12,15 @@ namespace HikiCarry_Graves_Reborn
 {
     class Program
     {
-        public const string ChampionName = "Graves";
         public static Orbwalking.Orbwalker Orbwalker;
-        public static List<Spell> SpellList = new List<Spell>();
         public static Menu Config;
-        private static Obj_AI_Hero Player = ObjectManager.Player;
-        private static SpellSlot Flash;
-        public static int qRange = 0;
+        private static readonly Obj_AI_Hero Player = ObjectManager.Player;
+        public static int QRangee = 0;
 
         public static Spell Q;
         public static Spell W;
         public static Spell E;
-        public static Spell R;
+        public static Spell R,R1;
 
         static void Main(string[] args)
         {
@@ -32,16 +29,16 @@ namespace HikiCarry_Graves_Reborn
 
         private static void Game_OnGameLoad(EventArgs args)
         {
-            if (Player.BaseSkinName != ChampionName) return;
+            if (Player.ChampionName != "Graves") return;
 
 
-            Q = new Spell(SpellSlot.Q, 720f);
-            W = new Spell(SpellSlot.W, 850f);
-            E = new Spell(SpellSlot.E, 425f);
-            R = new Spell(SpellSlot.R, 1100f);
+            Q = new Spell(SpellSlot.Q, 950);
+            W = new Spell(SpellSlot.W, 950f);
+            E = new Spell(SpellSlot.E, 450f);
+            R = new Spell(SpellSlot.R, 1500f);
 
-            Q.SetSkillshot(0.25f, 15f * (float)Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
-            W.SetSkillshot(0.25f, 250f, 1650f, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.25f, 60f, 2000f, false, SkillshotType.SkillshotLine);
+            W.SetSkillshot(0.35f, 150f, 1650f, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(0.25f, 100f, 2100f, false, SkillshotType.SkillshotLine);
 
             SpellList.Add(Q);
@@ -101,7 +98,7 @@ namespace HikiCarry_Graves_Reborn
             
 
             Config.AddItem(new MenuItem("imgodandiknow", "                HikiCarry Graves Settings"));
-            Config.AddItem(new MenuItem("qRange",  "[Q] Range").SetValue(new Slider(500, 1, 720)));
+            Config.AddItem(new MenuItem("qRangeee",  "[Q] Range").SetValue(new Slider(950, 1, 950)));
             Config.AddItem(new MenuItem("eLogic",  "[E] Logic").SetValue(new StringList(new[] { "Cursor Position" })));
 
             var drawDamageMenu = new MenuItem("rDamage", "R Damage").SetValue(true);
@@ -218,7 +215,7 @@ namespace HikiCarry_Graves_Reborn
         }
         private static void Combo()
         {
-            qRange     = Config.Item("qRange").GetValue<Slider>().Value;
+            QRangee     = Config.Item("qRangee").GetValue<Slider>().Value;
             var useQ   = Config.Item("qCombo").GetValue<bool>();
             var useW   = Config.Item("wCombo").GetValue<bool>();
             var useE   = Config.Item("eCombo").GetValue<bool>();
@@ -230,7 +227,7 @@ namespace HikiCarry_Graves_Reborn
                    var en in
                        HeroManager.Enemies.Where(
                            hero =>
-                               hero.IsValidTarget(qRange)))
+                               hero.IsValidTarget(QRangee)))
                 {
                     if (Q.CanCast(en) && Q.GetPrediction(en).Hitchance >= HitChance.High && !Player.IsWindingUp && !Player.IsDashing())
 
@@ -277,7 +274,7 @@ namespace HikiCarry_Graves_Reborn
         }
         private static void Harass()
         {
-            qRange = Config.Item("qRange").GetValue<Slider>().Value;
+            QRangee = Config.Item("qRangee").GetValue<Slider>().Value;
             var useQ = Config.Item("qHarass").GetValue<bool>();
             if (ObjectManager.Player.ManaPercent > Config.Item("harassMana").GetValue<Slider>().Value)
             {
@@ -287,7 +284,7 @@ namespace HikiCarry_Graves_Reborn
                        var en in
                            HeroManager.Enemies.Where(
                                hero =>
-                                   hero.IsValidTarget(qRange)))
+                                   hero.IsValidTarget(QRangee)))
                     {
                         if (Q.CanCast(en) && Q.GetPrediction(en).Hitchance >= HitChance.High && !Player.IsWindingUp && !Player.IsDashing())
 
@@ -364,7 +361,7 @@ namespace HikiCarry_Graves_Reborn
         }
         private static void Drawing_OnDraw(EventArgs args)
         {
-            qRange = Config.Item("qRange").GetValue<Slider>().Value;
+            QRangee = Config.Item("qRangee").GetValue<Slider>().Value;
             var menuItem1 = Config.Item("qDraw").GetValue<Circle>();
             var menuItem2 = Config.Item("wDraw").GetValue<Circle>();
             var menuItem3 = Config.Item("eDraw").GetValue<Circle>();
@@ -373,7 +370,7 @@ namespace HikiCarry_Graves_Reborn
 
             if (menuItem1.Active && Q.IsReady())
             {
-                Render.Circle.DrawCircle(Player.Position, qRange, Color.SpringGreen);
+                Render.Circle.DrawCircle(Player.Position, QRangee, Color.SpringGreen);
             }
             if (menuItem2.Active && E.IsReady())
             {
