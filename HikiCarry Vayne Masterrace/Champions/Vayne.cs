@@ -23,7 +23,6 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             combo.AddItem(new MenuItem("combo.q", "Use Q").SetValue(true));
             combo.AddItem(new MenuItem("combo.e", "Use E").SetValue(true));
             combo.AddItem(new MenuItem("combo.r", "Use R").SetValue(true));
-            combo.AddItem(new MenuItem("combo.e.finisher", "E Finisher").SetValue(true));
             combo.AddItem(new MenuItem("combo.r.count", "R on x Enemy").SetValue(new Slider(3, 1, 5)));
 
             harass = new Menu("Harass Settings", "Harass Settings");
@@ -35,7 +34,15 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             jungle.AddItem(new MenuItem("jungle.q", "Use Q").SetValue(true));
             jungle.AddItem(new MenuItem("jungle.e", "Use E").SetValue(true));
             jungle.AddItem(new MenuItem("jungle.mana", "Min. Mana Percent").SetValue(new Slider(50, 0, 100)));
-           
+
+            CondemnMenu = new Menu("» Condemn Settings «", "Condemn Settings");
+            condemnwhitelist = new Menu("» Condemn Whitelist", "Condemn Whitelist");
+            foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
+            {
+                condemnwhitelist.AddItem(new MenuItem("condemnset." + enemy.CharData.BaseSkinName, string.Format("Condemn: {0}", enemy.CharData.BaseSkinName)).SetValue(true));
+
+            }
+            CondemnMenu.AddItem(new MenuItem("condemn.distance", "» Condemn Push Distance").SetValue(new Slider(410, 350, 420)));
 
             misc = new Menu("Miscellaneous", "Miscellaneous");
             customizableinterrupter = new Menu("Customizable Interrupter", "Customizable Interrupter");
@@ -77,6 +84,8 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             Config.AddSubMenu(harass);
             Config.AddSubMenu(jungle);
             Config.AddSubMenu(evade);
+            Config.AddSubMenu(CondemnMenu);
+            CondemnMenu.AddSubMenu(condemnwhitelist);
             misc.AddSubMenu(customizableinterrupter);
 
             Config.AddSubMenu(misc);
@@ -85,21 +94,13 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             activator.AddSubMenu(youmuu);
             qss.AddSubMenu(qssMenu);
             Config.AddSubMenu(activator);
+            
             Config.AddItem(new MenuItem("masterracec0mb0", "                      HikiCarry Masterrace Mode"));
             Config.AddItem(new MenuItem("condemn.style", "Condemn Method").SetValue(new StringList(new[] { "Shine", "Asuna", "360" })));
             Config.AddItem(new MenuItem("condemn.x1", "Condemn Style").SetValue(new StringList(new[] { "Only Combo"})));
             Config.AddItem(new MenuItem("q.type", "Q Type").SetValue(new StringList(new[] {"Cursor Position" })));
             Config.AddItem(new MenuItem("combo.type", "Combo Type").SetValue(new StringList(new[] { "Burst", "Normal" })));
             Config.AddItem(new MenuItem("harass.type", "Harass Type").SetValue(new StringList(new[] { "2 Silver Stack + Q", "2 Silver Stack + E" })));
-            Config.AddItem(new MenuItem("whitelistcondemn", "                          Condemn Whitelist"));
-
-            foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
-            {
-                Config.AddItem(new MenuItem("condemnset." + enemy.CharData.BaseSkinName, string.Format("Condemn: {0}", enemy.CharData.BaseSkinName)).SetValue(true));
-
-            }
-            Config.AddItem(new MenuItem("condemnDis", "                           Condemn Distance"));
-            Config.AddItem(new MenuItem("condemn.distance", "Condemn Push Distance").SetValue(new Slider(410, 350, 420)));
             Config.AddToMainMenu();
             
             var drawing = new Menu("Draw Settings", "Draw Settings");
@@ -403,21 +404,17 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                 }
             }
         }
-        public double FinisherDamage(Obj_AI_Hero hero)
+        public double WDamage(Obj_AI_Hero hero)
         {
             double dmg = 0.0;
-            dmg += CalculateDamageW(hero) + CalculateDamageE(hero);
+            dmg += CalculateDamageW(hero);
             return dmg;
         }
-        public void Finisher()
+        public double EDamage(Obj_AI_Hero hero)
         {
-            foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(Spells[E].Range) && o.IsDead && o.IsZombie))
-            {
-                if (enemy.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2) && enemy.Health < FinisherDamage(enemy))
-                {
-                    Spells[E].Cast(enemy);
-                }
-            }
+            double dmg = 0.0;
+            dmg += CalculateDamageE(hero);
+            return dmg;
         }
         public static IEnumerable<Vector3> CondemnPosition()
         {
@@ -449,10 +446,6 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             if (Config.Item("combo.r").GetValue<bool>() && Spells[R].IsReady())
             {
                 ComboUltimateLogic();
-            }
-            if (Config.Item("combo.e.finisher").GetValue<bool>() && Spells[E].IsReady())
-            {
-                Finisher();
             }
         }
         public void Harass()
@@ -571,10 +564,11 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                 var hikiX2 = new double[] { 0, .04, .05, .06, .07, .08 };
 
                 var hikiAa = (enemy.Health)/
-                              (basicDamage + (hikiX1[ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level] + (enemy.MaxHealth*hikiX2[ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level]))/3);
+                              (basicDamage + (hikiX1[ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level] + 
+                              (enemy.MaxHealth*hikiX2[ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level]))/3);
                 int totalAa = (int)Math.Ceiling(hikiAa);
                 Drawing.DrawText(enemy.HPBarPosition.X, enemy.HPBarPosition.Y, Color.Gold,
-                                    string.Format("Rest of Auto Attacks: {0} ", totalAa));
+                                    string.Format("Auto Attacks: {0} ", totalAa));
             }
         }
     }

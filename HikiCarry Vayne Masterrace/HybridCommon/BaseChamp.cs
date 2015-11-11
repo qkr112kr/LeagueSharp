@@ -17,7 +17,7 @@ namespace HybridCommon
         
         public const int Q = 0, W = 1, E = 2, R = 3;
 
-        public Menu Config, combo, ult, harass, laneclear, jungle, customizableinterrupter, misc, drawing, evade, activator, qss, botrk, youmuu, qssMenu;
+        public Menu Config, combo, ult, harass, laneclear, jungle,CondemnMenu,condemnwhitelist, customizableinterrupter, misc, drawing, evade, activator, qss, botrk, youmuu, qssMenu;
         public Orbwalking.Orbwalker Orbwalker;
         public Spell[] Spells = new Spell[4];
         public static long LastCheck;
