@@ -97,7 +97,7 @@ namespace HikiCarry_Lee_Sin.Champions
                 ClearMenu.AddItem(new MenuItem("q2.clear", "> Use Q2").SetValue(true));
                 ClearMenu.AddItem(new MenuItem("e.clear", "Use E").SetValue(true));
                 ClearMenu.AddItem(new MenuItem("e2.clear", "> Use E2").SetValue(true));
-                ClearMenu.AddItem(new MenuItem("e.minion.count", "E Minion Count").SetValue(new Slider(2, 1, 5)));
+                ClearMenu.AddItem(new MenuItem("e.minion.count", "E Minion Count").SetValue(new Slider(3, 1, 5)));
                 //ClearMenu.AddItem(new MenuItem("passive.usage.clear", "Passive Usage?").SetValue(new StringList(new[] { "Enabled", "Disabled" }))); // +
                 
             }
@@ -250,7 +250,7 @@ namespace HikiCarry_Lee_Sin.Champions
                     break;
 
                 case Orbwalking.OrbwalkingMode.Mixed:
-                    
+                    Harass();
                     break;
 
                 case Orbwalking.OrbwalkingMode.LaneClear:
@@ -290,9 +290,41 @@ namespace HikiCarry_Lee_Sin.Champions
             }
             
         }
+
+        private void Harass()
+        {
+            if (Spells[Q].IsReady() && Helper.QOne(Spells[Q]) && Config.Item("q.harass").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Spells[Q].Range) && !x.IsDead && x.IsVisible && !x.IsZombie))
+                {
+                    if (Spells[Q].GetPrediction(enemy).Hitchance > HitChance.High && Spells[Q].GetPrediction(enemy).CollisionObjects.Count == 0)
+                    {
+                        Spells[Q].Cast(enemy);
+                    }
+                }
+            }
+            if (Spells[Q2].IsReady() && Helper.QTwo(Spells[Q]) && Config.Item("q2.harass").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Spells[Q2].Range) && !x.IsDead && x.IsVisible && !x.IsZombie))
+                {
+                    if (Helper.HasQBuff(enemy))
+                    {
+                        Spells[Q2].Cast();
+                    }
+                }
+            }
+            if (Spells[E].IsReady() && Helper.EOne(Spells[E]) && Config.Item("e.harass").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Spells[E].Range) && !x.IsDead && x.IsVisible && !x.IsZombie))
+                {
+                    Spells[E].Cast();
+                }
+            }
+
+        }
         private void Combo()
         {
-            if (Spells[Q].IsReady() && Helper.QOne(Spells[Q]) && Config.Item("q.combo").GetValue<bool>() && !Helper.PassiveUsage("passive.usage"))
+            if (Spells[Q].IsReady() && Helper.QOne(Spells[Q]) && Config.Item("q.combo").GetValue<bool>())
             {
                 foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Spells[Q].Range) && !x.IsDead && x.IsVisible && !x.IsZombie))
                 {
@@ -302,7 +334,7 @@ namespace HikiCarry_Lee_Sin.Champions
                     }
                 }
             }
-            if (Spells[Q2].IsReady() && Helper.QTwo(Spells[Q]) && Config.Item("q2.combo").GetValue<bool>() && !Helper.PassiveUsage("passive.usage"))
+            if (Spells[Q2].IsReady() && Helper.QTwo(Spells[Q]) && Config.Item("q2.combo").GetValue<bool>())
             {
                 foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Spells[Q2].Range) && !x.IsDead && x.IsVisible && !x.IsZombie))
                 {
@@ -419,7 +451,7 @@ namespace HikiCarry_Lee_Sin.Champions
             }
             if (Spells[E].IsReady() && Helper.EOne(Spells[E]))
             {
-                var countMinion = qMinion.Where(x => x.IsValidTarget(Spells[E].Range)).Count(x=> x.Health < Spells[E].GetDamage(x));
+                var countMinion = qMinion.Where(x => x.IsValidTarget(Spells[E].Range)).Count();
                 if (countMinion >= Helper.SliderCheck("e.minion.count"))
                 {
                     Spells[E].Cast();
