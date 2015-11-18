@@ -45,6 +45,7 @@ namespace HikiCarry_Lee_Sin.Stages
             var tower = ObjectManager.Get<Obj_AI_Turret>().Where(x => x.IsAlly && !x.IsEnemy).OrderBy(o => o.Distance(ObjectManager.Player.Position)).FirstOrDefault();
             if (tower != null)
             {
+
                 return enemy.Position.To2D().Extend(tower.Position.To2D(), -distance).To3D();
             }
             else
@@ -70,6 +71,10 @@ namespace HikiCarry_Lee_Sin.Stages
         {
             if (Config.Item("insec.whitelist." + enemy.ChampionName).GetValue<bool>())
             {
+                if (Spells[Q].CanCast(enemy) && Spells[Q].GetPrediction(enemy).Hitchance > HitChance.High && Spells[R].IsReady())
+                {
+                    Spells[Q].Cast(enemy);
+                }
                 if (Spells[Q].CanCast(enemy) && Spells[Q].GetPrediction(enemy).Hitchance > HitChance.High && Spells[R].IsReady())
                 {
                     Spells[Q].Cast(enemy);

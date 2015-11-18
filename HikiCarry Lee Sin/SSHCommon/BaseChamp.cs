@@ -18,7 +18,7 @@ namespace HybridCommon
         public const int Q = 0, Q2 = 1, W = 2, E = 3, E2 = 4, R = 5, W2 = 6;
         
         public static int WardRange;
-        public static Menu Config,ComboMenu,HikiMenu,InsecMenu,WhiteMenu,HarassMenu,ClearMenu,JungleMenu,KillStealMenu,DrawMenu,Evade,SMenu,StealMenu;
+        public static Menu Config,ComboMenu,HikiMenu,InsecMenu,WhiteMenu,HarassMenu,ClearMenu,JungleMenu,KillStealMenu,DrawMenu,Evade,SMenu,StealMenu,MiscMenu;
         public Orbwalking.Orbwalker Orbwalker;
         public static Spell[] Spells = new Spell[7];
         public static long LastCheck;

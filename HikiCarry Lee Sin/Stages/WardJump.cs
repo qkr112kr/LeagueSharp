@@ -32,7 +32,7 @@ namespace HikiCarry_Lee_Sin.Stages
         /// <param name="position">Jump Position</param>
         public static void HikiJump(Spell W,Vector3 position)
         {
-
+            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
             if (WardCastable && W.Instance.Name == "BlindMonkWOne" && W.IsReady())
             {
                 ObjectManager.Player.Spellbook.CastSpell(Items.GetWardSlot().SpellSlot, position);

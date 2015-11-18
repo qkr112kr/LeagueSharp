@@ -337,6 +337,23 @@ namespace HikiCarry_Lee_Sin.Core
                 }
             }
         }
+        public static void CustomizableInterrupter()
+        {
+            if (ObjectManager.Player.CountEnemiesInRange(Spells[R].Range) > 1)
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Spells[E].Range) && !x.HasBuffOfType(BuffType.SpellShield) && !x.HasBuffOfType(BuffType.SpellImmunity) && x.ChampionName == "Katarina" || x.ChampionName == "MissFortune"))
+                {
+                    if (enemy.HasBuff("KatarinaR") || enemy.HasBuff("katarinarsound") && Config.Item("katarina.r").GetValue<bool>())
+                    {
+                        Spells[R].Cast(enemy);
+                    }
+                    if (enemy.HasBuff("missfortunebulletsound") || enemy.HasBuff("MissFortuneBulletTime") && Config.Item("miss.fortune.r").GetValue<bool>())
+                    {
+                        Spells[R].Cast(enemy);
+                    }
+                }
+            }
+        }
 
     }
 }

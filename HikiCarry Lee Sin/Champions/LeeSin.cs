@@ -81,6 +81,7 @@ namespace HikiCarry_Lee_Sin.Champions
                 InsecMenu.AddItem(new MenuItem("max.enemy.count.distance", "Enemy Search Range").SetValue(new Slider(1000, 1, 2000))); // +
                 //InsecMenu.AddItem(new MenuItem("min.mana", "Min. Energy for Insec").SetValue(new Slider(50, 1, 99))); //+
                 InsecMenu.AddItem(new MenuItem("insec.distance", "Min. Insec Distance").SetValue(new Slider(300, 1, 374)));
+                InsecMenu.AddItem(new MenuItem("collision.object.smite", "Smite Collision Object").SetValue(true));
                 //InsecMenu.AddItem(new MenuItem("flash.insec", "Flash Insec").SetValue(new StringList(new[] { "Enabled", "Disabled" }, 1))); //+
                
             }
@@ -132,6 +133,16 @@ namespace HikiCarry_Lee_Sin.Champions
                 KillStealMenu.AddItem(new MenuItem("killsteal", "Kill Steal?").SetValue(new StringList(new[] { "Enabled", "Disabled" }))); // +
                 
             }
+            MiscMenu = new Menu("Miscellaneous", "Miscellaneous");
+            {
+                var customizableinterrupter = new Menu("Customizable Interrupter", "Customizable Interrupter");
+                {
+                    customizableinterrupter.AddItem(new MenuItem("miss.fortune.r", "Miss Fortune (R)").SetValue(true));
+                    customizableinterrupter.AddItem(new MenuItem("katarina.r", "Katarina (R)").SetValue(true));
+                    customizableinterrupter.AddItem(new MenuItem("customizable.check", "Customizable Interrupter?").SetValue(new StringList(new[] { "Enabled", "Disabled" })));
+                    MiscMenu.AddSubMenu(customizableinterrupter);
+                }
+            }
             DrawMenu = new Menu("Draw Settings", "Draw Settings");
             {
                 DrawMenu.AddItem(new MenuItem("q.draw", "Q Range").SetValue(new Circle(true, Color.White)));
@@ -167,6 +178,7 @@ namespace HikiCarry_Lee_Sin.Champions
             Config.AddSubMenu(JungleMenu);
             Config.AddSubMenu(StealMenu);
             Config.AddSubMenu(KillStealMenu);
+            Config.AddSubMenu(MiscMenu);
             Config.AddSubMenu(DrawMenu);
             Config.AddSubMenu(Evade);
             
@@ -287,8 +299,11 @@ namespace HikiCarry_Lee_Sin.Champions
             if (Config.Item("killsteal").GetValue<StringList>().SelectedIndex == 0)
             {
                 KillSteal();
+            } 
+            if (Config.Item("customizable.check").GetValue<StringList>().SelectedIndex == 0)
+            {
+                Helper.CustomizableInterrupter();
             }
-            
         }
 
         private void Harass()
