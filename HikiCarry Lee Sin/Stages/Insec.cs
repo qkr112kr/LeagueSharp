@@ -9,11 +9,13 @@ using HybridCommon;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
+using Color = System.Drawing.Color;
 
 namespace HikiCarry_Lee_Sin.Stages
 {
     public class Insec : LeeSin
     {
+        
         /// <summary>
         /// Ally Insec
         /// </summary>
@@ -71,11 +73,7 @@ namespace HikiCarry_Lee_Sin.Stages
         {
             if (Config.Item("insec.whitelist." + enemy.ChampionName).GetValue<bool>())
             {
-                if (Spells[Q].CanCast(enemy) && Spells[Q].GetPrediction(enemy).Hitchance > HitChance.High && Spells[R].IsReady())
-                {
-                    Spells[Q].Cast(enemy);
-                }
-                if (Spells[Q].CanCast(enemy) && Spells[Q].GetPrediction(enemy).Hitchance > HitChance.High && Spells[R].IsReady())
+                if (Spells[Q].CanCast(enemy) && Spells[Q].GetPrediction(enemy).Hitchance > HitChance.High)
                 {
                     Spells[Q].Cast(enemy);
                 }
@@ -92,6 +90,31 @@ namespace HikiCarry_Lee_Sin.Stages
                     Spells[R].Cast(enemy);
                 }
             }   
+        }
+
+        public static void ClickInsec()
+        {
+            Obj_AI_Hero selectedTarget = TargetSelector.GetSelectedTarget();
+            if (selectedTarget != null)
+                {
+                    if (Spells[Q].CanCast(selectedTarget) && Spells[Q].GetPrediction(selectedTarget).Hitchance > HitChance.High)
+                    {
+                        Spells[Q].Cast(selectedTarget);
+                    }
+                    if (Spells[Q].Instance.Name != "BlindMonkQOne" && Spells[Q2].IsReady())
+                    {
+                        Spells[Q2].Cast();
+                    }
+                    if (!Spells[Q].IsReady() && !Spells[Q2].IsReady() && Spells[W].IsReady() && Spells[W].Instance.Name == "BlindMonkWOne")
+                    {
+                        Helper.InsecTo(selectedTarget, Spells[W]);
+                    }
+                    if (!Spells[Q].IsReady() && !Spells[Q2].IsReady() && Spells[W].Instance.Name != "BlindMonkWOne" && Spells[R].CanCast(selectedTarget))
+                    {
+                        Spells[R].Cast(selectedTarget);
+                    }
+                } 
+            
         }
 
         

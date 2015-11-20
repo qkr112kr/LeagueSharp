@@ -67,6 +67,8 @@ namespace HikiCarry_Lee_Sin.Champions
             }
             InsecMenu = new Menu("Insec Settings", "Insec Settings");
             {
+                InsecMenu.AddItem(new MenuItem("insec.style", "Insec Method").SetValue(new StringList(new[] { "Automatic", "Click Target" }))); // +
+
                 WhiteMenu = new Menu("Insec Whitelist", "Insec Whitelist");
                 {
                     foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValid))
@@ -81,7 +83,8 @@ namespace HikiCarry_Lee_Sin.Champions
                 InsecMenu.AddItem(new MenuItem("max.enemy.count.distance", "Enemy Search Range").SetValue(new Slider(1000, 1, 2000))); // +
                 //InsecMenu.AddItem(new MenuItem("min.mana", "Min. Energy for Insec").SetValue(new Slider(50, 1, 99))); //+
                 InsecMenu.AddItem(new MenuItem("insec.distance", "Min. Insec Distance").SetValue(new Slider(300, 1, 374)));
-                InsecMenu.AddItem(new MenuItem("collision.object.smite", "Smite Collision Object").SetValue(true));
+                //InsecMenu.AddItem(new MenuItem("collision.object.smite", "Smite Collision Object").SetValue(true));
+                //InsecMenu.AddItem(new MenuItem("object.usage", "Object Usage").SetValue(true));
                 //InsecMenu.AddItem(new MenuItem("flash.insec", "Flash Insec").SetValue(new StringList(new[] { "Enabled", "Disabled" }, 1))); //+
                
             }
@@ -251,6 +254,7 @@ namespace HikiCarry_Lee_Sin.Champions
             {
                 Helper.WardDraw(Config.Item("ward.draw").GetValue<Circle>().Color);
             }
+           
 
         }
         private void Game_OnGameUpdate(EventArgs args)
@@ -277,15 +281,27 @@ namespace HikiCarry_Lee_Sin.Champions
             {
                 WardJump.HikiJump(Spells[W],Game.CursorPos);
             }
-
             if (Config.Item("insec.active").GetValue<KeyBind>().Active)
             {
-                ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Helper.SliderCheck("max.enemy.count.distance"))))
+                switch (Config.Item("insec.style").GetValue<StringList>().SelectedIndex)
                 {
-                    Insec.HikiInsec(enemy);
-                }   
+                    case 0:
+                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
+                        foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Helper.SliderCheck("max.enemy.count.distance"))))
+                        {
+                            Insec.HikiInsec(enemy);
+                        }
+
+                        break;
+                    case 1:
+                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
+                        Insec.ClickInsec();
+                        break;
+
+                }
+                
             }
+            
             if (Config.Item("star.active").GetValue<KeyBind>().Active)
             {
                 ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);

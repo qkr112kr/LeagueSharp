@@ -58,6 +58,7 @@ namespace HikiCarry_Lee_Sin.Core
                     break;
             }
         }
+        
 
         public static void InsecDrawLine(Color color)
         {
@@ -84,6 +85,22 @@ namespace HikiCarry_Lee_Sin.Core
             }
         }
 
+        public static Vector3 InsecPositions()
+        {
+            switch (Config.Item("insec.to").GetValue<StringList>().SelectedIndex)
+            {
+                case 0:
+                    return Insec.AllyInsec(SliderCheck("max.enemy.count.distance"), SliderCheck("insec.distance"));
+                    break;
+                case 1:
+                    return Insec.TowerInsec(SliderCheck("max.enemy.count.distance"), SliderCheck("insec.distance"));
+                    break;
+                case 2:
+                    return Insec.CursorInsec(SliderCheck("max.enemy.count.distance"), SliderCheck("insec.distance"));
+                    break;
+            }
+            return InsecPositions();
+        }
         public static void WardDraw(Color color)
         {
             foreach (var ward in ObjectManager.Get<Obj_AI_Base>().Where(x => x.Name.IndexOf("ward", StringComparison.InvariantCultureIgnoreCase) > 0 && x.IsAlly && x.IsVisible))
