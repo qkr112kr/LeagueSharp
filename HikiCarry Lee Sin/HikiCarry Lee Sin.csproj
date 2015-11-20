@@ -75,6 +75,7 @@
     <Compile Include="SSHCommon\Utility.cs" />
     <Compile Include="Stages\Insec.cs" />
     <Compile Include="Stages\WardJump.cs" />
+    <Compile Include="Stages\WardjumpFlashInsec.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

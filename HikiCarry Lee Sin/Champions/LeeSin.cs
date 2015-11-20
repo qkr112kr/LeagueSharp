@@ -149,11 +149,13 @@ namespace HikiCarry_Lee_Sin.Champions
             DrawMenu = new Menu("Draw Settings", "Draw Settings");
             {
                 DrawMenu.AddItem(new MenuItem("q.draw", "Q Range").SetValue(new Circle(true, Color.White)));
-                DrawMenu.AddItem(new MenuItem("q2.draw", "Q Range").SetValue(new Circle(true, Color.DarkSeaGreen)));
+                DrawMenu.AddItem(new MenuItem("q2.draw", "Q2 Range").SetValue(new Circle(true, Color.DarkSeaGreen)));
                 DrawMenu.AddItem(new MenuItem("w.draw", "W Range").SetValue(new Circle(true, Color.Gold)));
                 DrawMenu.AddItem(new MenuItem("e.draw", "E Range").SetValue(new Circle(true, Color.DodgerBlue)));
-                DrawMenu.AddItem(new MenuItem("e2.draw", "E Range").SetValue(new Circle(true, Color.SeaGreen)));
+                DrawMenu.AddItem(new MenuItem("e2.draw", "E2 Range").SetValue(new Circle(true, Color.SeaGreen)));
                 DrawMenu.AddItem(new MenuItem("r.draw", "R Range").SetValue(new Circle(true, Color.GreenYellow)));
+                DrawMenu.AddItem(new MenuItem("wardjump.range", "Ward Jump Range").SetValue(new Circle(true, Color.Tomato)));
+
 
                 var insecDraw = new Menu("Insec Draws", "Insec Draws");
                 {
@@ -254,6 +256,12 @@ namespace HikiCarry_Lee_Sin.Champions
             {
                 Helper.WardDraw(Config.Item("ward.draw").GetValue<Circle>().Color);
             }
+            if (Config.Item("wardjump.range").GetValue<Circle>().Active)
+            {
+                Render.Circle.DrawCircle(ObjectManager.Player.Position, 600, Config.Item("wardjump.range").GetValue<Circle>().Color);
+                Render.Circle.DrawCircle(ObjectManager.Player.Position.Extend(Game.CursorPos, 600), 50, Config.Item("wardjump.range").GetValue<Circle>().Color);
+            }
+            
            
 
         }
@@ -279,7 +287,7 @@ namespace HikiCarry_Lee_Sin.Champions
 
             if (Config.Item("wardjump.active").GetValue<KeyBind>().Active)
             {
-                WardJump.HikiJump(Spells[W],Game.CursorPos);
+                WardJump.HikiJump(Spells[W], ObjectManager.Player.Position.Extend(Game.CursorPos, 600));
             }
             if (Config.Item("insec.active").GetValue<KeyBind>().Active)
             {
@@ -321,7 +329,6 @@ namespace HikiCarry_Lee_Sin.Champions
                 Helper.CustomizableInterrupter();
             }
         }
-
         private void Harass()
         {
             if (Spells[Q].IsReady() && Helper.QOne(Spells[Q]) && Config.Item("q.harass").GetValue<bool>())
