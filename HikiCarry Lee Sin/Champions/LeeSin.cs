@@ -34,7 +34,7 @@ namespace HikiCarry_Lee_Sin.Champions
                 ComboMenu.AddItem(new MenuItem("passive.usage", "Passive Usage?").SetValue(new StringList(new[] { "Enabled", "Disabled" }))); // +
             }
             //SMenu
-            SMenu = new Menu("Star Combo Settings", "Star Combo Settings");
+            /*SMenu = new Menu("Star Combo Settings", "Star Combo Settings");
             {
                 SMenu.AddItem(new MenuItem("q.star", "Use Q").SetValue(true));
                 SMenu.AddItem(new MenuItem("q2.star", "> Use Q2").SetValue(true));
@@ -43,11 +43,6 @@ namespace HikiCarry_Lee_Sin.Champions
                 SMenu.AddItem(new MenuItem("e.star", "Use E").SetValue(true));
                 SMenu.AddItem(new MenuItem("e2.star", "> Use E2").SetValue(true));
                 SMenu.AddItem(new MenuItem("r.star", "Use R").SetValue(true));
-                var starItems = new Menu("Star Combo Items", "Star Combo Items");
-                {
-                    starItems.AddItem(new MenuItem("star.tiamat", "Tiamat / Hydra").SetValue(true));
-                    SMenu.AddSubMenu(starItems);
-                }
 
             }
 
@@ -58,13 +53,9 @@ namespace HikiCarry_Lee_Sin.Champions
                 HikiMenu.AddItem(new MenuItem("e.hiki", "Use E").SetValue(true));
                 HikiMenu.AddItem(new MenuItem("e2.hiki", "> Use E2").SetValue(true));
                 HikiMenu.AddItem(new MenuItem("r.hiki", "Use R").SetValue(true));
-                var hikiItems = new Menu("Hikigaya Combo Items", "Hikigaya Combo Items");
-                {
-                    hikiItems.AddItem(new MenuItem("hiki.tiamat", "Tiamat / Hydra").SetValue(true));
-                    HikiMenu.AddSubMenu(hikiItems);
-                }
                 
             }
+             * */
             InsecMenu = new Menu("Insec Settings", "Insec Settings");
             {
                 InsecMenu.AddItem(new MenuItem("insec.style", "Insec Method").SetValue(new StringList(new[] { "Automatic", "Click Target" }))); // +
@@ -101,6 +92,7 @@ namespace HikiCarry_Lee_Sin.Champions
                 ClearMenu.AddItem(new MenuItem("q2.clear", "> Use Q2").SetValue(true));
                 ClearMenu.AddItem(new MenuItem("e.clear", "Use E").SetValue(true));
                 ClearMenu.AddItem(new MenuItem("e.minion.count", "E Minion Count").SetValue(new Slider(3, 1, 5)));
+                ClearMenu.AddItem(new MenuItem("hydra.clear", "Use Hydra").SetValue(true));
                 //ClearMenu.AddItem(new MenuItem("passive.usage.clear", "Passive Usage?").SetValue(new StringList(new[] { "Enabled", "Disabled" }))); // +
                 
             }
@@ -135,6 +127,42 @@ namespace HikiCarry_Lee_Sin.Champions
                 KillStealMenu.AddItem(new MenuItem("killsteal", "Kill Steal?").SetValue(new StringList(new[] { "Enabled", "Disabled" }))); // +
                 
             }
+            ActivatorMenu = new Menu("Activator Settings", "Activator Settings");
+            {
+                var hydraMenu = new Menu("Hydra Settings", "Hydra Settings");
+                {
+                    hydraMenu.AddItem(new MenuItem("use.hydra", "Use Ravenous Hydra (Combo)").SetValue(true)); // 
+                    hydraMenu.AddItem(new MenuItem("use.titanic", "Use Titanic Hydra (Combo)").SetValue(true));
+                    hydraMenu.AddItem(new MenuItem("use.tiamat", "Use Tiamat(Combo)").SetValue(true));
+                    ActivatorMenu.AddSubMenu(hydraMenu);
+                }
+                var youmuuMenu = new Menu("Youmuu Settings", "Youmuu Settings");
+                {
+                    youmuuMenu.AddItem(new MenuItem("use.youmuu", "Use Youmuu (Combo)").SetValue(true));
+                    ActivatorMenu.AddSubMenu(youmuuMenu);
+                }
+                var botrkMenu = new Menu("Botrk Settings", "Botrk Settings");
+                {
+                    botrkMenu.AddItem(new MenuItem("use.botrk", "Use Botrk (Combo)").SetValue(true));
+                    botrkMenu.AddItem(new MenuItem("botrk.hp", "If Lee HP < %").SetValue(new Slider(20, 1, 99)));
+                    botrkMenu.AddItem(new MenuItem("botrk.enemy.hp", "If Enemy HP < %").SetValue(new Slider(20, 1, 99)));
+                    ActivatorMenu.AddSubMenu(botrkMenu);
+                }
+                var bilgewaterMenu = new Menu("Bilgewater Settings", "Bilgewater Settings");
+                {
+                    bilgewaterMenu.AddItem(new MenuItem("use.bilgewater", "Use Bilgewater (Combo)").SetValue(true));
+                    bilgewaterMenu.AddItem(new MenuItem("bilgewater.hp", "If Lee HP < %").SetValue(new Slider(20, 1, 99)));
+                    bilgewaterMenu.AddItem(new MenuItem("bilgewater.enemy.hp", "If Enemy HP < %").SetValue(new Slider(20, 1, 99)));
+                    ActivatorMenu.AddSubMenu(bilgewaterMenu);
+                }
+                var randuinMenu = new Menu("Randuin Settings", "Randuin Settings");
+                {
+                    randuinMenu.AddItem(new MenuItem("use.randuin", "Use Randuin (Combo)").SetValue(true));
+                    randuinMenu.AddItem(new MenuItem("randuin.min.enemy.count", "Min. Enemy Count").SetValue(new Slider(3, 1, 5)));
+                    ActivatorMenu.AddSubMenu(randuinMenu);
+                }
+
+            }
             MiscMenu = new Menu("Miscellaneous", "Miscellaneous");
             {
                 var customizableinterrupter = new Menu("Customizable Interrupter", "Customizable Interrupter");
@@ -147,15 +175,17 @@ namespace HikiCarry_Lee_Sin.Champions
             }
             DrawMenu = new Menu("Draw Settings", "Draw Settings");
             {
-                DrawMenu.AddItem(new MenuItem("q.draw", "Q Range").SetValue(new Circle(true, Color.White)));
-                DrawMenu.AddItem(new MenuItem("q2.draw", "Q2 Range").SetValue(new Circle(true, Color.DarkSeaGreen)));
-                DrawMenu.AddItem(new MenuItem("w.draw", "W Range").SetValue(new Circle(true, Color.Gold)));
-                DrawMenu.AddItem(new MenuItem("e.draw", "E Range").SetValue(new Circle(true, Color.DodgerBlue)));
-                DrawMenu.AddItem(new MenuItem("e2.draw", "E2 Range").SetValue(new Circle(true, Color.SeaGreen)));
-                DrawMenu.AddItem(new MenuItem("r.draw", "R Range").SetValue(new Circle(true, Color.GreenYellow)));
-                DrawMenu.AddItem(new MenuItem("wardjump.range", "Ward Jump Range").SetValue(new Circle(true, Color.Tomato)));
-
-
+                var skillDraw = new Menu("Skill Draws", "Skill Draws");
+                {
+                    skillDraw.AddItem(new MenuItem("q.draw", "Q Range").SetValue(new Circle(true, Color.White)));
+                    skillDraw.AddItem(new MenuItem("q2.draw", "Q2 Range").SetValue(new Circle(true, Color.DarkSeaGreen)));
+                    skillDraw.AddItem(new MenuItem("w.draw", "W Range").SetValue(new Circle(true, Color.Gold)));
+                    skillDraw.AddItem(new MenuItem("e.draw", "E Range").SetValue(new Circle(true, Color.DodgerBlue)));
+                    skillDraw.AddItem(new MenuItem("e2.draw", "E2 Range").SetValue(new Circle(true, Color.SeaGreen)));
+                    skillDraw.AddItem(new MenuItem("r.draw", "R Range").SetValue(new Circle(true, Color.GreenYellow)));
+                    skillDraw.AddItem(new MenuItem("wardjump.range", "Ward Jump Range").SetValue(new Circle(true, Color.Tomato)));
+                    DrawMenu.AddSubMenu(skillDraw);
+                }
                 var insecDraw = new Menu("Insec Draws", "Insec Draws");
                 {
                     insecDraw.AddItem(new MenuItem("insec.circle", "Insec Circle").SetValue(new Circle(true, Color.Gold)));
@@ -168,20 +198,23 @@ namespace HikiCarry_Lee_Sin.Champions
                     objectDraws.AddItem(new MenuItem("ward.draw", "Ward Draw").SetValue(new Circle(true, Color.Red)));
                     DrawMenu.AddSubMenu(objectDraws);
                 }
+                DrawMenu.AddItem(new MenuItem("draw.damage", "Fill Combo Damage").SetValue(true));
+
                 
             }
 
             m_evader = new Evader(out Evade, EvadeMethods.LeeSinW);
 
             Config.AddSubMenu(ComboMenu);
-            Config.AddSubMenu(SMenu);
-            Config.AddSubMenu(HikiMenu);
+            //Config.AddSubMenu(SMenu);
+            //Config.AddSubMenu(HikiMenu);
             Config.AddSubMenu(InsecMenu);
             Config.AddSubMenu(HarassMenu);
             Config.AddSubMenu(ClearMenu);
             Config.AddSubMenu(JungleMenu);
             Config.AddSubMenu(StealMenu);
             Config.AddSubMenu(KillStealMenu);
+            Config.AddSubMenu(ActivatorMenu);
             Config.AddSubMenu(MiscMenu);
             Config.AddSubMenu(DrawMenu);
             Config.AddSubMenu(Evade);
@@ -189,15 +222,31 @@ namespace HikiCarry_Lee_Sin.Champions
             
             Config.AddItem(new MenuItem("masterracec0mb0", "                  Hikigaya Lee Sin Keys"));
             Config.AddItem(new MenuItem("insec.active", "Insec!").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
-            Config.AddItem(new MenuItem("star.active", "Star Combo!").SetValue(new KeyBind("Z".ToCharArray()[0], KeyBindType.Press)));
-            Config.AddItem(new MenuItem("hiki.active", "Hikigaya Combo!").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press)));
+            //Config.AddItem(new MenuItem("star.active", "Star Combo!").SetValue(new KeyBind("Z".ToCharArray()[0], KeyBindType.Press)));
+            //Config.AddItem(new MenuItem("hiki.active", "Hikigaya Combo!").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press)));
             Config.AddItem(new MenuItem("wardjump.active", "Ward Jump!").SetValue(new KeyBind("S".ToCharArray()[0], KeyBindType.Press)));
             Config.AddToMainMenu();
-            DamageIndicator.DamageToUnit = (t) => (float)CalculateComboDamage(t);
+            if (Config.Item("draw.damage").GetValue<bool>())
+            {
+                DamageIndicator.DamageToUnit = (t) => (float)CalculateComboDamage(t);
+            }
+            
+            Orbwalking.AfterAttack += AfterAttack;
             Game.OnUpdate += Game_OnGameUpdate;
             GameObject.OnCreate += GameObject_OnCreate;
             Drawing.OnDraw += OnDraw;
             
+        }
+
+        private void AfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            Core.Activator.HikiTiamat((Obj_AI_Hero)unit);
+            Core.Activator.HikiHydra((Obj_AI_Hero)unit);
+            Core.Activator.HikiBilgewater((Obj_AI_Hero)unit);
+            Core.Activator.HikiBlade((Obj_AI_Hero)unit);
+            Core.Activator.HikiRanduin((Obj_AI_Hero)unit);
+            Core.Activator.HikiYoumuu((Obj_AI_Hero)unit);
+            Core.Activator.HikiTitanic((Obj_AI_Hero)unit);
         }
 
         private void GameObject_OnCreate(GameObject sender, EventArgs args)
