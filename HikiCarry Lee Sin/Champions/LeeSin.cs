@@ -100,7 +100,6 @@ namespace HikiCarry_Lee_Sin.Champions
                 ClearMenu.AddItem(new MenuItem("q.clear", "Use Q").SetValue(true));
                 ClearMenu.AddItem(new MenuItem("q2.clear", "> Use Q2").SetValue(true));
                 ClearMenu.AddItem(new MenuItem("e.clear", "Use E").SetValue(true));
-                ClearMenu.AddItem(new MenuItem("e2.clear", "> Use E2").SetValue(true));
                 ClearMenu.AddItem(new MenuItem("e.minion.count", "E Minion Count").SetValue(new Slider(3, 1, 5)));
                 //ClearMenu.AddItem(new MenuItem("passive.usage.clear", "Passive Usage?").SetValue(new StringList(new[] { "Enabled", "Disabled" }))); // +
                 
@@ -441,20 +440,6 @@ namespace HikiCarry_Lee_Sin.Champions
                     Spells[Q2].Cast(mob[0]);
                 }
             }
-            if (Spells[E].IsReady() && Helper.EOne(Spells[E]) && Config.Item("e.jungle").GetValue<bool>() && !Helper.PassiveUsage("passive.usage.jungle"))
-            {
-                if (mob[0].Distance(ObjectManager.Player.Position) < Spells[E].Range)
-                {
-                    Spells[E].Cast();
-                }
-            }
-            if (Spells[E2].IsReady() && Helper.ETwo(Spells[E]) && Config.Item("e2.jungle").GetValue<bool>() && !Helper.PassiveUsage("passive.usage.jungle"))
-            {
-                if (mob[0].Distance(ObjectManager.Player.Position) < Spells[E2].Range)
-                {
-                    Spells[E2].Cast();
-                }
-            }
             if (Spells[W].IsReady() && Helper.WOne(Spells[W]) && Config.Item("w.jungle").GetValue<bool>() && !Helper.PassiveUsage("passive.usage.jungle"))
             {
                 if (mob[0].Distance(ObjectManager.Player.Position) < Spells[E2].Range)
@@ -469,32 +454,46 @@ namespace HikiCarry_Lee_Sin.Champions
                     Spells[W2].Cast();
                 }
             }
+            if (Spells[E].IsReady() && Helper.EOne(Spells[E]) && Config.Item("e.jungle").GetValue<bool>() && !Helper.PassiveUsage("passive.usage.jungle"))
+            {
+                if (mob[0].Distance(ObjectManager.Player.Position) < Spells[E].Range)
+                {
+                    Spells[E].Cast();
+                }
+            }
+            if (Spells[E2].IsReady() && Helper.ETwo(Spells[E]) && Config.Item("e2.jungle").GetValue<bool>() && !Helper.PassiveUsage("passive.usage.jungle"))
+            {
+                if (mob[0].Distance(ObjectManager.Player.Position) < Spells[E2].Range)
+                {
+                    Spells[E2].Cast();
+                }
+            }
+            
         }
         private void Clear()
         {
             var qMinion = MinionManager.GetMinions(ObjectManager.Player.Position,Spells[Q].Range, MinionTypes.All, MinionTeam.Enemy, MinionOrderTypes.MaxHealth);
-            if (Spells[Q].IsReady() && Helper.QOne(Spells[Q]))
+            if (Spells[Q].IsReady() && Helper.QOne(Spells[Q]) && Config.Item("q.clear").GetValue<bool>())
             {
                 foreach (var minion in qMinion.Where(x=> x.Health < Calculator.QDamage(x,Spells[Q])))
                 {
                     Spells[Q].Cast(minion);
                 }
             }
-            if (Spells[Q2].IsReady() && Helper.QTwo(Spells[Q2]))
+            if (Spells[Q2].IsReady() && Helper.QTwo(Spells[Q2]) && Config.Item("q2.clear").GetValue<bool>())
             {
                 foreach (var minion in qMinion.Where(x => x.Health < Calculator.Q2DamageMinion(x, Spells[Q])))
                 {
                     Spells[Q2].Cast();
                 }
             }
-            if (Spells[E].IsReady() && Helper.EOne(Spells[E]))
+            if (Spells[E].IsReady() && Helper.EOne(Spells[E]) && Config.Item("e.clear").GetValue<bool>())
             {
                 var countMinion = qMinion.Where(x => x.IsValidTarget(Spells[E].Range)).Count();
                 if (countMinion >= Helper.SliderCheck("e.minion.count"))
                 {
                     Spells[E].Cast();
                 }
-
             }
             
             
