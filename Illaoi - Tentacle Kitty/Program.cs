@@ -197,7 +197,7 @@ namespace Illaoi___Tentacle_Kitty
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(E.Range) && !o.IsDead && !o.IsZombie))
                 {
-                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>())
+                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>() && E.GetPrediction(enemy).Hitchance >= HitChance.High)
                     {
                         E.Cast(enemy);
                     }
@@ -244,7 +244,7 @@ namespace Illaoi___Tentacle_Kitty
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(E.Range) && !o.IsDead && !o.IsZombie))
                 {
-                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>())
+                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>() && E.GetPrediction(enemy).Hitchance >= HitChance.High)
                     {
                         E.Cast(enemy);
                     }
