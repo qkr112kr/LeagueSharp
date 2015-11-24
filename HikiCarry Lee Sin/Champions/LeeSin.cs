@@ -68,6 +68,13 @@ namespace HikiCarry_Lee_Sin.Champions
                     }
                     InsecMenu.AddSubMenu(WhiteMenu);
                 }
+                var flashInsecMenu = new Menu("Flash Insec Settings", "Flash Insec Settings");
+                {
+
+                    flashInsecMenu.AddItem(new MenuItem("flash.insec.flash.delay", "Max. Flash Delay").SetValue(new Slider(30, 30, 200)));
+                    flashInsecMenu.AddItem(new MenuItem("flash.insec.piorty", "Flash Insec Piorty").SetValue(new StringList(new[] { "Smart" }))); //+
+                    InsecMenu.AddSubMenu(flashInsecMenu);
+                }
                 InsecMenu.AddItem(new MenuItem("insec.status", "Insec Status").SetValue(new StringList(new[] { "Enabled", "Disabled" }))); // +
                 InsecMenu.AddItem(new MenuItem("insec.to", "Insec to ?").SetValue(new StringList(new[] { "Ally", "Tower", "Cursor Position" }, 2)));
                 //InsecMenu.AddItem(new MenuItem("max.enemy.count", "Max. Enemy for Insec").SetValue(new Slider(3, 1, 5))); // +
@@ -76,7 +83,7 @@ namespace HikiCarry_Lee_Sin.Champions
                 InsecMenu.AddItem(new MenuItem("insec.distance", "Min. Insec Distance").SetValue(new Slider(300, 1, 374)));
                 //InsecMenu.AddItem(new MenuItem("collision.object.smite", "Smite Collision Object").SetValue(true));
                 //InsecMenu.AddItem(new MenuItem("object.usage", "Object Usage").SetValue(true));
-                //InsecMenu.AddItem(new MenuItem("flash.insec", "Flash Insec").SetValue(new StringList(new[] { "Enabled", "Disabled" }, 1))); //+
+                InsecMenu.AddItem(new MenuItem("flash.insec", "Flash Insec").SetValue(new StringList(new[] { "Enabled", "Disabled" }, 1))); //+
                
             }
             HarassMenu = new Menu("Harass Settings", "Harass Settings");
@@ -188,6 +195,7 @@ namespace HikiCarry_Lee_Sin.Champions
                 }
                 var insecDraw = new Menu("Insec Draws", "Insec Draws");
                 {
+                    insecDraw.AddItem(new MenuItem("flash.insec.text.draw", "Flash Insec Text Draw").SetValue(true));
                     insecDraw.AddItem(new MenuItem("insec.circle", "Insec Circle").SetValue(new Circle(true, Color.Gold)));
                     insecDraw.AddItem(new MenuItem("insec.line", "Insec Line").SetValue(new Circle(true, Color.Gold)));
                     insecDraw.AddItem(new MenuItem("thickness", "Thickness").SetValue(new Slider(5, 1, 5)));
@@ -222,6 +230,7 @@ namespace HikiCarry_Lee_Sin.Champions
             
             Config.AddItem(new MenuItem("masterracec0mb0", "                  Hikigaya Lee Sin Keys"));
             Config.AddItem(new MenuItem("insec.active", "Insec!").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
+            Config.AddItem(new MenuItem("flash.insec.active", "Flash Insec!").SetValue(new KeyBind("Z".ToCharArray()[0], KeyBindType.Press)));
             //Config.AddItem(new MenuItem("star.active", "Star Combo!").SetValue(new KeyBind("Z".ToCharArray()[0], KeyBindType.Press)));
             //Config.AddItem(new MenuItem("hiki.active", "Hikigaya Combo!").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press)));
             Config.AddItem(new MenuItem("wardjump.active", "Ward Jump!").SetValue(new KeyBind("S".ToCharArray()[0], KeyBindType.Press)));
@@ -309,7 +318,13 @@ namespace HikiCarry_Lee_Sin.Champions
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, 600, Config.Item("wardjump.range").GetValue<Circle>().Color);
                 Render.Circle.DrawCircle(ObjectManager.Player.Position.Extend(Game.CursorPos, 600), 50, Config.Item("wardjump.range").GetValue<Circle>().Color);
             }
-            
+            if (Config.Item("flash.insec.text.draw").GetValue<bool>() && Config.Item("flash.insec.active").GetValue<KeyBind>().Active) 
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x=> HybridCommon.Utility.GetPriority(x.ChampionName) > 2 && WardjumpFlashInsec.WardJumpFlashText(x)))
+                {
+                    Drawing.DrawText(Drawing.WorldToScreen(enemy.Position).X, Drawing.WorldToScreen(enemy.Position).Y,Color.Gold,"FLASH + INSECABLE");
+                }
+            }
            
 
         }
@@ -355,18 +370,14 @@ namespace HikiCarry_Lee_Sin.Champions
                         break;
 
                 }
-                
             }
-            
-            if (Config.Item("star.active").GetValue<KeyBind>().Active)
+            if (Config.Item("flash.insec.active").GetValue<KeyBind>().Active)
             {
                 ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-                StarCombo();
-            }
-            if (Config.Item("hiki.active").GetValue<KeyBind>().Active)
-            {
-                ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-                HikiCombo();
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Helper.SliderCheck("max.enemy.count.distance"))))
+                {
+                    WardjumpFlashInsec.WardJumpFlashInsec(enemy);
+                }
             }
             if (Config.Item("killsteal").GetValue<StringList>().SelectedIndex == 0)
             {

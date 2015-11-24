@@ -25,7 +25,7 @@ namespace HybridCommon
                 "Aatrox", "Akali", "Darius", "Diana", "Ekko", "Elise", "Evelynn", "Fiddlesticks", "Fiora", "Fizz",
                 "Galio", "Gangplank", "Gragas", "Heimerdinger", "Irelia", "Jax", "Jayce", "Kassadin", "Kayle", "Kha'Zix",
                 "Lee Sin", "Lissandra", "Maokai", "Mordekaiser", "Morgana", "Nocturne", "Nidalee", "Pantheon", "Poppy",
-                "RekSai", "Rengar", "Riven", "Rumble", "Ryze", "Shaco", "Swain", "Trundle", "Tryndamere", "Udyr",
+                "RekSai", "Rengar", "Riven", "Rumble", "Ryze", "Swain", "Trundle", "Tryndamere", "Udyr",
                 "Urgot", "Vladimir", "Vi", "XinZhao", "Yasuo", "Zilean"
             };
 
@@ -35,7 +35,7 @@ namespace HybridCommon
                 "Ezreal", "Graves", "Jinx", "Kalista", "Karma", "Karthus", "Katarina", "Kennen", "KogMaw", "Leblanc",
                 "Lucian", "Lux", "Malzahar", "MasterYi", "MissFortune", "Orianna", "Quinn", "Sivir", "Syndra", "Talon",
                 "Teemo", "Tristana", "TwistedFate", "Twitch", "Varus", "Vayne", "Veigar", "VelKoz", "Viktor", "Xerath",
-                "Zed", "Ziggs"
+                "Zed", "Ziggs","Kindred","Shaco"
             };
         #endregion
 

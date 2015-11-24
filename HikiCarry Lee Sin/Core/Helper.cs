@@ -372,5 +372,11 @@ namespace HikiCarry_Lee_Sin.Core
             }
         }
 
+        public static Vector3 WardJumpToEnemy(Obj_AI_Hero enemy, int wardjumprange)
+        {
+            return ObjectManager.Player.Position.Extend(enemy.Position, wardjumprange);
+        }
+
+
     }
 }
