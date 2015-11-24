@@ -73,7 +73,8 @@ namespace Illaoi___Tentacle_Kitty
 
                 var clearMenu = new Menu("Clear Settings", "Clear Settings");
                 {
-                    clearMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
+                    clearMenu.AddItem(new MenuItem("q.clear", "Use Q").SetValue(true)); //
+                    clearMenu.AddItem(new MenuItem("q.minion.hit", "(Q) Min. Hit").SetValue(new Slider(3, 1, 6)));
                     clearMenu.AddItem(new MenuItem("clear.mana", "Mana Manager").SetValue(new Slider(20, 1, 99)));
                     Config.AddSubMenu(clearMenu);
                 }
@@ -257,7 +258,7 @@ namespace Illaoi___Tentacle_Kitty
             {
                 return;
             }
-            if (Q.IsReady() && Config.Item("q.combo").GetValue<bool>())
+            if (Q.IsReady() && Config.Item("q.clear").GetValue<bool>())
             {
                 var minionQ = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
                 var lineLocation = Q.GetCircularFarmLocation(minionQ);
