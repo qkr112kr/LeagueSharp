@@ -106,6 +106,7 @@ namespace Illaoi___Tentacle_Kitty
                     drawMenu.AddItem(new MenuItem("w.draw", "W Range").SetValue(new Circle(true, Color.Gold)));
                     drawMenu.AddItem(new MenuItem("e.draw", "E Range").SetValue(new Circle(true, Color.DodgerBlue)));
                     drawMenu.AddItem(new MenuItem("r.draw", "R Range").SetValue(new Circle(true, Color.GreenYellow)));
+                    drawMenu.AddItem(new MenuItem("passive.draw", "Passive Draw").SetValue(new Circle(true, Color.Gold)));
                     Config.AddSubMenu(drawMenu);
                 }
                 Config.AddToMainMenu();
@@ -123,6 +124,7 @@ namespace Illaoi___Tentacle_Kitty
             var menuItem3 = Config.Item("e.draw").GetValue<Circle>();
             var menuItem4 = Config.Item("r.draw").GetValue<Circle>();
             var menuItem5 = Config.Item("aa.indicator").GetValue<Circle>();
+            var menuItem6 = Config.Item("passive.draw").GetValue<Circle>();
             if (menuItem1.Active && Q.IsReady())
             {
                 Render.Circle.DrawCircle(new Vector3(Illaoi.Position.X, Illaoi.Position.Y, Illaoi.Position.Z), Q.Range, menuItem1.Color, 5);
@@ -145,6 +147,21 @@ namespace Illaoi___Tentacle_Kitty
                 {
                     Drawing.DrawText(enemy.HPBarPosition.X, enemy.HPBarPosition.Y, menuItem5.Color,
                                         string.Format("{0} Basic Attack = Kill", AaIndicator(enemy)));
+                }
+            }
+            if (menuItem5.Active)
+            {
+                var enemy = HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(2000));
+                foreach (var passive in ObjectManager.Get<Obj_AI_Minion>().Where(x=> x.Name == "God"))
+                {
+                    Render.Circle.DrawCircle(new Vector3(passive.Position.X, passive.Position.Y, passive.Position.Z), 50, menuItem5.Color, 2);
+                    if (enemy != null)
+                    {
+                        var xx = Drawing.WorldToScreen(passive.Position.Extend(enemy.Position, 850));
+                        var xy = Drawing.WorldToScreen(passive.Position);
+                        Drawing.DrawLine(xy.X, xy.Y, xx.X, xx.Y, 5, Color.Gold);
+                    }
+                    
                 }
             }
         }
@@ -186,11 +203,13 @@ namespace Illaoi___Tentacle_Kitty
             }
             if (W.IsReady() && Config.Item("w.combo").GetValue<bool>())
             {
-                var tentacles =
-                    ObjectManager.Get<Obj_AI_Minion>().Where(x => x.Name == "God").FirstOrDefault();
-                foreach (var enemy in HeroManager.Enemies.Where(x=> x.Distance(tentacles.Position) < Q.Range))
+                var tentacles = ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(x => x.Name == "God");
+                if (tentacles != null)
                 {
-                    W.Cast();
+                    foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(tentacles.Position) < 600 && x.IsValidTarget(Q.Range)))
+                    {
+                        W.Cast();
+                    }
                 }
 
             }
@@ -233,11 +252,13 @@ namespace Illaoi___Tentacle_Kitty
             }
             if (W.IsReady() && Config.Item("w.harass").GetValue<bool>())
             {
-                var tentacles = ObjectManager.Get<Obj_AI_Minion>().Where(x => x.Name == "God").FirstOrDefault();
-					
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(tentacles.Position) < 800))
+                var tentacles = ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(x => x.Name == "God");
+                if (tentacles != null)
                 {
-                    W.Cast();
+                    foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(tentacles.Position) < 600 && x.IsValidTarget(Q.Range)))
+                    {
+                        W.Cast();
+                    }
                 }
 
             }
@@ -258,13 +279,14 @@ namespace Illaoi___Tentacle_Kitty
             {
                 return;
             }
+
+            var minionCount = MinionManager.GetMinions(Illaoi.Position, Q.Range, MinionTypes.All, MinionTeam.NotAlly);
             if (Q.IsReady() && Config.Item("q.clear").GetValue<bool>())
             {
-                var minionQ = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
-                var lineLocation = Q.GetCircularFarmLocation(minionQ);
-                if (lineLocation.MinionsHit >= Config.Item("q.minion.hit").GetValue<Slider>().Value)
+                var mfarm = Q.GetLineFarmLocation(minionCount);
+                if (minionCount.Count >= Config.Item("q.minion.hit").GetValue<Slider>().Value)
                 {
-                    Q.Cast(lineLocation.Position);
+                    Q.Cast(mfarm.Position);
                 }
             }
         }
