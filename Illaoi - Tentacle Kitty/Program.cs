@@ -62,7 +62,7 @@ namespace Illaoi___Tentacle_Kitty
                     Config.AddSubMenu(comboMenu);
                 }
 
-                var harassMenu = new Menu("Harass Settings", "Combo Settings");
+                var harassMenu = new Menu("Harass Settings", "Harass Settings");
                 {
                     harassMenu.AddItem(new MenuItem("q.harass", "Use Q").SetValue(true));
                     harassMenu.AddItem(new MenuItem("w.harass", "Use W").SetValue(true));
@@ -233,9 +233,9 @@ namespace Illaoi___Tentacle_Kitty
             }
             if (W.IsReady() && Config.Item("w.harass").GetValue<bool>())
             {
-                var tentacles =
-                    ObjectManager.Get<Obj_AI_Base>().Where(x => x.Name.ToLower().Contains("aoi")).FirstOrDefault();
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(tentacles.Position) < Q.Range))
+                var tentacles = ObjectManager.Get<Obj_AI_Minion>().Where(x => x.Name == "God").FirstOrDefault();
+					
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(tentacles.Position) < 800))
                 {
                     W.Cast();
                 }
