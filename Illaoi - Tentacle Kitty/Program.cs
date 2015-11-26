@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using LeagueSharp;
@@ -55,6 +56,7 @@ namespace Illaoi___Tentacle_Kitty
                 var comboMenu = new Menu("Combo Settings", "Combo Settings");
                 {
                     comboMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
+                    comboMenu.AddItem(new MenuItem("q.ghost.combo", "Use Q (Ghost)").SetValue(true));
                     comboMenu.AddItem(new MenuItem("w.combo", "Use W").SetValue(true));
                     comboMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
                     comboMenu.AddItem(new MenuItem("r.combo", "Use R").SetValue(true));
@@ -65,6 +67,7 @@ namespace Illaoi___Tentacle_Kitty
                 var harassMenu = new Menu("Harass Settings", "Harass Settings");
                 {
                     harassMenu.AddItem(new MenuItem("q.harass", "Use Q").SetValue(true));
+                    harassMenu.AddItem(new MenuItem("q.ghost.harass", "Use Q (Ghost)").SetValue(true));
                     harassMenu.AddItem(new MenuItem("w.harass", "Use W").SetValue(true));
                     harassMenu.AddItem(new MenuItem("e.harass", "Use E").SetValue(true));
                     harassMenu.AddItem(new MenuItem("harass.mana", "Mana Manager").SetValue(new Slider(20, 1, 99)));
@@ -90,11 +93,12 @@ namespace Illaoi___Tentacle_Kitty
                     Config.AddSubMenu(eMenu);
                 }
 
-                /*var ksMenu = new Menu("KillSteal Settings", "KillSteal Settings");
+                var ksMenu = new Menu("KillSteal Settings", "KillSteal Settings");
                 {
                     ksMenu.AddItem(new MenuItem("q.ks", "Use Q").SetValue(true));
                     Config.AddSubMenu(ksMenu);
-                }*/
+                }
+
                 var drawMenu = new Menu("Draw Settings", "Draw Settings");
                 {
                     var damageDraw = new Menu("Damage Draw", "Damage Draw");
@@ -154,7 +158,7 @@ namespace Illaoi___Tentacle_Kitty
                 var enemy = HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(2000));
                 foreach (var passive in ObjectManager.Get<Obj_AI_Minion>().Where(x=> x.Name == "God"))
                 {
-                    Render.Circle.DrawCircle(new Vector3(passive.Position.X, passive.Position.Y, passive.Position.Z), 50, menuItem5.Color, 2);
+                    Render.Circle.DrawCircle(new Vector3(passive.Position.X, passive.Position.Y, passive.Position.Z), 850, menuItem5.Color, 2);
                     if (enemy != null)
                     {
                         var xx = Drawing.WorldToScreen(passive.Position.Extend(enemy.Position, 850));
@@ -193,20 +197,33 @@ namespace Illaoi___Tentacle_Kitty
         {
             if (Q.IsReady() && Config.Item("q.combo").GetValue<bool>())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range) && !x.IsDead && !x.IsZombie))
+                var enemy = HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(Q.Range));
+                var enemyGhost = ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(x=> x.Name == enemy.Name);
+                if (enemy != null && enemyGhost == null )
                 {
-                    if (Q.GetPrediction(enemy).Hitchance >= HitChance.High)
+                    if (Q.CanCast(enemy) && Q.GetPrediction(enemy).Hitchance >= HitChance.High
+                        && Q.GetPrediction(enemy).CollisionObjects.Count == 0)
                     {
                         Q.Cast(enemy);
                     }
                 }
+                if (enemy == null && enemyGhost != null && Config.Item("q.ghost.combo").GetValue<bool>())
+                {
+                    if (Q.CanCast(enemyGhost) && Q.GetPrediction(enemyGhost).Hitchance >= HitChance.High
+                        && Q.GetPrediction(enemyGhost).CollisionObjects.Count == 0)
+                    {
+                        Q.Cast(enemyGhost);
+                    }
+                }
+                   
+                
             }
             if (W.IsReady() && Config.Item("w.combo").GetValue<bool>())
             {
-                var tentacles = ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(x => x.Name == "God");
-                if (tentacles != null)
+                var tentacle = ObjectManager.Get<Obj_AI_Minion>().First(x=> x.Name == "God");
+                if (tentacle != null)
                 {
-                    foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(tentacles.Position) < 600 && x.IsValidTarget(Q.Range)))
+                    foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(850)))
                     {
                         W.Cast();
                     }
@@ -217,7 +234,8 @@ namespace Illaoi___Tentacle_Kitty
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(E.Range) && !o.IsDead && !o.IsZombie))
                 {
-                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>() && E.GetPrediction(enemy).Hitchance >= HitChance.High)
+                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>() && E.GetPrediction(enemy).Hitchance >= HitChance.High
+                        && E.GetPrediction(enemy).CollisionObjects.Count == 0)
                     {
                         E.Cast(enemy);
                     }
@@ -242,20 +260,31 @@ namespace Illaoi___Tentacle_Kitty
             }
             if (Q.IsReady() && Config.Item("q.harass").GetValue<bool>())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Q.Range) && !x.IsDead && !x.IsZombie))
+                var enemy = HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(Q.Range));
+                var enemyGhost = ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(x => x.Name == enemy.Name);
+                if (enemy != null && enemyGhost == null)
                 {
-                    if (Q.GetPrediction(enemy).Hitchance >= HitChance.High)
+                    if (Q.CanCast(enemy) && Q.GetPrediction(enemy).Hitchance >= HitChance.High
+                        && Q.GetPrediction(enemy).CollisionObjects.Count == 0)
                     {
                         Q.Cast(enemy);
+                    }
+                }
+                if (enemy == null && enemyGhost != null && Config.Item("q.ghost.harass").GetValue<bool>())
+                {
+                    if (Q.CanCast(enemyGhost) && Q.GetPrediction(enemyGhost).Hitchance >= HitChance.High
+                        && Q.GetPrediction(enemyGhost).CollisionObjects.Count == 0)
+                    {
+                        Q.Cast(enemyGhost);
                     }
                 }
             }
             if (W.IsReady() && Config.Item("w.harass").GetValue<bool>())
             {
-                var tentacles = ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(x => x.Name == "God");
-                if (tentacles != null)
+                var tentacle = ObjectManager.Get<Obj_AI_Minion>().First(x => x.Name == "God");
+                if (tentacle != null)
                 {
-                    foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(tentacles.Position) < 600 && x.IsValidTarget(Q.Range)))
+                    foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(850)))
                     {
                         W.Cast();
                     }
@@ -266,7 +295,8 @@ namespace Illaoi___Tentacle_Kitty
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(E.Range) && !o.IsDead && !o.IsZombie))
                 {
-                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>() && E.GetPrediction(enemy).Hitchance >= HitChance.High)
+                    if (Config.Item("enemy." + enemy.CharData.BaseSkinName).GetValue<bool>() && E.GetPrediction(enemy).Hitchance >= HitChance.High
+                        && E.GetPrediction(enemy).CollisionObjects.Count == 0)
                     {
                         E.Cast(enemy);
                     }
