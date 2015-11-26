@@ -108,7 +108,7 @@ namespace Feedlesticks.Core
         {
             if (IsWActive && sender.Owner.IsMe && Spells.Wable)
             {
-                if (args.Slot == SpellSlot.W && args.Slot != SpellSlot.R)
+                if (args.Slot == SpellSlot.W)
                 {
                     args.Process = false;
                     Menus.Orbwalker.SetAttack(false);
@@ -116,6 +116,7 @@ namespace Feedlesticks.Core
                 }
                 else
                 {
+                    args.Process = true;
                     Menus.Orbwalker.SetAttack(true);
                     Menus.Orbwalker.SetMovement(true);
                 }

@@ -29,8 +29,8 @@ namespace Feedlesticks.Core
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
                 comboMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
+                comboMenu.AddItem(new MenuItem("w.combo", "Use W").SetValue(true));
                 comboMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
-                comboMenu.AddItem(new MenuItem("r.combo", "Use R").SetValue(true));
                 Config.AddSubMenu(comboMenu);
             }
             var qMenu = new Menu("Q Settings", "Q Settings");
@@ -39,10 +39,10 @@ namespace Feedlesticks.Core
                 {
                     foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
                     {
-                        qWhite.AddItem(new MenuItem("q.enemy." + enemy.CharData.BaseSkinName, string.Format("Q: {0}", enemy.CharData.BaseSkinName)).SetValue(Piorty.HighChamps.Contains(enemy.CharData.BaseSkinName)));
+                        qWhite.AddItem(new MenuItem("q.enemy." + enemy.ChampionName, string.Format("Q: {0}", enemy.CharData.BaseSkinName)).SetValue(Piorty.HighChamps.Contains(enemy.CharData.BaseSkinName)));
 
                     }
-                    Config.AddSubMenu(qWhite);
+                    qMenu.AddSubMenu(qWhite);
                 }
                 qMenu.AddItem(new MenuItem("auto.q.immobile", "Auto (Q) If Enemy Immobile").SetValue(true));
                 qMenu.AddItem(new MenuItem("auto.q.channeling", "Auto (Q) If Enemy Casting Channeling Spell").SetValue(true));
@@ -55,10 +55,10 @@ namespace Feedlesticks.Core
                 {
                     foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
                     {
-                        wHite.AddItem(new MenuItem("w.enemy." + enemy.CharData.BaseSkinName, string.Format("W: {0}", enemy.CharData.BaseSkinName)).SetValue(Piorty.HighChamps.Contains(enemy.CharData.BaseSkinName)));
+                        wHite.AddItem(new MenuItem("w.enemy." + enemy.ChampionName, string.Format("W: {0}", enemy.CharData.BaseSkinName)).SetValue(Piorty.HighChamps.Contains(enemy.CharData.BaseSkinName)));
 
                     }
-                    Config.AddSubMenu(wHite);
+                    wMenu.AddSubMenu(wHite);
                 }
                 Config.AddSubMenu(wMenu);
             }
@@ -69,10 +69,10 @@ namespace Feedlesticks.Core
                 {
                     foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
                     {
-                        eWhite.AddItem(new MenuItem("e.enemy." + enemy.CharData.BaseSkinName, string.Format("E: {0}", enemy.CharData.BaseSkinName)).SetValue(Piorty.HighChamps.Contains(enemy.CharData.BaseSkinName)));
+                        eWhite.AddItem(new MenuItem("e.enemy." + enemy.ChampionName, string.Format("E: {0}", enemy.CharData.BaseSkinName)).SetValue(Piorty.HighChamps.Contains(enemy.CharData.BaseSkinName)));
 
                     }
-                    Config.AddSubMenu(eWhite);
+                    eMenu.AddSubMenu(eWhite);
 
                     eMenu.AddItem(new MenuItem("e.enemy.count", "(E) Min. Enemy").SetValue(new Slider(2, 1, 5)));
                     eMenu.AddItem(new MenuItem("auto.e.enemy.immobile", "Auto (E) If Enemy Immobile").SetValue(true));
@@ -99,22 +99,11 @@ namespace Feedlesticks.Core
 
                 var jungleMenu = new Menu("Jungle Settings", "Jungle Settings");
                 {
-                    jungleMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
-                    jungleMenu.AddItem(new MenuItem("w.combo", "Use W").SetValue(true));
-                    jungleMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
+                    jungleMenu.AddItem(new MenuItem("q.jungle", "Use Q").SetValue(true));
+                    jungleMenu.AddItem(new MenuItem("w.jungle", "Use W").SetValue(true));
+                    jungleMenu.AddItem(new MenuItem("e.jungle", "Use E").SetValue(true));
                     jungleMenu.AddItem(new MenuItem("jungle.mana", "Min. Mana").SetValue(new Slider(50, 1, 99)));
                     Config.AddSubMenu(jungleMenu);
-                }
-
-                var activatorMenu = new Menu("Activator Settings", "Activator Settings");
-                {
-                    var botrkMenu = new Menu("Zhonya Settings", "Zhonya Settings");
-                    {
-                        botrkMenu.AddItem(new MenuItem("use.zhonya", "Use Botrk (Combo)").SetValue(true));
-                        botrkMenu.AddItem(new MenuItem("zhonya.hp", "If Fiddle HP < %").SetValue(new Slider(10, 1, 99)));
-                        activatorMenu.AddSubMenu(botrkMenu);
-                    }
-                    Config.AddSubMenu(activatorMenu);
                 }
                 var drawMenu = new Menu("Draw Settings", "Draw Settings");
                 {

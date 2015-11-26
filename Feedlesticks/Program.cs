@@ -100,9 +100,13 @@ namespace Feedlesticks
                 case Orbwalking.OrbwalkingMode.Combo:
                     Combo();
                     break;
+                case Orbwalking.OrbwalkingMode.Mixed:
+                    Harass();
+                    break;
                 case Orbwalking.OrbwalkingMode.LaneClear:
+                    Jungle();
                     WaveClear();
-                    JungleClear();
+                    
                     break;
                 
             }
@@ -135,6 +139,61 @@ namespace Feedlesticks
                 }
             } 
         }
+
+        private static void Harass()
+        {
+            if (ObjectManager.Player.ManaPercent < Helper.Slider("harass.mana"))
+            {
+                return;
+            }
+
+            if (Spells.Q.IsReady() && Helper.Enabled("q.harass"))
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(Spells.Q.Range) && !o.IsDead && !o.IsZombie))
+                {
+                    if (Helper.Enabled("q.enemy." + enemy.ChampionName))
+                    {
+                        Spells.Q.CastOnUnit(enemy);
+                    }
+                }
+            }
+            if (Spells.E.IsReady() && Helper.Enabled("e.harass"))
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(Spells.E.Range) && !o.IsDead && !o.IsZombie))
+                {
+                    if (Helper.Enabled("e.enemy." + enemy.ChampionName))
+                    {
+                        Spells.E.CastOnUnit(enemy);
+                    }
+                }
+            }
+        }
+
+        private static void Jungle()
+        {
+            if (ObjectManager.Player.ManaPercent < Helper.Slider("jungle.mana"))
+            {
+                return;
+            }
+
+            var mob = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Spells.Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+            if (mob.Count > 0)
+            {
+                if (Spells.Q.IsReady() && Helper.Enabled("q.jungle"))
+                {
+                    Spells.Q.CastOnUnit(mob[0]);
+                }
+                if (Spells.W.IsReady() && Helper.Enabled("w.jungle"))
+                {
+                    Spells.W.CastOnUnit(mob[0]);
+                }
+                if (Spells.E.IsReady() && Helper.Enabled("e.jungle"))
+                {
+                    Spells.E.CastOnUnit(mob[0]);
+                }
+                
+            }
+        }
         /// <summary>
         /// Combo
         /// </summary>
@@ -146,7 +205,7 @@ namespace Feedlesticks
                 {
                     if (Helper.Enabled("q.enemy."+enemy.ChampionName))
                     {
-                        Spells.Q.Cast(enemy);
+                        Spells.Q.CastOnUnit(enemy);
                     }
                 }
             }
@@ -156,17 +215,17 @@ namespace Feedlesticks
                 {
                     if (Helper.Enabled("w.enemy."+enemy.ChampionName))
                     {
-                        Spells.W.Cast(enemy);
+                        Spells.W.CastOnUnit(enemy);
                     }
                 }
             }
             if (Spells.E.IsReady() && Helper.Enabled("e.combo"))
             {
-                foreach (var enemy in HeroManager.Enemies.Where(o=> o.IsValidTarget(Spells.E.Range) && !o.IsDead && o.IsZombie))
+                foreach (var enemy in HeroManager.Enemies.Where(o=> o.IsValidTarget(Spells.E.Range) && !o.IsDead && !o.IsZombie))
                 {
-                    if (Helper.Enabled("e.enemy." + enemy.ChampionName) && enemy.CountAlliesInRange(500) >= Helper.Slider("e.enemy.count"))
+                    if (Helper.Enabled("e.enemy." + enemy.ChampionName) && enemy.CountEnemiesInRange(Spells.E.Range) >= Helper.Slider("e.enemy.count"))
                     {
-                        Spells.E.Cast(enemy);
+                        Spells.E.CastOnUnit(enemy);
                     }
                 }
             }
@@ -176,6 +235,11 @@ namespace Feedlesticks
         /// </summary>
         private static void WaveClear()
         {
+            if (ObjectManager.Player.ManaPercent < Helper.Slider("clear.mana"))
+            {
+                return;
+            }
+
             var min = MinionManager.GetMinions(ObjectManager.Player.Position, Spells.Q.Range, MinionTypes.All, MinionTeam.Enemy, MinionOrderTypes.MaxHealth);
             if (Spells.E.IsReady() && Helper.Enabled("e.clear"))
             {
@@ -186,36 +250,10 @@ namespace Feedlesticks
             }
             if (Spells.W.IsReady() && Helper.Enabled("w.clear"))
             {
-                if (min[0].Health < Spells.W.GetDamage(min[0]))
-                {
-                    Spells.W.CastOnUnit(min[0]);
-                }
+                Spells.W.CastOnUnit(min[0]);
             }
             
         }
-        /// <summary>
-        /// Jungle Clear
-        /// </summary>
-        private static void JungleClear()
-        {
-            var mob = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Orbwalking.GetRealAutoAttackRange(ObjectManager.Player) + 100, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
 
-            if (mob == null || mob.Count == 0)
-            {
-                return;
-            }
-            if (Spells.Q.IsReady() && Helper.Enabled("q.jungle") && Spells.Q.CanCast(mob[0]))
-            {
-                Spells.Q.CastOnUnit(mob[0]);
-            }
-            if (Spells.W.IsReady() && Helper.Enabled("w.jungle") && Spells.W.CanCast(mob[0]))
-            {
-                Spells.W.CastOnUnit(mob[0]);
-            }
-            if (Spells.E.IsReady() && Helper.Enabled("e.jungle") && Spells.E.CanCast(mob[0]))
-            {
-                Spells.E.CastOnUnit(mob[0]);
-            }
-        }
     }
 }
