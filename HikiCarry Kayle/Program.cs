@@ -214,7 +214,7 @@ namespace HikiCarry_Kayle
                 if (R.IsReady() && Config.Item("rJungle").GetValue<bool>()) // R TO KAYLE jungle
                 {
                     var yx = Drawing.WorldToScreen(Player.Position);
-                    Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "Jungle");
+                    
                     if (Player.HealthPercent <= Config.Item("rJungleHp").GetValue<Slider>().Value && !Player.IsRecalling())
                     {
                         R.Cast(Player);
@@ -226,7 +226,7 @@ namespace HikiCarry_Kayle
                 if (R.IsReady() && Config.Item("rMe").GetValue<bool>()) // definetly not jungle
                 {
                     var yx = Drawing.WorldToScreen(Player.Position);
-                    Drawing.DrawText(yx[0], yx[1], System.Drawing.Color.SpringGreen, "NOT JUNGLE");
+                    
                     if (Player.HealthPercent <= Config.Item("rMinHpMe").GetValue<Slider>().Value && !Player.IsRecalling())
                     {
                         R.Cast(Player);
