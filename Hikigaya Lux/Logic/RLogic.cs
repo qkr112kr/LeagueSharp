@@ -27,6 +27,14 @@ namespace Hikigaya_Lux.Logic
                 Spells.R.CastIfWillHit(enemy, Helper.Slider("min.r.hit.x"));
             }
         }
+        public static void FaceCheckUlt(Obj_AI_Hero enemy)
+        {
+            if (Spells.R.GetPrediction(enemy).Hitchance >= Helper.HikiChance("r.hit.chance.x") && Calculators.R(enemy) > enemy.Health
+                && ObjectManager.Player.IsFacing(enemy))
+            {
+                Spells.R.Cast(enemy);
+            }
+        }
         public static void RGeneral(Obj_AI_Hero enemy)
         {
             switch (LuxMenu.Config.Item("r.style.x").GetValue<StringList>().SelectedIndex)
@@ -36,6 +44,9 @@ namespace Hikigaya_Lux.Logic
                     break;
                 case 1:
                     HikiRxTarget(enemy);
+                    break;
+                case 2:
+                    FaceCheckUlt(enemy);
                     break;
             }
         }

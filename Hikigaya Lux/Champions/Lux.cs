@@ -99,9 +99,20 @@ namespace Hikigaya_Lux.Champions
             }
             if (!ObjectManager.Player.IsDead && Helper.Enabled("auto.r.if.enemy.killable.r") && Spells.R.IsReady())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Helper.Slider("auto.r.min.distance")) && !x.IsDead && !x.IsZombie))
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Helper.Slider("auto.r.min.distance.x")) && !x.IsDead && !x.IsZombie))
                 {
                     AutoSpells.AutoRIfEnemyKillable(enemy);
+                }
+            }
+            if (LuxMenu.Config.Item("manual.r").GetValue<KeyBind>().Active)
+            {
+                Orbwalking.MoveTo(Game.CursorPos);
+                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Spells.R.Range)))
+                {
+                    if (Spells.R.GetPrediction(enemy).Hitchance >= HitChance.High)
+                    {
+                        Spells.R.Cast(enemy);
+                    }
                 }
             }
 
@@ -124,7 +135,7 @@ namespace Hikigaya_Lux.Champions
             }
             if (Spells.R.IsReady() && Helper.Enabled("r.combo"))
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Helper.Slider("min.r.distance.x")) && !x.IsDead && !x.IsZombie))
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Helper.Slider("min.r.distance.y")) && !x.IsDead && !x.IsZombie))
                 {
                     RLogic.RGeneral(enemy);
                 }

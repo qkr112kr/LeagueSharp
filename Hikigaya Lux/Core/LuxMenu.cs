@@ -71,9 +71,9 @@ namespace Hikigaya_Lux.Core
             }
             var rMenu = new Menu("(R) Settings", "(R) Settings");
             {
-                rMenu.AddItem(new MenuItem("r.style.x", "(R) Method").SetValue(new StringList(new[] { "Only Killable", "Hit X Target" })));
+                rMenu.AddItem(new MenuItem("r.style.x", "(R) Method").SetValue(new StringList(new[] { "Only Killable", "Hit X Target","Face Check" })));
                 rMenu.AddItem(new MenuItem("min.r.hit.x", "Min. (R) Hit").SetValue(new Slider(2, 1, 5)));
-                rMenu.AddItem(new MenuItem("min.r.distance.x", "Min. (R) Distance").SetValue(new Slider(600, 500, 1000)));
+                rMenu.AddItem(new MenuItem("min.r.distance.y", "Min. (R) Distance").SetValue(new Slider(2000, 500, 2000)));
                 rMenu.AddItem(new MenuItem("r.hit.chance.x", "(R) Hit Chance").SetValue<StringList>(new StringList(Priority.HitchanceNameArray, 2)));
                 Config.AddSubMenu(rMenu);
             }
@@ -96,7 +96,7 @@ namespace Hikigaya_Lux.Core
                 autoSpell.AddItem(new MenuItem("auto.e.if.enemy.killable", "Auto (E) If Enemy Killable").SetValue(true));
 
                 autoSpell.AddItem(new MenuItem("auto.r.if.enemy.killable.r", "Auto (R) If Enemy Killable").SetValue(true));
-                autoSpell.AddItem(new MenuItem("auto.r.min.distance", "Min. (R) Distance").SetValue(new Slider(1000, 500, 1000)));
+                autoSpell.AddItem(new MenuItem("auto.r.min.distance.x", "Min. (R) Distance").SetValue(new Slider(1950, 500, 2000)));
                 Config.AddSubMenu(autoSpell);
             }
 
@@ -122,11 +122,33 @@ namespace Hikigaya_Lux.Core
                 Config.AddSubMenu(drawMenu);
             }
 
-            Config.AddItem(new MenuItem("keysinfo", "                      Hikigaya Lux Keys").SetFontStyle(System.Drawing.FontStyle.Bold, Color.Gold));
+            Config.AddItem(new MenuItem("keysinfo", "                  Hikigaya Lux Keys").SetFontStyle(System.Drawing.FontStyle.Bold, Color.Gold));
             //Config.AddItem(new MenuItem("invisible.active", "Invisible (R)!").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
-            //Config.AddItem(new MenuItem("manual.r.focus.adc", "Semi Manual (R) - (ADC FOCUS) !").SetValue(new KeyBind("S".ToCharArray()[0], KeyBindType.Press)));
+            Config.AddItem(new MenuItem("manual.r", "Semi Manual (R)").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
             Config.AddItem(new MenuItem("calculator", "Damage Calculator").SetValue(new StringList(new[] { "Custom", "Common" }, 1)));
+            var drawDamageMenu = new MenuItem("RushDrawEDamage", "Combo Damage").SetValue(true);
+            var drawFill = new MenuItem("RushDrawEDamageFill", "Combo Damage Fill").SetValue(new Circle(true, System.Drawing.Color.Gold));
 
+            drawMenu.SubMenu("Damage Draws").AddItem(drawDamageMenu);
+            drawMenu.SubMenu("Damage Draws").AddItem(drawFill);
+
+            DamageIndicator.DamageToUnit = Calculators.TotalDamage;
+            DamageIndicator.Enabled = drawDamageMenu.GetValue<bool>();
+            DamageIndicator.Fill = drawFill.GetValue<Circle>().Active;
+            DamageIndicator.FillColor = drawFill.GetValue<Circle>().Color;
+
+            drawDamageMenu.ValueChanged +=
+            delegate(object sender, OnValueChangeEventArgs eventArgs)
+            {
+                DamageIndicator.Enabled = eventArgs.GetNewValue<bool>();
+            };
+
+            drawFill.ValueChanged +=
+            delegate(object sender, OnValueChangeEventArgs eventArgs)
+            {
+                DamageIndicator.Fill = eventArgs.GetNewValue<Circle>().Active;
+                DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
+            };
             Config.AddToMainMenu();
         }
         public static void OrbwalkerInit()

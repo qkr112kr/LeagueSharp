@@ -16,7 +16,7 @@ namespace Hikigaya_Lux.Logic
         {
             if (Spells.Q.GetPrediction(enemy).CollisionObjects.Count == 2)
             {
-                if (Spells.Q.GetPrediction(enemy).CollisionObjects[0].IsChampion() && Spells.Q.GetPrediction(enemy).CollisionObjects[1].IsChampion())
+                if (Spells.Q.GetPrediction(enemy).CollisionObjects[0].IsChampion() && Spells.Q.GetPrediction(enemy).CollisionObjects[1].IsMinion)
                 {
                     Spells.Q.Cast(Spells.Q.GetPrediction(enemy).CastPosition);
                 }

@@ -64,5 +64,23 @@ namespace Hikigaya_Lux.Core
             }
             return 0;
         }
+
+        public static float TotalDamage(Obj_AI_Hero enemy)
+        {
+            var damage = 0f;
+            if (Spells.Q.IsReady())
+            {
+                damage += Q(enemy);
+            }
+            if (Spells.E.IsReady())
+            {
+                damage += E(enemy);
+            }
+            if (Spells.R.IsReady())
+            {
+                damage += R(enemy);
+            }
+            return damage;
+        }
     }
 }
