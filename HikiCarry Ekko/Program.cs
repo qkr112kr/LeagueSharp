@@ -26,17 +26,20 @@ namespace HikiCarry_Ekko
 
         static void Game_OnGameLoad(EventArgs args)
         {
-
-            Champion = new Ekko();
-
-            Champion.CreateConfigMenu();
-            Champion.SetSpells();
-
-            SPrediction.Prediction.Initialize(Champion.Config);
-
-            Notifications.AddNotification(String.Format("HikiCarry Ekko Loaded !"), 3000);
-            Notifications.AddNotification(String.Format("Dont Forget Upvote on"), 4000);
-            Notifications.AddNotification(String.Format("Assembly.DB"), 5000);
+			if(ObjectManager.Player.ChampionName == "Ekko")
+			{
+				Champion = new Ekko();
+				Champion.CreateConfigMenu();
+				Champion.SetSpells();
+				SPrediction.Prediction.Initialize(Champion.Config);
+				Notifications.AddNotification(String.Format("HikiCarry Ekko Loaded !"), 3000);
+				Notifications.AddNotification(String.Format("Dont Forget Upvote on"), 4000);
+				Notifications.AddNotification(String.Format("Assembly.DB"), 5000);
+			}
+			else
+			{
+				return;
+			}
         }
     }
 }
