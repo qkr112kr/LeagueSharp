@@ -52,15 +52,15 @@ namespace Kindred___YinYang
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalker Settings"));
             var comboMenu = new Menu("Combo Settings", "Combo Settings");
             {
-                comboMenu.AddItem(new MenuItem("q.combo.style", "Q Style").SetValue(new StringList(new[] {"Kite", "100% Hit","Safe Position"})));
-                comboMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
-                comboMenu.AddItem(new MenuItem("w.combo", "Use W").SetValue(true));
-                comboMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
+                comboMenu.AddItem(new MenuItem("q.combo.style", "(Q) Combo Style").SetValue(new StringList(new[] {"Kite", "100% Hit","Safe Position"})));
+                comboMenu.AddItem(new MenuItem("q.combo", "Use (Q)").SetValue(true));
+                comboMenu.AddItem(new MenuItem("w.combo", "Use (W)").SetValue(true));
+                comboMenu.AddItem(new MenuItem("e.combo", "Use (E)").SetValue(true));
                 Config.AddSubMenu(comboMenu);
             }
-            var eMenu = new Menu("E Settings", "E Settings");
+            var eMenu = new Menu("(E) Settings", "(E) Settings");
             {
-                eMenu.AddItem(new MenuItem("e.whte", "                     E Whitelist"));
+                eMenu.AddItem(new MenuItem("e.whte", "                     (E) Whitelist"));
                 foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
                 {
                     eMenu.AddItem(new MenuItem("enemy." + enemy.CharData.BaseSkinName, string.Format("E: {0}", enemy.CharData.BaseSkinName)).SetValue(HighChamps.Contains(enemy.CharData.BaseSkinName)));

@@ -192,7 +192,15 @@ namespace HikiCarry_Viktor
             {
                 LastHit();
             }
+            if (R.Instance.Name != "ViktorChaosStorm")
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(R.Range + 500)))
+                {
+                    R.Cast(enemy);
+                }
+            }
             EKs();
+            
         }
         private static void Combo()
         {
