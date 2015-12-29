@@ -27,8 +27,8 @@ namespace Hikigaya_Lux.Core
 
             var harassMenu = new Menu("Harass Settings", "Harass Settings");
             {
-                harassMenu.AddItem(new MenuItem("q.combo", "Use Q").SetValue(true));
-                harassMenu.AddItem(new MenuItem("e.combo", "Use E").SetValue(true));
+                harassMenu.AddItem(new MenuItem("q.harass", "Use Q").SetValue(true));
+                harassMenu.AddItem(new MenuItem("e.harass", "Use E").SetValue(true));
                 harassMenu.AddItem(new MenuItem("harass.mana", "Min. Mana").SetValue(new Slider(50, 1, 99)));
                 /*var eToggleMenu = new Menu("E Toggle", "E Toggle");
                 {
