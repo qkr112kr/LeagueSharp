@@ -26,6 +26,8 @@ namespace HikiCarry_Brand
 
         private static void Game_OnGameLoad(EventArgs args)
         {
+            if (Brand.ChampionName != "Brand") return;
+
             Q = new Spell(SpellSlot.Q, 1050, TargetSelector.DamageType.Magical);
             W = new Spell(SpellSlot.W, 900, TargetSelector.DamageType.Magical);
             E = new Spell(SpellSlot.E, 625, TargetSelector.DamageType.Magical);
@@ -65,6 +67,15 @@ namespace HikiCarry_Brand
                     clearMenu.AddItem(new MenuItem("clear.mana", "Min. Mana").SetValue(new Slider(50, 1, 99)));
                     Config.AddSubMenu(clearMenu);
                 }
+
+                var ksMenu = new Menu("Killsteal Settings", "Killsteal Settings");
+                {
+                    ksMenu.AddItem(new MenuItem("q.ks", "Use Q").SetValue(true));
+                    ksMenu.AddItem(new MenuItem("w.ks", "Use W").SetValue(true));
+                    ksMenu.AddItem(new MenuItem("e.ks", "Use E").SetValue(true));
+                    Config.AddSubMenu(ksMenu);
+                }
+
                 var miscMenu = new Menu("Misc Settings", "Misc Settings");
                 {
                     var antigapcloser = new Menu("Anti Gapcloser", "Anti Gapcloser");
@@ -147,7 +158,37 @@ namespace HikiCarry_Brand
                     Clear();
                     break;
             }
+            KillSteal();
         }
+
+        public static void KillSteal()
+        {
+            if (Q.IsReady() && Config.Item("q.ks").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range) &&
+                    Q.GetPrediction(x).Hitchance >= HikiChance("hikiChance") && Q.GetDamage(x) > x.Health))
+                {
+                    Q.Cast(enemy);
+                }
+            }
+            if (W.IsReady() && Config.Item("w.ks").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(W.Range) &&
+                    W.GetPrediction(x).Hitchance >= HikiChance("hikiChance") && W.GetDamage(x) > x.Health))
+                {
+                    W.Cast(enemy);
+                }
+            }
+            if (E.IsReady() && Config.Item("e.ks").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(E.Range) && 
+                    E.GetDamage(x) > x.Health))
+                {
+                    E.CastOnUnit(enemy);
+                }
+            }
+        }
+
         public static HitChance HikiChance(string menuName)
         {
             return HitchanceArray[Config.Item(menuName).GetValue<StringList>().SelectedIndex];
