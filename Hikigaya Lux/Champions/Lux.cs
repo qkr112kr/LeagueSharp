@@ -7,6 +7,7 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using Hikigaya_Lux.Core;
 using Hikigaya_Lux.Logic;
+using Hikigaya_Lux.Spell_Database;
 using SharpDX;
 using SharpDX.Direct3D9;
 
@@ -34,9 +35,29 @@ namespace Hikigaya_Lux.Champions
             GameObject.OnCreate += OnCreate;
             GameObject.OnDelete += OnDelete;
             Game.OnUpdate += Game_OnGameUpdate;
+            Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
             Drawing.OnDraw += OnDraw;
 
         }
+
+        private static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs spell)
+        {
+            if (sender is Obj_AI_Hero && Spells.W.IsReady() && sender.IsEnemy && !spell.SData.IsAutoAttack()
+                && !sender.IsDead && sender.IsValidTarget(1000))
+            {
+                foreach (var ally in from ally in HeroManager.Allies.Where(x=> x.IsAlly && SpellDatabase.Spells.Any(y=> y.spellName == spell.SData.Name))
+                                     .Where(ally => ally.Distance(ObjectManager.Player) < Spells.W.Range) 
+                                     let exist = SpellDatabase.Spells.FirstOrDefault(y => y.spellName == spell.SData.Name) where exist != null && 
+                                     (exist.spellType == SpellType.Cone || exist.spellType == SpellType.Circular || exist.spellType == SpellType.Line)
+                                     && sender.GetSpellDamage(ally,exist.spellName) > ally.Health
+                                     && LuxMenu.Config.Item("hero." + exist.spellName).GetValue<bool>()
+                                     select ally)
+                {
+                    Spells.W.Cast(ally.Position);
+                }
+            }
+        }
+
         private static void OnDelete(GameObject sender, EventArgs args)
         {
             Helper.OnDelete(sender,args);

@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Hikigaya_Lux.Logic;
+using Hikigaya_Lux.Spell_Database;
 using LeagueSharp;
 using LeagueSharp.Common;
 using Color = SharpDX.Color;
@@ -57,12 +59,16 @@ namespace Hikigaya_Lux.Core
                 qMenu.AddItem(new MenuItem("q.hit.chance", "(Q) Hit Chance").SetValue<StringList>(new StringList(Priority.HitchanceNameArray, 2)));
                 Config.AddSubMenu(qMenu);
             }
-            /*var wMenu = new Menu("(W) Settings", "(W) Settings");
+            var wMenu = new Menu("(W) Settings", "(W) Settings");
             {
                 wMenu.AddItem(new MenuItem("w.ally.protector", "Protector?").SetValue(true));
-                wMenu.AddItem(new MenuItem("min.mana.for.w", "Min. Mana").SetValue(new Slider(50,1,99)));
+                wMenu.AddItem(new MenuItem("keysinfox", "         Enemy Skillshots").SetFontStyle(FontStyle.Bold, Color.Gold));
+                foreach (var skillshot in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy).SelectMany(enemy => SpellDatabase.Spells.Where(x => x.charName == enemy.ChampionName)))
+                {
+                    wMenu.AddItem(new MenuItem("hero." + skillshot.spellName, "" + skillshot.charName + "(" + skillshot.spellKey + ")").SetValue(true));
+                }
                 Config.AddSubMenu(wMenu);
-            }*/
+            }
             var eMenu = new Menu("(E) Settings", "(E) Settings");
             {
                 eMenu.AddItem(new MenuItem("min.e.hit", "Min. (E) Hit").SetValue(new Slider(1, 1, 2)));
@@ -77,11 +83,10 @@ namespace Hikigaya_Lux.Core
                 rMenu.AddItem(new MenuItem("r.hit.chance.x", "(R) Hit Chance").SetValue<StringList>(new StringList(Priority.HitchanceNameArray, 2)));
                 Config.AddSubMenu(rMenu);
             }
-            /*var invMenu = new Menu("Invisible (R)", "Invisible (R)");
+            /*var invMenu = new Menu("Jungle Steal Settings", "Jungle Steal Settings");
             {
-                invMenu.AddItem(new MenuItem("hiki.r.style", "(R) Method ").SetValue(new StringList(new[] { "Only Killable" })));
-                invMenu.AddItem(
-                    new MenuItem("hiki.r.distance", "Min. (R) Distance ").SetValue(new Slider(600, 500, 1000)));
+                invMenu.AddItem(new MenuItem("jungle.steal", "Jungle Steal?").SetValue(true));
+                invMenu.AddItem(new MenuItem("jungle.steal.skill", "Jungle Steal Skill").SetValue(new StringList(new[] { "Q", "E" }, 1)));
                 Config.AddSubMenu(invMenu);
             }*/
             var autoSpell = new Menu("Auto Spell Settings", "Auto Spell Settings");
@@ -125,6 +130,7 @@ namespace Hikigaya_Lux.Core
             Config.AddItem(new MenuItem("keysinfo", "                  Hikigaya Lux Keys").SetFontStyle(System.Drawing.FontStyle.Bold, Color.Gold));
             //Config.AddItem(new MenuItem("invisible.active", "Invisible (R)!").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
             Config.AddItem(new MenuItem("manual.r", "Semi Manual (R)").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
+            //Config.AddItem(new MenuItem("jungle.stealz", "Jungle Steal").SetValue(new KeyBind("S".ToCharArray()[0], KeyBindType.Press)));
             Config.AddItem(new MenuItem("calculator", "Damage Calculator").SetValue(new StringList(new[] { "Custom", "Common" }, 1)));
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "Combo Damage").SetValue(true);
             var drawFill = new MenuItem("RushDrawEDamageFill", "Combo Damage Fill").SetValue(new Circle(true, System.Drawing.Color.Gold));
