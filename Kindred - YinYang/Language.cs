@@ -26,6 +26,9 @@ namespace Kindred___YinYang
                 case 2:
                     TurkishMenu();
                     break;
+                case 3:
+                    PortugueseMenu();
+                    break;
                 default:
                     EnglishMenu();
                     break;
@@ -357,6 +360,115 @@ namespace Kindred___YinYang
 
             }
             settings.AddItem(new MenuItem("min.hp.for.r", "(R) İçin Minimum Can Yüzdesi").SetValue(new Slider(20, 1, 99)));
+            Program.Config.AddSubMenu(settings);
+        }
+        public static void PortugueseMenu()
+        {
+            var settings = new Menu(":: Settings", ":: Settings");
+            {
+                var comboMenu = new Menu("Definições de combo", "Definições de combo");
+                {
+                    comboMenu.AddItem(new MenuItem("q.combo.style", "(Q) Combo Style").SetValue(new StringList(new[] { "Kite", "100% de Precisão", "Posição Segura" })));
+                    comboMenu.AddItem(new MenuItem("q.combo", "Usar (Q)").SetValue(true));
+                    comboMenu.AddItem(new MenuItem("w.combo", "Usar (W)").SetValue(true));
+                    comboMenu.AddItem(new MenuItem("e.combo", "Usar (E)").SetValue(true));
+                    settings.AddSubMenu(comboMenu);
+                }
+                var eMenu = new Menu("(E) Definições", "(E) Definições");
+                {
+                    eMenu.AddItem(new MenuItem("e.whte", "                     (E) Beyaz Liste"));
+                    foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
+                    {
+                        eMenu.AddItem(new MenuItem("enemy." + enemy.CharData.BaseSkinName, string.Format("E: {0}", enemy.CharData.BaseSkinName)).SetValue(Program.HighChamps.Contains(enemy.CharData.BaseSkinName)));
+
+                    }
+                    settings.AddSubMenu(eMenu);
+                }
+                var harassMenu = new Menu("(E) Definições", "(E) Definições");
+                {
+                    harassMenu.AddItem(new MenuItem("q.harass", "Usar (Q)").SetValue(true));
+                    harassMenu.AddItem(new MenuItem("w.harass", "Usar (W)").SetValue(true));
+                    harassMenu.AddItem(new MenuItem("e.harass", "Usar (E)").SetValue(true));
+                    harassMenu.AddItem(new MenuItem("harass.mana", "Gestor de mana").SetValue(new Slider(20, 1, 99)));
+                    settings.AddSubMenu(harassMenu);
+                }
+                var laneClear = new Menu("Definições de limpeza de lane", "Definições de limpeza de lane");
+                {
+                    laneClear.AddItem(new MenuItem("q.clear", "Usar (Q)").SetValue(true));
+                    laneClear.AddItem(new MenuItem("q.minion.count", "Q Minion Count").SetValue(new Slider(4, 1, 5)));
+                    laneClear.AddItem(new MenuItem("clear.mana", "Gestor de mana").SetValue(new Slider(20, 1, 99)));
+                    settings.AddSubMenu(laneClear);
+                }
+                var jungleClear = new Menu("Definições da jungle", "Definições da jungle");
+                {
+                    jungleClear.AddItem(new MenuItem("q.jungle", "Usar (Q)").SetValue(true));
+                    jungleClear.AddItem(new MenuItem("w.jungle", "Usar (W)").SetValue(true));
+                    jungleClear.AddItem(new MenuItem("e.jungle", "Usar (E)").SetValue(true));
+                    jungleClear.AddItem(new MenuItem("jungle.mana", "Gestor de mana").SetValue(new Slider(20, 1, 99)));
+                    settings.AddSubMenu(jungleClear);
+                }
+                var ksMenu = new Menu("Definições de killsteal", "Definições de killsteal");
+                {
+                    ksMenu.AddItem(new MenuItem("q.ks", "Usar (Q)").SetValue(true));
+                    ksMenu.AddItem(new MenuItem("q.ks.count", "Contagem de ataques básicos").SetValue(new Slider(2, 1, 5)));
+                    settings.AddSubMenu(ksMenu);
+                }
+                var miscMenu = new Menu("Variado", "Variado");
+                {
+                    miscMenu.AddItem(new MenuItem("q.antigapcloser", "Anti-Gapcloser Q").SetValue(true));
+                    var antiRengar = new Menu("Anti Rengar", "Anti Rengar");
+                    {
+                        antiRengar.AddItem(new MenuItem("anti.rengar", "Anti Rengar!").SetValue(true));
+                        antiRengar.AddItem(new MenuItem("hp.percent.for.rengar", "Percentagem minima de HP").SetValue(new Slider(30, 1, 99)));
+                        miscMenu.AddSubMenu(antiRengar);
+                    }
+                    var spellMenu = new Menu("Quebrador de habilidades", "Quebrador de habilidades");
+                    {
+                        spellMenu.AddItem(new MenuItem("spell.broker", "Quebrador de habilidades!").SetValue(true));
+                        spellMenu.AddItem(new MenuItem("katarina.r", "Katarina (R)").SetValue(true));
+                        spellMenu.AddItem(new MenuItem("missfortune.r", "Miss Fortune (R)").SetValue(true));
+                        spellMenu.AddItem(new MenuItem("lucian.r", "Lucian (R)").SetValue(true));
+                        spellMenu.AddItem(new MenuItem("hp.percent.for.broke", "Spell Bozma için Minimum Can Yüzdesi").SetValue(new Slider(20, 1, 99)));
+                        miscMenu.AddSubMenu(spellMenu);
+                    }
+                    var rProtector = new Menu("(R) Proteção", "(R) Proteção");
+                    {
+                        rProtector.AddItem(new MenuItem("protector", "Desativar proteção?").SetValue(true));
+                        foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
+                        {
+                            foreach (var skillshot in SpellDatabase.Spells.Where(x => x.charName == enemy.ChampionName)) // 2.5F Protector
+                            {
+                                rProtector.AddItem(new MenuItem("hero." + skillshot.spellName, "" + skillshot.charName + "(" + skillshot.spellKey + ")").SetValue(true));
+                            }
+                        }
+                        miscMenu.AddSubMenu(rProtector);
+                    }
+                    settings.AddSubMenu(miscMenu);
+                }
+            }
+
+            var drawMenu = new Menu("Definições de desenhos", "Definições de desenhos");
+            {
+                var damageDraw = new Menu("Desenho do dan", "Desenho do dano");
+                {
+                    damageDraw.AddItem(new MenuItem("aa.indicator", "AA Indicator").SetValue(new Circle(true, System.Drawing.Color.Gold)));
+                    drawMenu.AddSubMenu(damageDraw);
+                }
+                drawMenu.AddItem(new MenuItem("q.drawx", "Q Range").SetValue(new Circle(true, System.Drawing.Color.White)));
+                drawMenu.AddItem(new MenuItem("w.draw", "W Range").SetValue(new Circle(true, System.Drawing.Color.Gold)));
+                drawMenu.AddItem(new MenuItem("e.draw", "E Range").SetValue(new Circle(true, System.Drawing.Color.DodgerBlue)));
+                drawMenu.AddItem(new MenuItem("r.draw", "R Range").SetValue(new Circle(true, System.Drawing.Color.GreenYellow)));
+                settings.AddSubMenu(drawMenu);
+            }
+            settings.AddItem(new MenuItem("e.method", "E Method").SetValue(new StringList(new[] { "Mouse Pozisyonu" })));
+            settings.AddItem(new MenuItem("use.r", "Usar R").SetValue(true));
+            settings.AddItem(new MenuItem("r.whte", "                          R Excepções"));
+            foreach (var ally in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsAlly))
+            {
+                settings.AddItem(new MenuItem("respite." + ally.CharData.BaseSkinName, string.Format("(R): {0}", ally.CharData.BaseSkinName)).SetValue(Program.HighChamps.Contains(ally.CharData.BaseSkinName)));
+
+            }
+            settings.AddItem(new MenuItem("min.hp.for.r", "(R) Percentagem minima de HP").SetValue(new Slider(20, 1, 99)));
             Program.Config.AddSubMenu(settings);
         }
         public static bool IsEnglish()
