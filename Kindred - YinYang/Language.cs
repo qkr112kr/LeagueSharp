@@ -29,6 +29,9 @@ namespace Kindred___YinYang
                 case 3:
                     PortugueseMenu();
                     break;
+                case 4:
+                    FrenchMenu();
+                    break;
                 default:
                     EnglishMenu();
                     break;
@@ -471,6 +474,116 @@ namespace Kindred___YinYang
             settings.AddItem(new MenuItem("min.hp.for.r", "(R) Percentagem minima de HP").SetValue(new Slider(20, 1, 99)));
             Program.Config.AddSubMenu(settings);
         }
+        public static void FrenchMenu()
+        {
+            var settings = new Menu(":: Settings", ":: Settings");
+            {
+                var comboMenu = new Menu("Option Combo", "Option Combo");
+                {
+                    comboMenu.AddItem(new MenuItem("q.combo.style", "(Q) Combo Style").SetValue(new StringList(new[] { "Kite l'ennmie", "100% hit l'ennemie", "Position Safe " })));
+                    comboMenu.AddItem(new MenuItem("q.combo", "Utiliser (Q)").SetValue(true));
+                    comboMenu.AddItem(new MenuItem("w.combo", "Utiliser (W)").SetValue(true));
+                    comboMenu.AddItem(new MenuItem("e.combo", "Utiliser (E)").SetValue(true));
+                    settings.AddSubMenu(comboMenu);
+                }
+                var eMenu = new Menu("(E) Option", "(E) Settings");
+                {
+                    eMenu.AddItem(new MenuItem("e.whte", "                     (E) Whitelist du E"));
+                    foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
+                    {
+                        eMenu.AddItem(new MenuItem("enemy." + enemy.CharData.BaseSkinName, string.Format("E: {0}", enemy.CharData.BaseSkinName)).SetValue(Program.HighChamps.Contains(enemy.CharData.BaseSkinName)));
+
+                    }
+                    settings.AddSubMenu(eMenu);
+                }
+                var harassMenu = new Menu("Option Harass", "Option Harass");
+                {
+                    harassMenu.AddItem(new MenuItem("q.harass", "Utiliser (Q)").SetValue(true));
+                    harassMenu.AddItem(new MenuItem("w.harass", "Utiliser (W)").SetValue(true));
+                    harassMenu.AddItem(new MenuItem("e.harass", "Utiliser (E)").SetValue(true));
+                    harassMenu.AddItem(new MenuItem("harass.mana", "Mana Manager").SetValue(new Slider(20, 1, 99)));
+                    settings.AddSubMenu(harassMenu);
+                }
+                var laneClear = new Menu("Option du lane-clear", "Option du lane-clear");
+                {
+                    laneClear.AddItem(new MenuItem("q.clear", "Utiliser (Q)").SetValue(true));
+                    laneClear.AddItem(new MenuItem("q.minion.count", "Combien de sbire pour que le A s'active aux minimum").SetValue(new Slider(4, 1, 5)));
+                    laneClear.AddItem(new MenuItem("clear.mana", "Mana Manager").SetValue(new Slider(20, 1, 99)));
+                    settings.AddSubMenu(laneClear);
+                }
+                var jungleClear = new Menu("Option du jungle-clear", "Option du jungle-clear");
+                {
+                    jungleClear.AddItem(new MenuItem("q.jungle", "Utiliser (Q)").SetValue(true));
+                    jungleClear.AddItem(new MenuItem("w.jungle", "Utiliser (W)").SetValue(true));
+                    jungleClear.AddItem(new MenuItem("e.jungle", "Utiliser (E)").SetValue(true));
+                    jungleClear.AddItem(new MenuItem("jungle.mana", "Mana Manager").SetValue(new Slider(20, 1, 99)));
+                    settings.AddSubMenu(jungleClear);
+                }
+                var ksMenu = new Menu("Parametre du killsteal", "Parametre du killsteal");
+                {
+                    ksMenu.AddItem(new MenuItem("q.ks", "Utiliser Q pour KS").SetValue(true));
+                    ksMenu.AddItem(new MenuItem("q.ks.count", "Compteur d'auto attaque").SetValue(new Slider(2, 1, 5)));
+                    settings.AddSubMenu(ksMenu);
+                }
+                var miscMenu = new Menu("Divers option", "Divers option");
+                {
+                    miscMenu.AddItem(new MenuItem("q.antigapcloser", "Anti-Gapcloser Q!").SetValue(true));
+                    var antiRengar = new Menu("Anti Rengar", "Anti Rengar");
+                    {
+                        antiRengar.AddItem(new MenuItem("anti.rengar", "Anti Rengar!").SetValue(true));
+                        antiRengar.AddItem(new MenuItem("hp.percent.for.rengar", "Min.HP Pourcentage").SetValue(new Slider(30, 1, 99)));
+                        miscMenu.AddSubMenu(antiRengar);
+                    }
+                    var spellMenu = new Menu("Casse les gros ultime", "Casse les gros ultime");
+                    {
+                        spellMenu.AddItem(new MenuItem("spell.broker", "Spell Breaker!").SetValue(true));
+                        spellMenu.AddItem(new MenuItem("katarina.r", "Katarina (R)").SetValue(true));
+                        spellMenu.AddItem(new MenuItem("missfortune.r", "Miss Fortune (R)").SetValue(true));
+                        spellMenu.AddItem(new MenuItem("lucian.r", "Lucian (R)").SetValue(true));
+                        spellMenu.AddItem(new MenuItem("hp.percent.for.broke", "Min. HP Pourcentage").SetValue(new Slider(20, 1, 99)));
+                        miscMenu.AddSubMenu(spellMenu);
+                    }
+                    var rProtector = new Menu("(R) Protection", "(R) Protection");
+                    {
+                        rProtector.AddItem(new MenuItem("protector", "Supprimer la protection?").SetValue(true));
+                        foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsEnemy))
+                        {
+                            foreach (var skillshot in SpellDatabase.Spells.Where(x => x.charName == enemy.ChampionName)) // 2.5F Protector
+                            {
+                                rProtector.AddItem(new MenuItem("hero." + skillshot.spellName, "" + skillshot.charName + "(" + skillshot.spellKey + ")").SetValue(true));
+                            }
+                        }
+                        miscMenu.AddSubMenu(rProtector);
+                    }
+                    settings.AddSubMenu(miscMenu);
+                }
+            }
+
+            var drawMenu = new Menu("Option visuel", "Option visuel");
+            {
+                var damageDraw = new Menu("Visuel des degats", "Visuel des degats");
+                {
+                    damageDraw.AddItem(new MenuItem("aa.indicator", "AA Indicator").SetValue(new Circle(true, System.Drawing.Color.Gold)));
+                    drawMenu.AddSubMenu(damageDraw);
+                }
+                drawMenu.AddItem(new MenuItem("q.drawx","Range du (Q)").SetValue(new Circle(true, System.Drawing.Color.White)));
+                drawMenu.AddItem(new MenuItem("w.draw", "Range du (W)").SetValue(new Circle(true, System.Drawing.Color.Gold)));
+                drawMenu.AddItem(new MenuItem("e.draw", "Range du (E)").SetValue(new Circle(true, System.Drawing.Color.DodgerBlue)));
+                drawMenu.AddItem(new MenuItem("r.draw", "Range du (R)").SetValue(new Circle(true, System.Drawing.Color.GreenYellow)));
+                settings.AddSubMenu(drawMenu);
+            }
+            settings.AddItem(new MenuItem("e.method", "Methode pour utiliser le E").SetValue(new StringList(new[] { "Position du curseur" })));
+            settings.AddItem(new MenuItem("use.r", "Utiliser (R)").SetValue(true));
+            settings.AddItem(new MenuItem("r.whte", "                          R Whitelist"));
+            foreach (var ally in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsAlly))
+            {
+                settings.AddItem(new MenuItem("respite." + ally.CharData.BaseSkinName, string.Format("Respite: {0}", ally.CharData.BaseSkinName)).SetValue(Program.HighChamps.Contains(ally.CharData.BaseSkinName)));
+
+            }
+            settings.AddItem(new MenuItem("min.hp.for.r", "Mini % hp pour utiliser le R").SetValue(new Slider(20, 1, 99)));
+            Program.Config.AddSubMenu(settings);
+        }
+
         public static bool IsEnglish()
         {
             return Program.Config.Item("language.supx").GetValue<StringList>().SelectedIndex == 0;

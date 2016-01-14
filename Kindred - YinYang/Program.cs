@@ -47,7 +47,7 @@ namespace Kindred___YinYang
             Config = new Menu("Kindred - Yin Yang", "Kindred - Yin Yang", true);
             {
                 Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu(":: Orbwalker Settings"));
-                Config.AddItem(new MenuItem("language.supx", "Language").SetValue(new StringList(new[] { "English", "Korean", "Türkçe", "Portuguese" }, 0)));
+                Config.AddItem(new MenuItem("language.supx", "Language").SetValue(new StringList(new[] { "English", "Korean", "Türkçe", "Portuguese","French" }, 0)));
                 Language.MenuInit();
                 Config.AddToMainMenu();
             }
