@@ -277,7 +277,7 @@ namespace Hikigaya_Syndra
             }
             if (W.IsReady() && Config.Item("w.combo").GetValue<bool>())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(W.Range + W.Width) && W.GetPrediction(x).Hitchance >= HikiChance("q.hit.chance")))
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(W.Range + W.Width) && W.GetPrediction(x).Hitchance >= HikiChance("w.hit.chance")))
                 {
                     Helper.UseW(enemy,enemy);
                 }
@@ -326,13 +326,28 @@ namespace Hikigaya_Syndra
                     return;
                 }
             }
-            if (Config.Item("q.harass").GetValue<bool>() && Q.IsReady())
+
+			if (Q.IsReady() && Config.Item("q.harass").GetValue<bool>())
             {
                 foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Q.Range) && Q.GetPrediction(x).Hitchance >= HikiChance("q.hit.chance")))
                 {
                     Q.Cast(enemy);
                 }
             }
+            if (W.IsReady() && Config.Item("w.harass").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(W.Range + W.Width) && W.GetPrediction(x).Hitchance >= HikiChance("w.hit.chance")))
+                {
+                    Helper.UseW(enemy,enemy);
+                }
+            }
+            if (Q.IsReady() && E.IsReady() && Config.Item("qe.harass").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(Qe.Range) && Qe.GetPrediction(x).Hitchance >= HikiChance("qe.hit.chance")))
+                {
+                    Helper.UseQe(enemy);
+                }
+            }  
             
         }
         private static void LaneClear()
