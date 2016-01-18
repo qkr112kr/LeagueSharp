@@ -154,7 +154,7 @@ namespace Kindred___YinYang
             {
                 var comboMenu = new Menu("콤보 설정", "콤보 설정");
                 {
-                    comboMenu.AddItem(new MenuItem("q.combo.style", "(Q) 콤보 스타일").SetValue(new StringList(new[] { "Kite", "100% Hit", "Safe Position" })));
+                    comboMenu.AddItem(new MenuItem("q.combo.style", "(Q) 콤보 스타일").SetValue(new StringList(new[] { "카이팅 위주", "명중률 위주", "안전 위주" })));
                     comboMenu.AddItem(new MenuItem("q.combo", "(Q) 사용").SetValue(true));
                     comboMenu.AddItem(new MenuItem("w.combo", "(W) 사용").SetValue(true));
                     comboMenu.AddItem(new MenuItem("e.combo", "(E) 사용").SetValue(true));
@@ -175,7 +175,7 @@ namespace Kindred___YinYang
                     harassMenu.AddItem(new MenuItem("q.harass", "Q 사용").SetValue(true));
                     harassMenu.AddItem(new MenuItem("w.harass", "W 사용").SetValue(true));
                     harassMenu.AddItem(new MenuItem("e.harass", "E 사용").SetValue(true));
-                    harassMenu.AddItem(new MenuItem("harass.mana", "Mana Manager").SetValue(new Slider(20, 1, 99)));
+                    harassMenu.AddItem(new MenuItem("harass.mana", "마나 관리").SetValue(new Slider(20, 1, 99)));
                     settings.AddSubMenu(harassMenu);
                 }
                 var laneClear = new Menu("라인클리어 설정", "라인클리어 설정");
@@ -196,15 +196,15 @@ namespace Kindred___YinYang
                 var ksMenu = new Menu("킬스틸 설정", "킬스틸 설정");
                 {
                     ksMenu.AddItem(new MenuItem("q.ks", "Q 사용").SetValue(true));
-                    ksMenu.AddItem(new MenuItem("q.ks.count", "Basic Attack Count").SetValue(new Slider(2, 1, 5)));
+                    ksMenu.AddItem(new MenuItem("q.ks.count", "기본 공격 횟수").SetValue(new Slider(2, 1, 5)));
                     settings.AddSubMenu(ksMenu);
                 }
                 var miscMenu = new Menu("다양한 설정", "다양한 설정");
                 {
-                    miscMenu.AddItem(new MenuItem("q.antigapcloser", "Q로 렝가 접근 차단!").SetValue(true));
-                    var antiRengar = new Menu("Anti Rengar", "렝가 접근차단");
+                    miscMenu.AddItem(new MenuItem("q.antigapcloser", "(Q) 돌진스킬 회피").SetValue(true));
+                    var antiRengar = new Menu("Anti Rengar", "(Q) 렝가 접근차단");
                     {
-                        antiRengar.AddItem(new MenuItem("anti.rengar", "렝가 접근 차단!").SetValue(true));
+                        antiRengar.AddItem(new MenuItem("anti.rengar", "(Q) 렝가 접근 차단").SetValue(true));
                         antiRengar.AddItem(new MenuItem("hp.percent.for.rengar", "최소 체력 퍼센트").SetValue(new Slider(30, 1, 99)));
                         miscMenu.AddSubMenu(antiRengar);
                     }
@@ -244,7 +244,7 @@ namespace Kindred___YinYang
                     drawMenu.AddItem(new MenuItem("r.draw", "R 사거리 표시").SetValue(new Circle(true, Color.GreenYellow)));
                     settings.AddSubMenu(drawMenu);
                 }
-                settings.AddItem(new MenuItem("e.method", "E 방법").SetValue(new StringList(new[] { "Cursor Position" })));
+                settings.AddItem(new MenuItem("e.method", "E 로직").SetValue(new StringList(new[] { "마우스 위치로" })));
                 settings.AddItem(new MenuItem("use.r", "R 사용").SetValue(true));
                 settings.AddItem(new MenuItem("r.whte", "                          R 사용 목록"));
                 foreach (var ally in ObjectManager.Get<Obj_AI_Hero>().Where(o => o.IsAlly))
