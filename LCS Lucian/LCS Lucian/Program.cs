@@ -20,6 +20,11 @@ namespace LCS_Lucian
 
         private static void OnLoad(EventArgs args)
         {
+            if (ObjectManager.Player.ChampionName != "Lucian")
+            {
+                return;
+            }
+
             LucianMenu.Config =
                 new Menu("LCS Series: Lucian", "LCS Series: Lucian", true).SetFontStyle(System.Drawing.FontStyle.Bold,
                     SharpDX.Color.Gold);
@@ -93,25 +98,51 @@ namespace LCS_Lucian
         {
             if (sender.IsMe && Orbwalking.IsAutoAttack(args.SData.Name) && args.Target is Obj_AI_Hero && args.Target.IsValid)
             {
-                if (LucianSpells.Q.IsReady() && Helper.LEnabled("lucian.q.combo") &&
+                if (Helper.LEnabled("lucian.combo.start.e"))
+                {
+                    if (!LucianSpells.E.IsReady() && LucianSpells.Q.IsReady() && Helper.LEnabled("lucian.q.combo") &&
                     ObjectManager.Player.Distance(args.Target.Position) < LucianSpells.Q.Range &&
                     LucianMenu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && ObjectManager.Player.Buffs.Any(buff => buff.Name != "lucianpassivebuff"))
-                {
-                    LucianSpells.Q.CastOnUnit(((Obj_AI_Hero)args.Target));
+                    {
+                        LucianSpells.Q.CastOnUnit(((Obj_AI_Hero)args.Target));
+                    }
+                    if (!LucianSpells.E.IsReady() && LucianSpells.W.IsReady() && Helper.LEnabled("lucian.w.combo") &&
+                        ObjectManager.Player.Distance(args.Target.Position) < LucianSpells.W.Range &&
+                        LucianMenu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && ObjectManager.Player.Buffs.Any(buff => buff.Name != "lucianpassivebuff")
+                        && LucianSpells.W.GetPrediction(((Obj_AI_Hero)args.Target)).Hitchance >= HitChance.Medium)
+                    {
+                        LucianSpells.W.Cast(((Obj_AI_Hero)args.Target).Position);
+                    }
+                    if (LucianSpells.E.IsReady() && Helper.LEnabled("lucian.e.combo") &&
+                        ObjectManager.Player.Distance(args.Target.Position) < LucianSpells.Q2.Range &&
+                        LucianMenu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && ObjectManager.Player.Buffs.Any(buff => buff.Name != "lucianpassivebuff"))
+                    {
+                        ECast(((Obj_AI_Hero)args.Target));
+                    }
                 }
-                if (LucianSpells.W.IsReady() && Helper.LEnabled("lucian.w.combo") &&
-                    ObjectManager.Player.Distance(args.Target.Position) < LucianSpells.W.Range &&
-                    LucianMenu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && ObjectManager.Player.Buffs.Any(buff => buff.Name != "lucianpassivebuff")
-                    && LucianSpells.W.GetPrediction(((Obj_AI_Hero)args.Target)).Hitchance >= HitChance.Medium)
+                else
                 {
-                    LucianSpells.W.Cast(((Obj_AI_Hero)args.Target).Position);
-                }
-                if (LucianSpells.E.IsReady() && Helper.LEnabled("lucian.e.combo") &&
-                    ObjectManager.Player.Distance(args.Target.Position) < LucianSpells.Q2.Range &&
+                    if (LucianSpells.Q.IsReady() && Helper.LEnabled("lucian.q.combo") &&
+                    ObjectManager.Player.Distance(args.Target.Position) < LucianSpells.Q.Range &&
                     LucianMenu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && ObjectManager.Player.Buffs.Any(buff => buff.Name != "lucianpassivebuff"))
-                {
-                    ECast(((Obj_AI_Hero)args.Target));
+                    {
+                        LucianSpells.Q.CastOnUnit(((Obj_AI_Hero)args.Target));
+                    }
+                    if (LucianSpells.W.IsReady() && Helper.LEnabled("lucian.w.combo") &&
+                        ObjectManager.Player.Distance(args.Target.Position) < LucianSpells.W.Range &&
+                        LucianMenu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && ObjectManager.Player.Buffs.Any(buff => buff.Name != "lucianpassivebuff")
+                        && LucianSpells.W.GetPrediction(((Obj_AI_Hero)args.Target)).Hitchance >= HitChance.Medium)
+                    {
+                        LucianSpells.W.Cast(((Obj_AI_Hero)args.Target).Position);
+                    }
+                    if (LucianSpells.E.IsReady() && Helper.LEnabled("lucian.e.combo") &&
+                        ObjectManager.Player.Distance(args.Target.Position) < LucianSpells.Q2.Range &&
+                        LucianMenu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && ObjectManager.Player.Buffs.Any(buff => buff.Name != "lucianpassivebuff"))
+                    {
+                        ECast(((Obj_AI_Hero)args.Target));
+                    }
                 }
+                
             }
             else if (sender.IsMe && Orbwalking.IsAutoAttack(args.SData.Name) && args.Target is Obj_AI_Minion && args.Target.IsValid && ((Obj_AI_Minion)args.Target).Team == GameObjectTeam.Neutral
                 && ObjectManager.Player.ManaPercent > Helper.LSlider("lucian.clear.mana"))
