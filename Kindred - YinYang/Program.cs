@@ -57,13 +57,8 @@ namespace Kindred___YinYang
             Game.OnUpdate += Game_OnGameUpdate;
             GameObject.OnCreate += GameObject_OnCreate;
             Drawing.OnDraw += Drawing_OnDraw;
-            Obj_AI_Base.OnDoCast += OnDoCast;
         }
 
-        private static void OnDoCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
-        {
-            Helper.OnDoCast(sender,args);
-        }
         private static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs spell)
         {
             Helper.Protector(sender,spell);
@@ -108,9 +103,17 @@ namespace Kindred___YinYang
         }
         private static void Combo()
         {
+            var useQ = Config.Item("q.combo").GetValue<bool>();
             var useW = Config.Item("w.combo").GetValue<bool>();
             var useE = Config.Item("e.combo").GetValue<bool>();
 
+            if (useQ && Q.IsReady())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(ObjectManager.Player.AttackRange)))
+                {
+                    Helper.AdvancedQ(Q, enemy, 3);
+                }
+            }
             if (useW && W.IsReady())
             {
                 foreach (var enemy in HeroManager.Enemies.Where(o => o.IsValidTarget(W.Range) && !o.IsDead && !o.IsZombie))

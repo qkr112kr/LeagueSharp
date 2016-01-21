@@ -109,7 +109,7 @@ namespace Kindred___YinYang
                 }
             }
         }
-        private static void AdvancedQ(Spell spell, Obj_AI_Hero unit, int count)
+        public static void AdvancedQ(Spell spell, Obj_AI_Hero unit, int count)
         {
             switch (Program.Config.Item("q.combo.style").GetValue<StringList>().SelectedIndex)
             {
@@ -120,12 +120,12 @@ namespace Kindred___YinYang
                     CollisionObjectCheckCast(spell,unit,count);
                     break;
                 case 2:
-                    CastSafePosition(spell,unit);
+                    CastSafePosition(spell, unit);
                     break;
             }
         }
 
-        private static void CastSafePosition(Spell spell, Obj_AI_Hero hero)
+        public static void CastSafePosition(Spell spell, Obj_AI_Hero hero)
         {
             if (Geometry.CircleCircleIntersection(ObjectManager.Player.ServerPosition.To2D(), Prediction.GetPrediction(hero, 0f, hero.AttackRange).UnitPosition.To2D(), spell.Range, Orbwalking.GetRealAutoAttackRange(hero)).Count() > 0)
             {
