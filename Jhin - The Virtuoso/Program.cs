@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data.SqlTypes;
 using System.Drawing;
 using System.Linq;
 using LeagueSharp.Common;
@@ -15,7 +14,6 @@ namespace Jhin___The_Virtuoso
         public static Orbwalking.Orbwalker Orbwalker;
         public static Spell Q,W,E,R;
         public static Menu Config;
-        private static float ctime;
 
         static void Main()
         {
@@ -117,6 +115,13 @@ namespace Jhin___The_Virtuoso
                     Config.AddSubMenu(clearMenu);
                 }
 
+                var ksMenu = new Menu(":: Kill Steal", ":: Kill Steal");
+                {
+                    ksMenu.AddItem(new MenuItem("q.ks", "Use (Q)").SetValue(true));
+                    ksMenu.AddItem(new MenuItem("w.ks", "Use (W)").SetValue(true));
+                    Config.AddSubMenu(ksMenu);
+                }
+
                 var miscMenu = new Menu(":: Miscellaneous", ":: Miscellaneous");
                 {
                     miscMenu.AddItem(new MenuItem("auto.e.immobile", "Auto Cast (E) Immobile Target").SetValue(true));
@@ -137,7 +142,10 @@ namespace Jhin___The_Virtuoso
                     drawMenu.AddItem(new MenuItem("r.draw", "(R) Range").SetValue(new Circle(false, Color.GreenYellow)));
                     Config.AddSubMenu(drawMenu);
                 }
+                Config.AddItem(new MenuItem("semi.manual.ult", "Semi-Manual (R)!").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
+                Config.AddItem(new MenuItem("use.combo", "Combo (Active)").SetValue(new KeyBind(32, KeyBindType.Press)));
                 Config.AddItem(new MenuItem("credits.x1", "                Developed by Hikigaya").SetFontStyle(FontStyle.Bold,SharpDX.Color.DodgerBlue));
+                Config.AddItem(new MenuItem("credits.x2", "       Dont forget to Upvote on Assembly Database").SetFontStyle(FontStyle.Bold, SharpDX.Color.YellowGreen));
                 Config.AddToMainMenu();
             }
             Spellbook.OnCastSpell += OnCastSpell;
@@ -151,7 +159,7 @@ namespace Jhin___The_Virtuoso
 
         private static void OnIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
         {
-            if (sender.IsMe && Helper.IsRActive)
+            if (sender.IsMe && Helper.IsRActive && Config.Item("use.combo").GetValue<KeyBind>().Active)
             {
                 args.Process = false;
             }
@@ -162,7 +170,7 @@ namespace Jhin___The_Virtuoso
         }
         private static void OnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (Helper.IsRActive && sender.Owner.IsMe)
+            if (Helper.IsRActive && sender.Owner.IsMe && Config.Item("use.combo").GetValue<KeyBind>().Active)
             {
                 if (args.Slot == SpellSlot.R)
                 {
@@ -201,7 +209,7 @@ namespace Jhin___The_Virtuoso
         }
         private static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (args.Slot == SpellSlot.R)
+            if (args.Slot == SpellSlot.R && Config.Item("use.combo").GetValue<KeyBind>().Active)
             {
                 Helper.LastR = Game.Time;
             }
@@ -249,8 +257,25 @@ namespace Jhin___The_Virtuoso
                     break;
                 case Orbwalking.OrbwalkingMode.None:
                     ImmobileE();
+                    KillSteal();
                     break;
-            }  
+            }
+            if (Config.Item("semi.manual.ult").GetValue<KeyBind>().Active)
+            {
+                SemiManual();
+            }
+        }
+        private static void SemiManual()
+        {
+            if (R.IsReady())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(Jhin) < Config.Item("r.combo.max.distance").GetValue<Slider>().Value
+                    && x.Distance(Jhin) > Config.Item("r.combo.min.distance").GetValue<Slider>().Value && Config.Item("r.combo." + x.ChampionName).GetValue<bool>() &&
+                    R.GetPrediction(x).Hitchance >= Helper.HikiChance("r.hit.chance")))
+                {
+                    R.Cast(enemy);
+                }
+            }
         }
         private static void Combo()
         {
@@ -263,7 +288,7 @@ namespace Jhin___The_Virtuoso
             }
             if (W.IsReady() && Config.Item("w.combo").GetValue<bool>())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(Jhin) < Config.Item("w.combo.max.distance").GetValue<Slider>().Value
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValid && x.Distance(Jhin) < Config.Item("w.combo.max.distance").GetValue<Slider>().Value
                     && x.Distance(Jhin) > Config.Item("w.combo.min.distance").GetValue<Slider>().Value && W.GetPrediction(x).Hitchance >= Helper.HikiChance("w.hit.chance")))
                 {
                     W.Cast(enemy);
@@ -331,7 +356,7 @@ namespace Jhin___The_Virtuoso
                     W.Cast(W.GetLineFarmLocation(min).Position);
                 }
             }
-        } // done working
+        } 
         private static void JungleClear()
         {
             if (Jhin.ManaPercent < Config.Item("jungle.mana").GetValue<Slider>().Value)
@@ -351,7 +376,7 @@ namespace Jhin___The_Virtuoso
             {
                 W.Cast(mobs[0]);
             }
-        } // done working
+        } 
         private static void ImmobileE()
         {
             if (E.IsReady() && Config.Item("auto.e.immobile").GetValue<bool>())
@@ -361,6 +386,27 @@ namespace Jhin___The_Virtuoso
                     E.Cast(enemy);
                 }
             }
-        } // done working
+        } 
+        private static void KillSteal()
+        {
+            if (Q.IsReady() && Config.Item("q.ks").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range) &&
+                    x.Health < Q.GetDamage(x)))
+                {
+                    Q.CastOnUnit(enemy);
+                }
+            }
+            if (W.IsReady() && Config.Item("w.ks").GetValue<bool>())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(Jhin) < Config.Item("w.combo.max.distance").GetValue<Slider>().Value
+                        && x.Distance(Jhin) > Config.Item("w.combo.min.distance").GetValue<Slider>().Value
+                        && x.IsValid && W.GetPrediction(x).Hitchance >= Helper.HikiChance("w.hit.chance")
+                        && x.Health < W.GetDamage(x)))
+                {
+                    W.Cast(enemy);
+                }   
+            }
+        }
     }
 }
