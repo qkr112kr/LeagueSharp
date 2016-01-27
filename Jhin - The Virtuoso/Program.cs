@@ -159,7 +159,7 @@ namespace Jhin___The_Virtuoso
 
         private static void OnIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
         {
-            if (sender.IsMe && Helper.IsRActive && Config.Item("use.combo").GetValue<KeyBind>().Active)
+            if (sender.IsMe && Helper.IsRActive && (Config.Item("use.combo").GetValue<KeyBind>().Active || Config.Item("semi.manual.ult").GetValue<KeyBind>().Active))
             {
                 args.Process = false;
             }
@@ -170,7 +170,7 @@ namespace Jhin___The_Virtuoso
         }
         private static void OnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (Helper.IsRActive && sender.Owner.IsMe && Config.Item("use.combo").GetValue<KeyBind>().Active)
+            if (Helper.IsRActive && sender.Owner.IsMe && (Config.Item("use.combo").GetValue<KeyBind>().Active || Config.Item("semi.manual.ult").GetValue<KeyBind>().Active))
             {
                 if (args.Slot == SpellSlot.R)
                 {
