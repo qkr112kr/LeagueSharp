@@ -27,7 +27,7 @@ namespace LCS_Lucian
 
             LucianMenu.Config =
                 new Menu("LCS Series: Lucian", "LCS Series: Lucian", true).SetFontStyle(System.Drawing.FontStyle.Bold,
-                    SharpDX.Color.Gold);
+                    Color.Gold);
             {
                 LucianSpells.Init();
                 LucianMenu.OrbwalkerInit();
@@ -50,7 +50,7 @@ namespace LCS_Lucian
         private static void LucianOnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
 
-            if (UltActive && (args.Slot == SpellSlot.R) && sender.Owner.IsMe)
+            if (UltActive && (args.Slot == SpellSlot.R) && sender.Owner.IsMe && LucianMenu.Config.Item("lucian.semi.manual.ult").GetValue<KeyBind>().Active)
             {
                 args.Process = false;
                 LucianMenu.Orbwalker.SetAttack(false);
@@ -168,8 +168,6 @@ namespace LCS_Lucian
 
             }
         }
-
-
         private static void LucianOnUpdate(EventArgs args)
         {
             switch (LucianMenu.Orbwalker.ActiveMode)
@@ -186,7 +184,6 @@ namespace LCS_Lucian
                 SemiManual();
             }
         }
-
         private static void SemiManual()
         {
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
@@ -196,7 +193,6 @@ namespace LCS_Lucian
                 LucianSpells.R.Cast(enemy);
             }
         }
-
         private static void Harass()
         {
             if (ObjectManager.Player.ManaPercent < Helper.LSlider("lucian.harass.mana"))
@@ -215,7 +211,6 @@ namespace LCS_Lucian
                 }
             }
         }
-
         private static void HarassQCast()
         {
             switch (LucianMenu.Config.Item("lucian.q.type").GetValue<StringList>().SelectedIndex)
@@ -242,7 +237,6 @@ namespace LCS_Lucian
                     break;
             }
         }
-
         private static void Clear()
         {
             if (ObjectManager.Player.ManaPercent < Helper.LSlider("lucian.clear.mana"))
@@ -251,8 +245,6 @@ namespace LCS_Lucian
             }
             if (LucianSpells.Q.IsReady() && Helper.LEnabled("lucian.q.clear") && ObjectManager.Player.Buffs.Any(buff => buff.Name != "lucianpassivebuff"))
             {
-
-
                 foreach (var minion in MinionManager.GetMinions(ObjectManager.Player.ServerPosition, LucianSpells.Q.Range, MinionTypes.All,
                 MinionTeam.NotAlly))
                 {
@@ -285,7 +277,6 @@ namespace LCS_Lucian
                 }
             }
         }
-
         private static void LucianOnDraw(EventArgs args)
         {
             LucianDrawing.Init();
