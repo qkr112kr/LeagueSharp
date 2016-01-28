@@ -22,6 +22,11 @@ namespace Jhin___The_Virtuoso
 
         private static void OnLoad(EventArgs args)
         {
+            if (ObjectManager.Player.ChampionName != "Jhin")
+            {
+                return;
+            }
+
             Q = new Spell(SpellSlot.Q,550);
             W = new Spell(SpellSlot.W,2500);
             E = new Spell(SpellSlot.E, 2000);
@@ -146,6 +151,30 @@ namespace Jhin___The_Virtuoso
                 Config.AddItem(new MenuItem("use.combo", "Combo (Active)").SetValue(new KeyBind(32, KeyBindType.Press)));
                 Config.AddItem(new MenuItem("credits.x1", "                Developed by Hikigaya").SetFontStyle(FontStyle.Bold,SharpDX.Color.DodgerBlue));
                 Config.AddItem(new MenuItem("credits.x2", "       Dont forget to Upvote on Assembly Database").SetFontStyle(FontStyle.Bold, SharpDX.Color.YellowGreen));
+                var drawDamageMenu = new MenuItem("RushDrawEDamage", "Combo Damage").SetValue(true);
+                var drawFill = new MenuItem("RushDrawEDamageFill", "Combo Damage Fill").SetValue(new Circle(true, System.Drawing.Color.Gold));
+
+                drawMenu.SubMenu("Damage Draws").AddItem(drawDamageMenu);
+                drawMenu.SubMenu("Damage Draws").AddItem(drawFill);
+
+                DamageIndicator.DamageToUnit = Helper.ComboDamage;
+                DamageIndicator.Enabled = drawDamageMenu.GetValue<bool>();
+                DamageIndicator.Fill = drawFill.GetValue<Circle>().Active;
+                DamageIndicator.FillColor = drawFill.GetValue<Circle>().Color;
+
+                drawDamageMenu.ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs eventArgs)
+                {
+                    DamageIndicator.Enabled = eventArgs.GetNewValue<bool>();
+                };
+
+                drawFill.ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs eventArgs)
+                {
+                    DamageIndicator.Fill = eventArgs.GetNewValue<Circle>().Active;
+                    DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
+                };
+                Config.AddToMainMenu();
                 Config.AddToMainMenu();
             }
             Spellbook.OnCastSpell += OnCastSpell;
