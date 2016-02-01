@@ -175,7 +175,6 @@ namespace Jhin___The_Virtuoso
                     DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
                 };
                 Config.AddToMainMenu();
-                Config.AddToMainMenu();
             }
             Spellbook.OnCastSpell += OnCastSpell;
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
