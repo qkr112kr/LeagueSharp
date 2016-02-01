@@ -32,6 +32,7 @@ namespace Jhin___The_Virtuoso
             E = new Spell(SpellSlot.E, 2000);
             R = new Spell(SpellSlot.R, 3500);
 
+
             W.SetSkillshot(0.75f,40,5000,false,SkillshotType.SkillshotLine);
             E.SetSkillshot(0.23f, 120, 1600, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(0.21f,80,5000,false,SkillshotType.SkillshotLine);
@@ -149,7 +150,7 @@ namespace Jhin___The_Virtuoso
                 }
                 Config.AddItem(new MenuItem("semi.manual.ult", "Semi-Manual (R)!").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
                 Config.AddItem(new MenuItem("use.combo", "Combo (Active)").SetValue(new KeyBind(32, KeyBindType.Press)));
-                Config.AddItem(new MenuItem("credits.x1", "                Developed by Hikigaya").SetFontStyle(FontStyle.Bold,SharpDX.Color.DodgerBlue));
+                Config.AddItem(new MenuItem("credits.x1", "                          Developed by Hikigaya").SetFontStyle(FontStyle.Bold,SharpDX.Color.DodgerBlue));
                 Config.AddItem(new MenuItem("credits.x2", "       Dont forget to Upvote on Assembly Database").SetFontStyle(FontStyle.Bold, SharpDX.Color.YellowGreen));
                 var drawDamageMenu = new MenuItem("RushDrawEDamage", "Combo Damage").SetValue(true);
                 var drawFill = new MenuItem("RushDrawEDamageFill", "Combo Damage Fill").SetValue(new Circle(true, System.Drawing.Color.Gold));
@@ -174,7 +175,6 @@ namespace Jhin___The_Virtuoso
                     DamageIndicator.Fill = eventArgs.GetNewValue<Circle>().Active;
                     DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
                 };
-                Config.AddToMainMenu();
                 Config.AddToMainMenu();
             }
             Spellbook.OnCastSpell += OnCastSpell;
@@ -308,7 +308,7 @@ namespace Jhin___The_Virtuoso
         }
         private static void Combo()
         {
-            if (Q.IsReady() && Config.Item("q.combo").GetValue<bool>() && Config.Item("q.combo.style").GetValue<StringList>().SelectedIndex == 1)
+            if (Q.IsReady() && Config.Item("q.combo").GetValue<bool>())
             {
                 foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range)))
                 {
