@@ -68,23 +68,6 @@ namespace Jhin___The_Virtuoso
                         comboMenu.AddSubMenu(eComboMenu);
                     }
 
-                    var rComboMenu = new Menu(":: R", ":: R");
-                    {
-                        var rComboWhiteMenu = new Menu(":: R - Whitelist", ":: R - Whitelist");
-                        {
-                            foreach (var enemy in HeroManager.Enemies.Where(enemy => enemy.IsValid))
-                            {
-                                rComboWhiteMenu.AddItem(new MenuItem("r.combo." + enemy.ChampionName, "(R): " + enemy.ChampionName).SetValue(true));
-                            }
-                            rComboMenu.AddSubMenu(rComboWhiteMenu);
-                        }
-                        rComboMenu.AddItem(new MenuItem("r.combo", "Use (R)").SetValue(true));
-                        rComboMenu.AddItem(new MenuItem("r.combo.min.distance", "Min. Distance").SetValue(new Slider(650, 1, 3500)));
-                        rComboMenu.AddItem(new MenuItem("r.combo.max.distance", "Max. Distance").SetValue(new Slider(2000, 1, 3500)));
-                        rComboMenu.AddItem(new MenuItem("r.combo.style", "» (R) Style").SetValue(new StringList(new[] { "Only Enemy If Killable"})));
-                        rComboMenu.AddItem(new MenuItem("r.hit.chance", "(R) Hit Chance").SetValue(new StringList(Helper.HitchanceNameArray, 2)));
-                        comboMenu.AddSubMenu(rComboMenu);
-                    }
                     Config.AddSubMenu(comboMenu);
                 }
                 var harassMenu = new Menu(":: Harass Settings", ":: Harass Settings");
@@ -132,10 +115,29 @@ namespace Jhin___The_Virtuoso
                 var miscMenu = new Menu(":: Miscellaneous", ":: Miscellaneous");
                 {
                     miscMenu.AddItem(new MenuItem("auto.e.immobile", "Auto Cast (E) Immobile Target").SetValue(true));
-                    miscMenu.AddItem(new MenuItem("ezevade.hijacker", "ezEvade Hijacker").SetValue(true)).SetTooltip("When Jhin using (R) Disabling ezEvade for max. damage ");
+                    //miscMenu.AddItem(new MenuItem("ezevade.hijacker", "ezEvade Hijacker").SetValue(true)).SetTooltip("When Jhin using (R) Disabling ezEvade for max. damage ");
                     miscMenu.AddItem(new MenuItem("evadesharp.hijacker", "Evade# Hijacker").SetValue(true)).SetTooltip("When Jhin using (R) Disabling Evade# for max. damage ");
                     Config.AddSubMenu(miscMenu);
                 }
+                var rComboMenu = new Menu(":: Ultimate Settings", ":: Ultimate Settings").SetFontStyle(FontStyle.Bold,SharpDX.Color.Yellow);
+                {
+                    var rComboWhiteMenu = new Menu(":: R - Whitelist", ":: R - Whitelist");
+                    {
+                        foreach (var enemy in HeroManager.Enemies.Where(enemy => enemy.IsValid))
+                        {
+                            rComboWhiteMenu.AddItem(new MenuItem("r.combo." + enemy.ChampionName, "(R): " + enemy.ChampionName).SetValue(true));
+                        }
+                        rComboMenu.AddSubMenu(rComboWhiteMenu);
+                    }
+                    rComboMenu.AddItem(new MenuItem("r.combo", "Use (R)").SetValue(true));
+                    rComboMenu.AddItem(new MenuItem("r.combo.min.distance", "Min. Distance").SetValue(new Slider(500, 1, 3500)));
+                    rComboMenu.AddItem(new MenuItem("r.combo.max.distance", "Max. Distance").SetValue(new Slider(2000, 1, 3500)));
+                    rComboMenu.AddItem(new MenuItem("r.combo.style", "» (R) Style").SetValue(new StringList(new[] { "Only Enemy If Killable" })));
+                    rComboMenu.AddItem(new MenuItem("auto.shoot.bullets", "If Jhin Casting (R) Auto Cast Bullets").SetValue(true));
+                    rComboMenu.AddItem(new MenuItem("r.hit.chance", "(R) Hit Chance").SetValue(new StringList(Helper.HitchanceNameArray, 1)));
+                    Config.AddSubMenu(rComboMenu);
+                }
+
                 var drawMenu = new Menu(":: Drawings", ":: Drawings");
                 {
                     var damageDraw = new Menu(":: Damage Draw", ":: Damage Draw");
@@ -182,33 +184,22 @@ namespace Jhin___The_Virtuoso
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
             Game.OnUpdate += OnUpdate;
             Drawing.OnDraw += OnDraw;
-            Obj_AI_Base.OnIssueOrder += OnIssueOrder;
         }
 
 
 
-        private static void OnIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
-        {
-            if (sender.IsMe && Helper.IsRActive && (Config.Item("use.combo").GetValue<KeyBind>().Active || Config.Item("semi.manual.ult").GetValue<KeyBind>().Active))
-            {
-                args.Process = false;
-            }
-            else
-            {
-                args.Process = true;
-            }
-        }
+
         private static void OnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (Helper.IsRActive && sender.Owner.IsMe && (Config.Item("use.combo").GetValue<KeyBind>().Active || Config.Item("semi.manual.ult").GetValue<KeyBind>().Active))
+            if (Helper.IsRActive && (sender.Owner.IsMe))
             {
                 if (args.Slot == SpellSlot.R)
                 {
-                    if (Config.Item("ezevade.hijacker").GetValue<bool>() && Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots") != null)
+                   /* if (Config.Item("ezevade.hijacker").GetValue<bool>() && Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots") != null)
                     {
                         var ezevade = Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots");
                         ezevade.SetValue(false);
-                    }
+                    }*/
                     if (Config.Item("evadesharp.hijacker").GetValue<bool>() && Menu.GetMenu("Evade", "Evade").Item("Enabled") != null)
                     {
                         var evadesharp = Menu.GetMenu("Evade", "Evade").Item("Enabled");
@@ -219,13 +210,13 @@ namespace Jhin___The_Virtuoso
                 }
                 else
                 {
-                    if (Config.Item("ezevade.hijacker").GetValue<bool>() && Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots") != null)
+                    /*if (Config.Item("ezevade.hijacker").GetValue<bool>() && Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots") != null)
                     {
                         // ReSharper disable once NotAccessedVariable
                         var ezevade = Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots").SetValue(new KeyBind('K', KeyBindType.Toggle, true)).GetValue<KeyBind>();
                         ezevade.Active = true;
 
-                    }
+                    }*/
                     if (Config.Item("evadesharp.hijacker").GetValue<bool>() && Menu.GetMenu("Evade", "Evade").Item("Enabled") != null)
                     {
                         // ReSharper disable once NotAccessedVariable
@@ -239,7 +230,7 @@ namespace Jhin___The_Virtuoso
         }
         private static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (args.Slot == SpellSlot.R && Config.Item("use.combo").GetValue<KeyBind>().Active)
+            if (args.Slot == SpellSlot.R && Config.Item("semi.manual.ult").GetValue<KeyBind>().Active)
             {
                 Helper.LastR = Game.Time;
             }
@@ -294,6 +285,23 @@ namespace Jhin___The_Virtuoso
             {
                 SemiManual();
             }
+            if (!Config.Item("semi.manual.ult").GetValue<KeyBind>().Active && Config.Item("auto.shoot.bullets").GetValue<bool>())
+            {
+                AutoShoot();
+            }
+        }
+
+        private static void AutoShoot()
+        {
+            if (Helper.IsRActive) 
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(Jhin) < Config.Item("r.combo.max.distance").GetValue<Slider>().Value
+                    && x.Distance(Jhin) > Config.Item("r.combo.min.distance").GetValue<Slider>().Value && Config.Item("r.combo." + x.ChampionName).GetValue<bool>() &&
+                    R.GetPrediction(x).Hitchance >= Helper.HikiChance("r.hit.chance")))
+                {
+                    R.Cast(enemy);
+                }
+            }
         }
         private static void SemiManual()
         {
@@ -311,7 +319,7 @@ namespace Jhin___The_Virtuoso
         {
             if (Q.IsReady() && Config.Item("q.combo").GetValue<bool>())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range)))
+                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range) && !ObjectManager.Player.HasBuff("JhinPassiveReload")))
                 {
                     Q.CastOnUnit(enemy);
                 }
@@ -353,15 +361,6 @@ namespace Jhin___The_Virtuoso
                     && x.HasBuff("teleport_target")))
                 {
                     E.Cast(obj.Position);
-                }
-            }
-            if (R.IsReady() && Config.Item("r.combo").GetValue<bool>())
-            {
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.Distance(Jhin) < Config.Item("r.combo.max.distance").GetValue<Slider>().Value
-                    && x.Distance(Jhin) > Config.Item("r.combo.min.distance").GetValue<Slider>().Value && Config.Item("r.combo."+x.ChampionName).GetValue<bool>() &&
-                    R.GetPrediction(x).Hitchance >= Helper.HikiChance("r.hit.chance")).Where(enemy => enemy.Health < R.GetDamage(enemy)))
-                {
-                    R.Cast(enemy);
                 }
             }
         }

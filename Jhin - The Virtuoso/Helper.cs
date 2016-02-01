@@ -96,7 +96,7 @@ namespace Jhin___The_Virtuoso
             }
             if (Program.R.IsReady())
             {
-                damage += Program.R.Damage(enemy);
+                damage += Program.R.Damage(enemy) * 3;
             }
             return damage;
         }
