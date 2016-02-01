@@ -191,42 +191,40 @@ namespace Jhin___The_Virtuoso
 
         private static void OnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (Helper.IsRActive && (sender.Owner.IsMe))
+            if (args.Slot == SpellSlot.R && sender.Owner.IsMe && Helper.IsRActive)
             {
-                if (args.Slot == SpellSlot.R)
+                /* if (Config.Item("ezevade.hijacker").GetValue<bool>() && Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots") != null)
+                 {
+                     var ezevade = Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots");
+                     ezevade.SetValue(false);
+                 }*/
+                if (Config.Item("evadesharp.hijacker").GetValue<bool>() && Menu.GetMenu("Evade", "Evade").Item("Enabled") != null)
                 {
-                   /* if (Config.Item("ezevade.hijacker").GetValue<bool>() && Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots") != null)
-                    {
-                        var ezevade = Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots");
-                        ezevade.SetValue(false);
-                    }*/
-                    if (Config.Item("evadesharp.hijacker").GetValue<bool>() && Menu.GetMenu("Evade", "Evade").Item("Enabled") != null)
-                    {
-                        var evadesharp = Menu.GetMenu("Evade", "Evade").Item("Enabled");
-                        evadesharp.SetValue(false);
-                    }
-                    Orbwalker.SetAttack(false);
-                    Orbwalker.SetMovement(false);
+                    var evadesharp = Menu.GetMenu("Evade", "Evade").Item("Enabled");
+                    evadesharp.SetValue(false);
                 }
-                else
-                {
-                    /*if (Config.Item("ezevade.hijacker").GetValue<bool>() && Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots") != null)
-                    {
-                        // ReSharper disable once NotAccessedVariable
-                        var ezevade = Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots").SetValue(new KeyBind('K', KeyBindType.Toggle, true)).GetValue<KeyBind>();
-                        ezevade.Active = true;
-
-                    }*/
-                    if (Config.Item("evadesharp.hijacker").GetValue<bool>() && Menu.GetMenu("Evade", "Evade").Item("Enabled") != null)
-                    {
-                        // ReSharper disable once NotAccessedVariable
-                        var evadesharp = Menu.GetMenu("Evade", "Evade").Item("Enabled").SetValue(new KeyBind("K".ToCharArray()[0], KeyBindType.Toggle, true)).GetValue<KeyBind>();
-                        evadesharp.Active = true;
-                    }
-                    Orbwalker.SetAttack(true);
-                    Orbwalker.SetMovement(true);
-                }
+                Orbwalker.SetAttack(false);
+                Orbwalker.SetMovement(false);
             }
+            else
+            {
+                /*if (Config.Item("ezevade.hijacker").GetValue<bool>() && Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots") != null)
+                {
+                    // ReSharper disable once NotAccessedVariable
+                    var ezevade = Menu.GetMenu("ezEvade", "ezEvade").Item("DodgeSkillShots").SetValue(new KeyBind('K', KeyBindType.Toggle, true)).GetValue<KeyBind>();
+                    ezevade.Active = true;
+
+                }*/
+                if (Config.Item("evadesharp.hijacker").GetValue<bool>() && Menu.GetMenu("Evade", "Evade").Item("Enabled") != null)
+                {
+                    // ReSharper disable once NotAccessedVariable
+                    var evadesharp = Menu.GetMenu("Evade", "Evade").Item("Enabled").SetValue(new KeyBind("K".ToCharArray()[0], KeyBindType.Toggle, true)).GetValue<KeyBind>();
+                    evadesharp.Active = true;
+                }
+                Orbwalker.SetAttack(true);
+                Orbwalker.SetMovement(true);
+            }
+            
         }
         private static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
@@ -290,7 +288,6 @@ namespace Jhin___The_Virtuoso
                 AutoShoot();
             }
         }
-
         private static void AutoShoot()
         {
             if (Helper.IsRActive) 
@@ -319,14 +316,14 @@ namespace Jhin___The_Virtuoso
         {
             if (Q.IsReady() && Config.Item("q.combo").GetValue<bool>())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range) && !ObjectManager.Player.HasBuff("JhinPassiveReload")))
+                foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(Q.Range) && ObjectManager.Player.HasBuff("JhinPassiveReload")))
                 {
                     Q.CastOnUnit(enemy);
                 }
             }
             if (W.IsReady() && Config.Item("w.combo").GetValue<bool>())
             {
-                if (Config.Item("w.combo").GetValue<bool>())
+                if (Config.Item("w.passive.combo").GetValue<bool>())
                 {
                     foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValid && x.Distance(Jhin) < Config.Item("w.combo.max.distance").GetValue<Slider>().Value
                     && x.Distance(Jhin) > Config.Item("w.combo.min.distance").GetValue<Slider>().Value && W.GetPrediction(x).Hitchance >= Helper.HikiChance("w.hit.chance")
