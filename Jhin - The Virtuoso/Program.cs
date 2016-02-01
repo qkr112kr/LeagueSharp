@@ -52,8 +52,9 @@ namespace Jhin___The_Virtuoso
                     var wComboMenu = new Menu(":: W", ":: W");
                     {
                         wComboMenu.AddItem(new MenuItem("w.combo", "Use (W)").SetValue(true));
-                        wComboMenu.AddItem(new MenuItem("w.combo.min.distance", "Min. Distance").SetValue(new Slider(400, 1, 1000)));
-                        wComboMenu.AddItem(new MenuItem("w.combo.max.distance", "Max. Distance").SetValue(new Slider(1000, 1, 1000)));
+                        wComboMenu.AddItem(new MenuItem("w.combo.min.distance", "Min. Distance").SetValue(new Slider(400, 1, 2500)));
+                        wComboMenu.AddItem(new MenuItem("w.combo.max.distance", "Max. Distance").SetValue(new Slider(1000, 1, 2500)));
+                        wComboMenu.AddItem(new MenuItem("w.passive.combo", "Use (W) If Enemy Is Marked").SetValue(true));
                         wComboMenu.AddItem(new MenuItem("w.hit.chance", "(W) Hit Chance").SetValue(new StringList(Helper.HitchanceNameArray, 2)));
                         comboMenu.AddSubMenu(wComboMenu);
                     }
@@ -78,8 +79,8 @@ namespace Jhin___The_Virtuoso
                             rComboMenu.AddSubMenu(rComboWhiteMenu);
                         }
                         rComboMenu.AddItem(new MenuItem("r.combo", "Use (R)").SetValue(true));
-                        rComboMenu.AddItem(new MenuItem("r.combo.min.distance", "Min. Distance").SetValue(new Slider(650, 1, 2500)));
-                        rComboMenu.AddItem(new MenuItem("r.combo.max.distance", "Max. Distance").SetValue(new Slider(2000, 1, 2500)));
+                        rComboMenu.AddItem(new MenuItem("r.combo.min.distance", "Min. Distance").SetValue(new Slider(650, 1, 3500)));
+                        rComboMenu.AddItem(new MenuItem("r.combo.max.distance", "Max. Distance").SetValue(new Slider(2000, 1, 3500)));
                         rComboMenu.AddItem(new MenuItem("r.combo.style", "» (R) Style").SetValue(new StringList(new[] { "Only Enemy If Killable"})));
                         rComboMenu.AddItem(new MenuItem("r.hit.chance", "(R) Hit Chance").SetValue(new StringList(Helper.HitchanceNameArray, 2)));
                         comboMenu.AddSubMenu(rComboMenu);
@@ -286,7 +287,7 @@ namespace Jhin___The_Virtuoso
                     break;
                 case Orbwalking.OrbwalkingMode.None:
                     ImmobileE();
-                    KillSteal();
+                   /* KillSteal();*/
                     break;
             }
             if (Config.Item("semi.manual.ult").GetValue<KeyBind>().Active)
@@ -317,12 +318,24 @@ namespace Jhin___The_Virtuoso
             }
             if (W.IsReady() && Config.Item("w.combo").GetValue<bool>())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValid && x.Distance(Jhin) < Config.Item("w.combo.max.distance").GetValue<Slider>().Value
-                    && x.Distance(Jhin) > Config.Item("w.combo.min.distance").GetValue<Slider>().Value && W.GetPrediction(x).Hitchance >= Helper.HikiChance("w.hit.chance")))
+                if (Config.Item("w.combo").GetValue<bool>())
                 {
-                    W.Cast(enemy);
-
+                    foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValid && x.Distance(Jhin) < Config.Item("w.combo.max.distance").GetValue<Slider>().Value
+                    && x.Distance(Jhin) > Config.Item("w.combo.min.distance").GetValue<Slider>().Value && W.GetPrediction(x).Hitchance >= Helper.HikiChance("w.hit.chance")
+                    && x.HasBuff("jhinespotteddebuff")))
+                    {
+                        W.Cast(enemy);
+                    }
                 }
+                else
+                {
+                    foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValid && x.Distance(Jhin) < Config.Item("w.combo.max.distance").GetValue<Slider>().Value
+                    && x.Distance(Jhin) > Config.Item("w.combo.min.distance").GetValue<Slider>().Value && W.GetPrediction(x).Hitchance >= Helper.HikiChance("w.hit.chance")))
+                    {
+                        W.Cast(enemy);
+                    }
+                }
+                
             }
             if (E.IsReady() && Config.Item("e.combo").GetValue<bool>())
             {
