@@ -72,11 +72,27 @@ namespace Jhin___The_Virtuoso
                                   (1.0*ObjectManager.Player.TotalMagicalDamage);
                     return (float)ObjectManager.Player.CalcDamage(enemy, LeagueSharp.Common.Damage.DamageType.Physical, edamage);
                 case SpellSlot.R:
-                    var rdamage = (RDamage[spell.Level - 1] + 0.25*ObjectManager.Player.TotalAttackDamage) * ((100f - enemy.HealthPercent) * 0.02f + 
-                        (ObjectManager.Player.IsLastShoot() && IsRActive ? 1f : 0f));
-                    return (float)ObjectManager.Player.CalcDamage(enemy, LeagueSharp.Common.Damage.DamageType.Physical, rdamage);
+                    return (float)ObjectManager.Player.CalcDamage(enemy, LeagueSharp.Common.Damage.DamageType.Physical, (new[] { 50, 125, 200 }[Program.R.Level] + ObjectManager.Player.TotalAttackDamage * 0.25) * ((100f - enemy.HealthPercent) * 0.02f + (IsLastRShoot ? 1f : 0f)));
             }
             return 0;
+        }
+        private static bool IsLastRShoot
+        {
+            get { return IsRShootCastable && ObjectManager.Player.HasBuff("jhinrlast"); }
+        }
+        private static bool IsRShootCastable
+        {
+            get { return Program.R.Instance.Name == "JhinRShot"; }
+        }
+
+        public static float GetUltimateDamage(this Obj_AI_Hero enemy)
+        {
+            return Program.R.IsReady()
+                ? (float)
+                    ObjectManager.Player.CalcDamage(enemy, LeagueSharp.Common.Damage.DamageType.Physical,
+                        (new[] {50, 125, 200}[Program.R.Level] + ObjectManager.Player.TotalAttackDamage*0.25)*
+                        ((100f - enemy.HealthPercent)*0.02f + (IsLastRShoot ? 1f : 0f)))
+                : 0f;
         }
 
         public static float ComboDamage(Obj_AI_Hero enemy)
