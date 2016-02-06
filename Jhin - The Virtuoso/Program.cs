@@ -252,32 +252,43 @@ namespace Jhin___The_Virtuoso
         {
             if (Helper.IsRActive)
             {
-                var enemy =
-                    HeroManager.Enemies.Where(x=> x.IsValidTarget(R.Range) &&
+                var enemies =
+                    HeroManager.Enemies.Where(x => x.IsValidTarget(R.Range) &&
                              Config.Item("r.combo." + x.ChampionName).GetValue<bool>() &&
-                             R.GetPrediction(x).Hitchance >= Helper.HikiChance("r.hit.chance")).OrderBy(x=> R.GetDamage(x)).FirstOrDefault();
+                             R.GetPrediction(x).Hitchance >= Helper.HikiChance("r.hit.chance")).OrderBy(x => R.GetDamage(x));
 
-                if (enemy != null)
+                foreach (var enemy in enemies)
                 {
-                    R.Cast(enemy);
+                    var pred = R.GetPrediction(enemy);
+                    if (pred.Hitchance >= Helper.HikiChance("r.hit.chance"))
+                    {
+                        R.Cast(pred.CastPosition);
+                        return;
+                    }
                 }
             }
         }
+
         private static void SemiManual()
         {
             if (R.IsReady())
             {
-                var enemy =
+                var enemies =
                     HeroManager.Enemies.Where(x => x.IsValidTarget(R.Range) &&
-                             Config.Item("r.combo." + x.ChampionName).GetValue<bool>() &&
-                             R.GetPrediction(x).Hitchance >= Helper.HikiChance("r.hit.chance")).OrderBy(x => R.GetDamage(x)).FirstOrDefault();
-
-                if (enemy != null)
+                             Config.Item("r.combo." + x.ChampionName).GetValue<bool>()).OrderBy(x => R.GetDamage(x));
+                
+                foreach (var enemy in enemies)
                 {
-                    R.Cast(enemy);
+                    var pred = R.GetPrediction(enemy);
+                    if (pred.Hitchance >= Helper.HikiChance("r.hit.chance"))
+                    {
+                        R.Cast(pred.CastPosition);
+                        return;
+                    }
                 }
             }
         }
+
         private static void Combo()
         {
             if (Q.IsReady() && Config.Item("q.combo").GetValue<bool>())
@@ -326,7 +337,33 @@ namespace Jhin___The_Virtuoso
                     E.Cast(obj.Position);
                 }
             }
+
+            if (R.IsReady())
+            {
+                var enemy = HeroManager.Enemies.Find(x => x.IsValidTarget(R.Range) && Config.Item("r.combo." + x.ChampionName).GetValue<bool>() && x.Health <= R.GetDamage(x));
+                if (enemy != null)
+                {
+                    if (!Helper.IsRActive && Config.Item("r.combo").GetValue<bool>())
+                    {
+                        R.Cast();
+                    }
+                    else if (Helper.IsRActive && Config.Item("auto.shoot.bullets").GetValue<bool>())
+                    {
+                        var pred = R.GetPrediction(enemy);
+                        if (pred.Hitchance >= Helper.HikiChance("r.hit.chance"))
+                        {
+                            R.Cast(pred.CastPosition);
+                        }
+                    }
+                }
+
+                else if (enemy == null && Helper.IsRActive && Config.Item("auto.shoot.bullets").GetValue<bool>() && !Config.Item("semi.manual.ult").GetValue<KeyBind>().Active)
+                {
+                    AutoShoot();
+                }
+            }
         }
+
         private static void Harass()
         {
             if (Jhin.ManaPercent < Config.Item("harass.mana").GetValue<Slider>().Value)
