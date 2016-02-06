@@ -110,6 +110,7 @@ namespace Jhin___The_Virtuoso
                 {
                     ksMenu.AddItem(new MenuItem("q.ks", "Use (Q)").SetValue(true));
                     ksMenu.AddItem(new MenuItem("w.ks", "Use (W)").SetValue(true));
+                    ksMenu.AddItem(new MenuItem("r.ks", "Use (R)").SetValue(true));
                     Config.AddSubMenu(ksMenu);
                 }
 
@@ -165,13 +166,13 @@ namespace Jhin___The_Virtuoso
                 DamageIndicator.FillColor = drawFill.GetValue<Circle>().Color;
 
                 drawDamageMenu.ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs eventArgs)
+                delegate (object sender, OnValueChangeEventArgs eventArgs)
                 {
                     DamageIndicator.Enabled = eventArgs.GetNewValue<bool>();
                 };
 
                 drawFill.ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs eventArgs)
+                delegate (object sender, OnValueChangeEventArgs eventArgs)
                 {
                     DamageIndicator.Fill = eventArgs.GetNewValue<Circle>().Active;
                     DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
@@ -252,14 +253,11 @@ namespace Jhin___The_Virtuoso
         {
             if (Helper.IsRActive)
             {
-                var enemies =
-                    HeroManager.Enemies.Where(x => x.IsValidTarget(R.Range) &&
-                             Config.Item("r.combo." + x.ChampionName).GetValue<bool>() &&
-                             R.GetPrediction(x).Hitchance >= Helper.HikiChance("r.hit.chance")).OrderBy(x => R.GetDamage(x));
-
-                foreach (var enemy in enemies)
+                var blocked = HeroManager.Enemies.Where(x => !Config.Item("r.combo." + x.ChampionName).GetValue<bool>());
+                var tstarget = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical, false, blocked);
+                if (tstarget != null)
                 {
-                    var pred = R.GetPrediction(enemy);
+                    var pred = R.GetPrediction(tstarget);
                     if (pred.Hitchance >= Helper.HikiChance("r.hit.chance"))
                     {
                         R.Cast(pred.CastPosition);
@@ -273,17 +271,17 @@ namespace Jhin___The_Virtuoso
         {
             if (R.IsReady())
             {
-                var enemies =
-                    HeroManager.Enemies.Where(x => x.IsValidTarget(R.Range) &&
-                             Config.Item("r.combo." + x.ChampionName).GetValue<bool>()).OrderBy(x => R.GetDamage(x));
-                
-                foreach (var enemy in enemies)
+                var blocked = HeroManager.Enemies.Where(x => !Config.Item("r.combo." + x.ChampionName).GetValue<bool>());
+                var tstarget = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical, false, blocked);
+                if (tstarget != null)
                 {
-                    var pred = R.GetPrediction(enemy);
-                    if (pred.Hitchance >= Helper.HikiChance("r.hit.chance"))
+                    if (!Helper.IsRActive)
                     {
-                        R.Cast(pred.CastPosition);
-                        return;
+                        R.CastOnUnit(ObjectManager.Player);
+                    }
+                    else
+                    {
+                        AutoShoot();
                     }
                 }
             }
@@ -338,31 +336,16 @@ namespace Jhin___The_Virtuoso
                 }
             }
 
-            if (R.IsReady())
+            if (R.IsReady() && Config.Item("r.combo").GetValue<bool>() && !Helper.IsRActive)
             {
                 var enemy = HeroManager.Enemies.Find(x => x.IsValidTarget(R.Range) && Config.Item("r.combo." + x.ChampionName).GetValue<bool>() && x.Health <= R.GetDamage(x));
                 if (enemy != null)
                 {
-                    if (!Helper.IsRActive && Config.Item("r.combo").GetValue<bool>())
-                    {
-                        R.Cast();
-                    }
-                    else if (Helper.IsRActive && Config.Item("auto.shoot.bullets").GetValue<bool>())
-                    {
-                        var pred = R.GetPrediction(enemy);
-                        if (pred.Hitchance >= Helper.HikiChance("r.hit.chance"))
-                        {
-                            R.Cast(pred.CastPosition);
-                        }
-                    }
-                }
-
-                else if (enemy == null && Helper.IsRActive && Config.Item("auto.shoot.bullets").GetValue<bool>() && !Config.Item("semi.manual.ult").GetValue<KeyBind>().Active)
-                {
-                    AutoShoot();
+                    R.CastOnUnit(ObjectManager.Player);
                 }
             }
         }
+    
 
         private static void Harass()
         {
@@ -446,6 +429,19 @@ namespace Jhin___The_Virtuoso
                         && x.Health < W.GetDamage(x)))
                 {
                     W.Cast(enemy);
+                }
+            }
+
+            if (R.IsReady() && Config.Item("r.ks").GetValue<bool>() && Helper.IsRActive) {
+                var killable = HeroManager.Enemies.Find(x => Config.Item("r.combo." + x.ChampionName).GetValue<bool>() && x.IsValidTarget(R.Range) && x.Health < R.GetDamage(x));
+                if (killable != null)
+                {
+                    var pred = R.GetPrediction(killable);
+                    if (pred.Hitchance >= Helper.HikiChance("r.hit.chance"))
+                    {
+                        R.Cast(pred.CastPosition);
+                        return;
+                    }
                 }
             }
         }
