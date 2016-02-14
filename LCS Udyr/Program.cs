@@ -39,6 +39,7 @@ namespace LCS_Udyr
                     comboMenu.AddItem(new MenuItem("e.combo", "Use (E)").SetValue(true));
                     comboMenu.AddItem(new MenuItem("r.combo", "Use (R)").SetValue(true));
                     comboMenu.AddItem(new MenuItem("e.stun",  "Force (E)").SetValue(true)).SetTooltip("uses e for stun enemies");
+                    comboMenu.AddItem(new MenuItem("combo.type", "Combo Type").SetValue(new StringList(new[] { "Phoenix -> Bear", "Bear -> Phoenix" })));
                     Config.AddSubMenu(comboMenu);
                 }
                 var jungleMenu = new Menu(":: Jungle Settings", ":: Jungle Settings");
@@ -47,6 +48,7 @@ namespace LCS_Udyr
                     jungleMenu.AddItem(new MenuItem("w.jungle", "Use (W)").SetValue(true));
                     jungleMenu.AddItem(new MenuItem("e.jungle", "Use (E)").SetValue(true));
                     jungleMenu.AddItem(new MenuItem("r.jungle", "Use (R)").SetValue(true));
+                    jungleMenu.AddItem(new MenuItem("jungle.mana", "Min. Mana").SetValue(new Slider(50, 1, 99))).SetTooltip("manage your mana.");
                     Config.AddSubMenu(jungleMenu);
                 }
                 var clearMenu = new Menu(":: Clear Settings", ":: Clear Settings");
@@ -55,6 +57,7 @@ namespace LCS_Udyr
                     clearMenu.AddItem(new MenuItem("w.clear", "Use (W)").SetValue(true));
                     clearMenu.AddItem(new MenuItem("e.clear", "Use (E)").SetValue(false));
                     clearMenu.AddItem(new MenuItem("r.clear", "Use (R)").SetValue(true));
+                    clearMenu.AddItem(new MenuItem("clear.mana", "Min. Mana").SetValue(new Slider(50, 1, 99))).SetTooltip("manage your mana.");
                     Config.AddSubMenu(clearMenu);
                 }
 
@@ -98,34 +101,69 @@ namespace LCS_Udyr
             if (sender.IsMe && Orbwalking.IsAutoAttack(args.SData.Name) && args.Target is Obj_AI_Hero && args.Target.IsValid
                 && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
-                if (Q.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
-                    && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsTiger()
-                    && Config.Item("q.combo").GetValue<bool>())
+                switch (Config.Item("combo.q.type").GetValue<StringList>().SelectedIndex)
                 {
-                    Q.Cast();
+                    case 0:
+                        
+                        if (Q.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
+                            && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsTiger()
+                            && Config.Item("q.combo").GetValue<bool>() && !R.IsReady())
+                        {
+                            Q.Cast();
+                        }
+                        if (W.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
+                            && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsTurtle()
+                            && Config.Item("w.combo").GetValue<bool>() && !R.IsReady())
+                        {
+                            W.Cast();
+                        }
+                        if (E.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
+                            && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsBear()
+                            && Config.Item("e.combo").GetValue<bool>() && !Config.Item("e.stun").GetValue<bool>()
+                            && !R.IsReady())
+                        {
+                            E.Cast();
+                        }
+                        if (R.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
+                            && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsPhoenix()
+                            && Config.Item("r.combo").GetValue<bool>())
+                        {
+                            R.Cast();
+                        }   
+
+                        break;
+                    case 1:
+                         if (Q.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
+                            && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsTiger()
+                            && Config.Item("q.combo").GetValue<bool>() && !E.IsReady())
+                        {
+                            Q.Cast();
+                        }
+                        if (W.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
+                            && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsTurtle()
+                            && Config.Item("w.combo").GetValue<bool>() && !E.IsReady())
+                        {
+                            W.Cast();
+                        }
+                        if (E.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
+                            && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsBear()
+                            && Config.Item("e.combo").GetValue<bool>() && !Config.Item("e.stun").GetValue<bool>())
+                        {
+                            E.Cast();
+                        }
+                        if (R.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
+                            && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsPhoenix()
+                            && Config.Item("r.combo").GetValue<bool>() && !E.IsReady())
+                        {
+                            R.Cast();
+                        }  
+                        break;
                 }
-                if (W.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
-                && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsTurtle()
-                && Config.Item("w.combo").GetValue<bool>())
-                {
-                    W.Cast();
-                }
-                if (E.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
-                && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsBear()
-                && Config.Item("e.combo").GetValue<bool>() && !Config.Item("e.stun").GetValue<bool>())
-                {
-                    E.Cast();
-                }
-                if (R.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo
-                && ((Obj_AI_Hero)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsPhoenix()
-                && Config.Item("r.combo").GetValue<bool>())
-                {
-                    R.Cast();
-                }     
             }
 
             if (sender.IsMe && Orbwalking.IsAutoAttack(args.SData.Name) && args.Target is Obj_AI_Minion && 
-                args.Target.IsValid && ((Obj_AI_Minion)args.Target).Team == GameObjectTeam.Neutral)
+                args.Target.IsValid && ((Obj_AI_Minion)args.Target).Team == GameObjectTeam.Neutral &&
+                Udyr.ManaPercent >= Config.Item("jungle.mana").GetValue<Slider>().Value)
             {
                 if (Q.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear 
                     && ((Obj_AI_Minion)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsTiger()
@@ -155,7 +193,7 @@ namespace LCS_Udyr
             }
 
             if (sender.IsMe && Orbwalking.IsAutoAttack(args.SData.Name) && args.Target is Obj_AI_Minion &&
-                args.Target.IsValid && ((Obj_AI_Minion)args.Target).IsEnemy)
+                args.Target.IsValid && ((Obj_AI_Minion)args.Target).IsEnemy && Udyr.ManaPercent >= Config.Item("clear.mana").GetValue<Slider>().Value)
             {
                 if (Q.IsReady() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear
                     && ((Obj_AI_Minion)args.Target).IsValidTarget(Udyr.AttackRange) && !Udyr.IsTiger()
