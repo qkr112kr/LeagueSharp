@@ -3,41 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HikiCarry_Lee_Sin.Champions;
+using HikiCarry_Lee_Sin.Plugins;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
-using Utility = HybridCommon.Utility;
 
-namespace HikiCarry_Lee_Sin.Stages
+namespace HikiCarry_Lee_Sin.Core
 {
-    class WardJump : LeeSin
+    class WardJump
     {
-        private static float LastWardJumpTime;
+        private static float _lastWardJumpTime;
         public static float LastWardCreated;
         public static Vector3 WardCastPosition;
 
-        /// <summary>
-        /// Ward Cast Delay & Checker
-        /// </summary>
-        public static bool WardCastable // CanCastWard
+        public static bool WardCastable 
         {
-            get { return Game.Time - LastWardJumpTime > 0.50 && Items.GetWardSlot().SpellSlot.IsReady(); }
+            get { return Game.Time - _lastWardJumpTime > 0.50 && Items.GetWardSlot().SpellSlot.IsReady(); }
         }
 
-        /// <summary>
-        /// Basic Wardjump
-        /// </summary>
-        /// <param name="W">W Skill</param>
-        /// <param name="position">Jump Position</param>
-        public static void HikiJump(Spell W,Vector3 position)
+        public static void HikiJump(Vector3 position)
         {
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-            if (WardCastable && W.Instance.Name == "BlindMonkWOne" && W.IsReady())
+            if (WardCastable && Spells.W.Instance.Name == "BlindMonkWOne" && Spells.W.IsReady())
             {
                 ObjectManager.Player.Spellbook.CastSpell(Items.GetWardSlot().SpellSlot, position);
                 LastWardCreated = Game.Time;
-                LastWardJumpTime = Game.Time;
+                _lastWardJumpTime = Game.Time;
                 WardCastPosition = position;
             }
             var ward = ObjectManager.Get<Obj_AI_Base>()
@@ -49,13 +40,8 @@ namespace HikiCarry_Lee_Sin.Stages
                              Vector3.DistanceSquared(Game.CursorPos, obj.ServerPosition) <= 150 * 150));
             if (ward != null)
             {
-                W.CastOnUnit(ward);
+                Spells.W.CastOnUnit(ward);
             }
-        }
-
-        public static void Jump(Spell W,Vector3 position)
-        {
-            
         }
     }
 }
