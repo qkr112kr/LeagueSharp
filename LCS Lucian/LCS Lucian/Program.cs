@@ -216,14 +216,7 @@ namespace LCS_Lucian
             foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(LucianSpells.R.Range) &&
                 LucianSpells.R.GetPrediction(x).CollisionObjects.Count == 0))
             {
-                if (Helper.LEnabled("lucian.ult.lock"))
-                {
-                    LucianSpells.R.Cast(enemy);
-                }
-                else
-                {
-                    LucianSpells.R.Cast(enemy);
-                }
+                LucianSpells.R.Cast(enemy);
             }
         }
         private static void Harass()
