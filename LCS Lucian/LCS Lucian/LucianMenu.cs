@@ -15,7 +15,9 @@ namespace LCS_Lucian
             {
                 comboMenu.AddItem(new MenuItem("lucian.q.combo", "Use Q").SetValue(true)).SetTooltip("Uses Q in Combo", SharpDX.Color.GreenYellow);
                 comboMenu.AddItem(new MenuItem("lucian.e.combo", "Use E").SetValue(true)).SetTooltip("Uses E in Combo", SharpDX.Color.GreenYellow);
+                comboMenu.AddItem(new MenuItem("lucian.e.mode", "E Type").SetValue(new StringList(new[] { "Safe", "Cursor Position" })));
                 comboMenu.AddItem(new MenuItem("lucian.w.combo", "Use W").SetValue(true)).SetTooltip("Uses W in Combo", SharpDX.Color.GreenYellow);
+                comboMenu.AddItem(new MenuItem("lucian.disable.w.prediction", "Disable W Prediction").SetValue(true)).SetTooltip("10/10 for speed combo!", SharpDX.Color.GreenYellow);
                 comboMenu.AddItem(new MenuItem("lucian.r.combo", "Use R").SetValue(true)).SetTooltip("Uses R in Combo (Only Casting If Enemy Killable)", SharpDX.Color.GreenYellow);
                 comboMenu.AddItem(new MenuItem("lucian.combo.start.e", "Start Combo With E").SetValue(true)).SetTooltip("Starting Combo With E", SharpDX.Color.GreenYellow);
                 Config.AddSubMenu(comboMenu);
@@ -90,16 +92,18 @@ namespace LCS_Lucian
                     skillDraw.AddItem(new MenuItem("lucian.w.draw", "W Range").SetValue(new Circle(false, Color.Gold)));
                     skillDraw.AddItem(new MenuItem("lucian.e.draw", "E Range").SetValue(new Circle(false, Color.Gold)));
                     skillDraw.AddItem(new MenuItem("lucian.r.draw", "R Range").SetValue(new Circle(false, Color.Gold)));
+                    //skillDraw.AddItem(new MenuItem("lucian.lock.noti", "Lock Notification").SetValue(true));
                     drawMenu.AddSubMenu(skillDraw);
                 }
                 Config.AddSubMenu(drawMenu);
             }
+            //Config.AddItem(new MenuItem("lucian.ult.lock", "(R) Lock Target").SetValue(true));
             Config.AddItem(new MenuItem("lucian.semi.manual.ult", "Semi-Manual (R)!").SetValue(new KeyBind("A".ToCharArray()[0], KeyBindType.Press)));
             var drawDamageMenu = new MenuItem("RushDrawEDamage", "Combo Damage").SetValue(true);
             var drawFill = new MenuItem("RushDrawEDamageFill", "Combo Damage Fill").SetValue(new Circle(true, Color.Gold));
 
-            drawMenu.SubMenu("Damage Draws").AddItem(drawDamageMenu);
-            drawMenu.SubMenu("Damage Draws").AddItem(drawFill);
+            drawMenu.SubMenu(":: Damage Draws").AddItem(drawDamageMenu);
+            drawMenu.SubMenu(":: Damage Draws").AddItem(drawFill);
 
             DamageIndicator.DamageToUnit = LucianCalculator.LucianTotalDamage;
             DamageIndicator.Enabled = drawDamageMenu.GetValue<bool>();
