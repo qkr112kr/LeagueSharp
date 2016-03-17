@@ -50,6 +50,7 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             customizableinterrupter.AddItem(new MenuItem("katarina.r", "Katarina (R)").SetValue(true));
             
             misc.AddItem(new MenuItem("auto.orb.buy", "Auto Scrying Orb Buy!").SetValue(true));
+            misc.AddItem(new MenuItem("anti.gap", "Anti-Gapcloser (E)!").SetValue(true));
             misc.AddItem(new MenuItem("orb.level", "Scrying Orb Buy Level").SetValue(new Slider(6, 0, 18)));
             
             activator = new Menu("Activator Settings", "Activator Settings");
@@ -98,8 +99,8 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             Config.AddItem(new MenuItem("masterracec0mb0", "                      HikiCarry Masterrace Mode"));
             Config.AddItem(new MenuItem("condemn.style", "Condemn Method").SetValue(new StringList(new[] { "Shine", "Asuna", "360" })));
             Config.AddItem(new MenuItem("condemn.x1", "Condemn Style").SetValue(new StringList(new[] { "Only Combo"})));
-            Config.AddItem(new MenuItem("q.type", "Q Type").SetValue(new StringList(new[] {"Cursor Position" })));
-            Config.AddItem(new MenuItem("combo.type", "Combo Type").SetValue(new StringList(new[] { "Burst", "Normal" })));
+            Config.AddItem(new MenuItem("q.type", "Q Type").SetValue(new StringList(new[] {"Cursor Position", "Safe Position"},1)));
+            Config.AddItem(new MenuItem("combo.type", "Combo Type").SetValue(new StringList(new[] { "Burst", "Normal" },1)));
             Config.AddItem(new MenuItem("harass.type", "Harass Type").SetValue(new StringList(new[] { "2 Silver Stack + Q", "2 Silver Stack + E" })));
             Config.AddToMainMenu();
             
@@ -113,9 +114,25 @@ namespace HikiCarry_Vayne_Masterrace.Champions
 
             Game.OnUpdate += Game_OnGameUpdate;
             Orbwalking.AfterAttack += Orbwalking_AfterAttack;
+            Obj_AI_Base.OnDoCast += OnDoCast;
             Drawing.OnDraw += OnDraw;
             
         }
+
+        private void OnDoCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (sender.IsMe && Orbwalking.IsAutoAttack(args.SData.Name) && sender.Target is Obj_AI_Hero && 
+                sender.Type == GameObjectType.obj_AI_Hero)
+            {
+                if (Config.Item("combo.q").GetValue<bool>() && Spells[Q].IsReady() && !args.Target.IsDead && 
+                    ((Obj_AI_Hero)args.Target).IsValidTarget(ObjectManager.Player.AttackRange) &&
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                {
+                    QCast(((Obj_AI_Hero)args.Target));
+                }
+            }
+        }
+
         private void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             var tar = (Obj_AI_Hero)target;
@@ -189,9 +206,41 @@ namespace HikiCarry_Vayne_Masterrace.Champions
         }
         public override void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-            if (gapcloser.End.Distance(ObjectManager.Player.ServerPosition) <= 300)
+            if (gapcloser.End.Distance(ObjectManager.Player.ServerPosition) <= 300 && Config.Item("anti.gap").GetValue<bool>())
             {
                 Spells[E].Cast(gapcloser.End.Extend(ObjectManager.Player.ServerPosition, ObjectManager.Player.Distance(gapcloser.End) + Spells[E].Range));
+            }
+        }
+        public void SafePositionQ(Obj_AI_Hero enemy)
+        {
+            var range = Orbwalking.GetRealAutoAttackRange(enemy);
+            var path = LeagueSharp.Common.Geometry.CircleCircleIntersection(ObjectManager.Player.ServerPosition.To2D(),
+                Prediction.GetPrediction(enemy, 0.25f).UnitPosition.To2D(), Spells[Q].Range, range);
+
+            if (path.Count() > 0)
+            {
+                var epos = path.MinOrDefault(x => x.Distance(Game.CursorPos));
+                if (epos.To3D().UnderTurret(true) || epos.To3D().IsWall())
+                {
+                    return;
+                }
+
+                if (epos.To3D().CountEnemiesInRange(Spells[Q].Range - 100) > 0)
+                {
+                    return;
+                }
+                Spells[Q].Cast(epos);
+            }
+            if (path.Count() == 0)
+            {
+                var epos = ObjectManager.Player.ServerPosition.Extend(enemy.ServerPosition, -Spells[Q].Range);
+                if (epos.UnderTurret(true) || epos.IsWall())
+                {
+                    return;
+                }
+
+                // no intersection or target to close
+                Spells[Q].Cast(ObjectManager.Player.ServerPosition.Extend(enemy.ServerPosition, -Spells[Q].Range));
             }
         }
         public bool AsunasAllyFountain(Vector3 position)
@@ -296,6 +345,20 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                 }
             }
         }
+
+        public void QCast(Obj_AI_Hero enemy)
+        {
+            switch (Config.Item("q.type").GetValue<StringList>().SelectedIndex)
+            {
+                case 0:
+                    Spells[Q].Cast(Game.CursorPos);
+                    break;
+                case 1:
+                    SafePositionQ(enemy);
+                    break;
+            }
+        }
+
         public void QComboMethod()
         {
             switch (Config.Item("combo.type").GetValue<StringList>().SelectedIndex)
@@ -305,14 +368,14 @@ namespace HikiCarry_Vayne_Masterrace.Champions
                     {
                         if (qTarget.Buffs.Any(buff => buff.Name == "vaynesilvereddebuff" && buff.Count == 2))
                         {
-                            Spells[Q].Cast(Game.CursorPos);
+                            QCast(qTarget);
                         }
                     }
                     break;
                 case 1: 
                     foreach (Obj_AI_Hero qTarget in HeroManager.Enemies.Where(x => x.IsValidTarget(550)))
                     {
-                        Spells[Q].Cast(Game.CursorPos);
+                        QCast(qTarget);
                     }
                     break;
             }
