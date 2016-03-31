@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LeagueSharp;
 
-namespace Jhin___The_Virtuoso
+namespace Jhin___The_Virtuoso.Plugins
 {
     class VersionCheck
     {
@@ -32,6 +32,10 @@ namespace Jhin___The_Virtuoso
                             {
                                 Game.PrintChat("<font color='#15C3AC'>Jhin - The Virtuoso:</font> <font color='#40FF00'>" + "UPDATED - Version: " + gitVersion + "</font>");
                             }
+                        }
+                        else
+                        {
+                            Game.PrintChat("wrong github link :roto2:");
                         }
                     }
                 }

@@ -2,34 +2,31 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D8DB50A5-34FC-44FE-9341-CBB4AE898184}</ProjectGuid>
+    <ProjectGuid>{DE1F6673-BB12-4EBC-A0A0-69EA463BFA61}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Jhin___The_Virtuoso</RootNamespace>
     <AssemblyName>Jhin - The Virtuoso</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <PreBuildEvent />
-    <PostBuildEvent />
-    <OutputPath>bin\Release</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Release</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -47,6 +44,12 @@
     <Reference Include="SharpDX">
       <HintPath>C:\LeagueSharp\System\SharpDX.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.Direct3D9">
+      <HintPath>C:\LeagueSharp\System\SharpDX.Direct3D9.dll</HintPath>
+    </Reference>
+    <Reference Include="SPrediction">
+      <HintPath>C:\LeagueSharp\System\SPrediction.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -57,11 +60,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DamageIndicator.cs" />
-    <Compile Include="Helper.cs" />
+    <Compile Include="Extensions\Manager.cs" />
+    <Compile Include="Extensions\Menus.cs" />
+    <Compile Include="Extensions\Provider.cs" />
+    <Compile Include="Extensions\Spells.cs" />
+    <Compile Include="Extensions\Ultimate.cs" />
+    <Compile Include="Jhin.cs" />
+    <Compile Include="Modes\Clear.cs" />
+    <Compile Include="Modes\Combo.cs" />
+    <Compile Include="Modes\Jungle.cs" />
+    <Compile Include="Modes\Mixed.cs" />
+    <Compile Include="Modes\None.cs" />
+    <Compile Include="Plugins\Compare.cs" />
+    <Compile Include="Plugins\DamageIndicator.cs" />
+    <Compile Include="Plugins\Updater.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UpdateChecker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
