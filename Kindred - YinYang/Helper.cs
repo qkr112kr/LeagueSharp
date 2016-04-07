@@ -21,7 +21,7 @@ namespace Kindred___YinYang
             {
                 foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsValidTarget(1000) && x.ChampionName == "Rengar"))
                 {
-                    Program.R.Cast(Kindred);
+                    Program.R.Cast();
                 }
             }
         }
@@ -32,21 +32,21 @@ namespace Kindred___YinYang
             {
                 foreach (var enemy in HeroManager.Enemies.Where(x => x.ChampionName == "Katarina" && x.IsValidTarget(Program.R.Range) && x.HasBuff("katarinarsound") && !Kindred.IsDead && !x.IsDead && !x.IsZombie))
                 {
-                    Program.R.Cast(Kindred);
+                    Program.R.Cast();
                 }
             }
             if (Program.Config.Item("lucian.r").GetValue<bool>() && Program.R.IsReady() && Kindred.HealthPercent < Program.Config.Item("hp.percent.for.broke").GetValue<Slider>().Value)
             {
                 foreach (var enemy in HeroManager.Enemies.Where(x => x.ChampionName == "Lucian" && x.IsValidTarget(Program.R.Range) && x.HasBuff("lucianr") && !Kindred.IsDead && !x.IsDead && !x.IsZombie))
                 {
-                    Program.R.Cast(Kindred);
+                    Program.R.Cast();
                 }
             }
             if (Program.Config.Item("missfortune.r").GetValue<bool>() && Program.R.IsReady() && Kindred.HealthPercent < Program.Config.Item("hp.percent.for.broke").GetValue<Slider>().Value)
             {
                 foreach (var enemy in HeroManager.Enemies.Where(x => x.ChampionName == "MissFortune" && x.IsValidTarget(Program.R.Range) && x.HasBuff("missfortunebulletsound") && !Kindred.IsDead && !x.IsDead && !x.IsZombie))
                 {
-                    Program.R.Cast(Kindred);
+                    Program.R.Cast();
                 }
             }
         }
@@ -80,17 +80,17 @@ namespace Kindred___YinYang
                     if (protector.spellType == SpellType.Circular && Kindred.Distance(spell.End) <= 200 &&
                         sender.GetSpellDamage(Kindred, protector.spellName) > Kindred.Health)
                     {
-                        Program.R.Cast(Kindred);
+                        Program.R.Cast();
                     }
                     if (protector.spellType == SpellType.Cone && Kindred.Distance(spell.End) <= 200 &&
                         sender.GetSpellDamage(Kindred, protector.spellName) > Kindred.Health)
                     {
-                        Program.R.Cast(Kindred);
+                        Program.R.Cast();
                     }
                     if (protector.spellType == SpellType.Line && Kindred.Distance(spell.End) <= 200
                         && sender.GetSpellDamage(Kindred, protector.spellName) > Kindred.Health)
                     {
-                        Program.R.Cast(Kindred);
+                        Program.R.Cast();
                     }
                 }
             }
@@ -105,7 +105,7 @@ namespace Kindred___YinYang
                 if (Program.Config.Item("respite." + ally.CharData.BaseSkinName).GetValue<bool>() && Kindred.CountEnemiesInRange(1500) >= 1
                     && ally.CountEnemiesInRange(1500) >= 1)
                 {
-                    Program.R.Cast(ally);
+                    Program.R.Cast();
                 }
             }
         }
