@@ -29,6 +29,12 @@ namespace Hikigaya_Syndra
 
         private static void OnLoad(EventArgs args)
         {
+			
+			if(ObjectManager.Player.ChampionName != "Syndra")
+			{
+				return;
+			}
+			
             Q = new Spell(SpellSlot.Q, 790,TargetSelector.DamageType.Magical);
             Q.SetSkillshot(0.6f, 125f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
