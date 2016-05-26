@@ -42,13 +42,13 @@ namespace Hikigaya_Syndra
             W.SetSkillshot(0.25f, 140f, 1600f, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 700, TargetSelector.DamageType.Magical);
-            E.SetSkillshot(0.25f, (float)(45 * 0.5), 2500f, false, SkillshotType.SkillshotCircle);
+            E.SetSkillshot(0.25f, 100, 2500f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 675, TargetSelector.DamageType.Magical);
             R.SetTargetted(0.5f, 1100f);
 
             Qe = new Spell(SpellSlot.E, 1290);
-            Qe.SetSkillshot(float.MaxValue, 55f, 2000f, false, SkillshotType.SkillshotCircle);
+            Qe.SetSkillshot(0.6f, 100f, 2500f, false, SkillshotType.SkillshotLine);
 
             IgniteSlot = Player.GetSpellSlot("SummonerDot");
 
