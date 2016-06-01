@@ -280,7 +280,7 @@ namespace LCS_Lucian
             {
                 foreach (var minion in minions)
                 {
-                    if (LucianSpells.Q2.WillHit(target, ObjectManager.Player.ServerPosition.Extend(minion.ServerPosition, LucianSpells.Q2.Range)))
+                    if (LucianSpells.Q2.WillHit(target, ObjectManager.Player.ServerPosition.Extend(minion.ServerPosition, LucianSpells.Q2.Range),0,HitChance.VeryHigh))
                     {
                         LucianSpells.Q2.CastOnUnit(minion);
                     }
