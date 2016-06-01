@@ -45,7 +45,6 @@ namespace LCS_Lucian
         {
             get { return ObjectManager.Player.HasBuff("LucianR"); }
         }
-
         private static void ECast(Obj_AI_Hero enemy)
         {
             var range = Orbwalking.GetRealAutoAttackRange(enemy);
@@ -207,7 +206,15 @@ namespace LCS_Lucian
                 LucianMenu.Orbwalker.SetAttack(true);
             }
 
-            
+            if (Helper.LEnabled("lucian.q.ks") && (LucianSpells.Q.IsReady() || LucianSpells.Q2.IsReady()))
+            {
+                ExtendedQKillSteal();
+            }
+
+            if (Helper.LEnabled("lucian.w.ks") && LucianSpells.W.IsReady())
+            {
+                KillstealW();
+            }
 
         }
         private static void SemiManual()
@@ -261,6 +268,35 @@ namespace LCS_Lucian
                         LucianSpells.Q.CastOnUnit(enemy);
                     }
                     break;
+            }
+        }
+        private static void ExtendedQKillSteal()
+        {
+            var minions = ObjectManager.Get<Obj_AI_Minion>().Where(o => o.IsValidTarget(LucianSpells.Q.Range));
+            var target = ObjectManager.Get<Obj_AI_Hero>().FirstOrDefault(x => x.IsValidTarget(LucianSpells.Q2.Range));
+            
+            if (target.Distance(ObjectManager.Player.Position) > LucianSpells.Q.Range && target.CountEnemiesInRange(LucianSpells.Q2.Range) > 0
+                && (target.Health < LucianSpells.Q.GetDamage(target) || target.Health < LucianSpells.Q2.GetDamage(target)))
+            {
+                foreach (var minion in minions)
+                {
+                    if (LucianSpells.Q2.WillHit(target, ObjectManager.Player.ServerPosition.Extend(minion.ServerPosition, LucianSpells.Q2.Range)))
+                    {
+                        LucianSpells.Q2.CastOnUnit(minion);
+                    }
+                }
+            }
+        }
+        private static void KillstealW()
+        {
+            var target = HeroManager.Enemies.Where(x => x.IsValidTarget(LucianSpells.W.Range)).
+                FirstOrDefault(x=> x.Health < LucianSpells.W.GetDamage(x));
+
+            var pred = LucianSpells.W.GetPrediction(target);
+
+            if (target != null && pred.Hitchance >= HitChance.High)
+            {
+                LucianSpells.W.Cast(pred.CastPosition);
             }
         }
         private static void Clear()
