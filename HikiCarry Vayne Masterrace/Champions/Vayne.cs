@@ -102,6 +102,7 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             Config.AddItem(new MenuItem("q.type", "Q Type").SetValue(new StringList(new[] {"Cursor Position", "Safe Position"},1)));
             Config.AddItem(new MenuItem("combo.type", "Combo Type").SetValue(new StringList(new[] { "Burst", "Normal" },1)));
             Config.AddItem(new MenuItem("harass.type", "Harass Type").SetValue(new StringList(new[] { "2 Silver Stack + Q", "2 Silver Stack + E" })));
+            Config.AddItem(new MenuItem("q.stealth", "(Q) Stealth (ms) )").SetValue(new Slider(1000, 0, 1000)));
             Config.AddToMainMenu();
             
             var drawing = new Menu("Draw Settings", "Draw Settings");
@@ -116,7 +117,25 @@ namespace HikiCarry_Vayne_Masterrace.Champions
             Orbwalking.AfterAttack += Orbwalking_AfterAttack;
             Obj_AI_Base.OnDoCast += OnDoCast;
             Drawing.OnDraw += OnDraw;
-            
+            Orbwalking.BeforeAttack += BeforeAttack;
+
+        }
+
+        private void BeforeAttack(Orbwalking.BeforeAttackEventArgs args)
+        {
+            if (args.Unit.IsMe && args.Target.IsEnemy && args.Unit.HasBuff("vaynetumblefade"))
+            {
+                var stealthtime = Config.Item("q.stealth").GetValue<Slider>().Value;
+                var stealthbuff = args.Unit.GetBuff("vaynetumblefade");
+                if (stealthbuff.EndTime - Game.Time > stealthbuff.EndTime - stealthbuff.StartTime - stealthtime / 1000)
+                {
+                    args.Process = false;
+                }
+            }
+            else
+            {
+                args.Process = true;
+            }
         }
 
         private void OnDoCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
