@@ -313,10 +313,10 @@ namespace KarmaXD
                 return;
             }
 
-            if (W.IsReady() && Config.Item("karma.q.clear").GetValue<bool>())
+            if (Q.IsReady() && Config.Item("karma.q.clear").GetValue<bool>())
             {
                 var wminion = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, W.Range, MinionTypes.All, MinionTeam.NotAlly).ToList();
-                var xx = W.GetCircularFarmLocation(wminion);
+                var xx = Q.GetCircularFarmLocation(wminion);
                 if (xx.MinionsHit >= Config.Item("min.count").GetValue<Slider>().Value)
                 {
                     Q.Cast(xx.Position);
