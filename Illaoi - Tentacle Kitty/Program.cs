@@ -40,7 +40,7 @@ namespace Illaoi___Tentacle_Kitty
                 return;
             }
 
-            Q = new Spell(SpellSlot.Q, 850);
+            Q = new Spell(SpellSlot.Q, 800);
             W = new Spell(SpellSlot.W);
             E = new Spell(SpellSlot.E, 900);
             R = new Spell(SpellSlot.R, 450);
@@ -158,10 +158,10 @@ namespace Illaoi___Tentacle_Kitty
                 var enemy = HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(2000));
                 foreach (var passive in ObjectManager.Get<Obj_AI_Minion>().Where(x=> x.Name == "God"))
                 {
-                    Render.Circle.DrawCircle(new Vector3(passive.Position.X, passive.Position.Y, passive.Position.Z), 850, menuItem5.Color, 2);
+                    Render.Circle.DrawCircle(new Vector3(passive.Position.X, passive.Position.Y, passive.Position.Z), 800, menuItem5.Color, 2);
                     if (enemy != null)
                     {
-                        var xx = Drawing.WorldToScreen(passive.Position.Extend(enemy.Position, 850));
+                        var xx = Drawing.WorldToScreen(passive.Position.Extend(enemy.Position, 800));
                         var xy = Drawing.WorldToScreen(passive.Position);
                         Drawing.DrawLine(xy.X, xy.Y, xx.X, xx.Y, 5, Color.Gold);
                     }
@@ -223,7 +223,7 @@ namespace Illaoi___Tentacle_Kitty
                 var tentacle = ObjectManager.Get<Obj_AI_Minion>().First(x=> x.Name == "God");
                 if (tentacle != null)
                 {
-                    foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(850)))
+                    foreach (var enemy in HeroManager.Enemies.Where(x=> x.IsValidTarget(800)))
                     {
                         W.Cast();
                     }
@@ -284,7 +284,7 @@ namespace Illaoi___Tentacle_Kitty
                 var tentacle = ObjectManager.Get<Obj_AI_Minion>().First(x => x.Name == "God");
                 if (tentacle != null)
                 {
-                    foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(850)))
+                    foreach (var enemy in HeroManager.Enemies.Where(x => x.IsValidTarget(800)))
                     {
                         W.Cast();
                     }
